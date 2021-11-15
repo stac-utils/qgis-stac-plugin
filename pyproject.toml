@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "qgis-stac-plugin"
+version = "0.1.0"
+description = "QGIS plugin for reading STAC APIs"
+authors = ["Kartoza <info@kartoza.com>"]
+license = "GPL v3.0"
+
+[tool.poetry.dependencies]
+mkdocs = "^1.2.3"
+python = "^3.8"
+httpx = "^0.20.0"
+toml = "^0.10.2"
+typer = "^0.4.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.qgis-plugin.metadata]
+name = "STAC APIs Browser "
+qgisMinimumVersion = "3.0"
+icon = "icon.png"
+experimental = "True"
+deprecated = "False"
+homepage = "https://stac-utils.github.io/qgis-stac-api"
+tracker = "https://github.com/stac-utils/qgis-stac-api/issues"
+repository = "https://github.com/stac-utils/qgis-stac-api"
+tags = [
+    "stac-api",
+]
+category = "plugins"
+hasProcessingProvider = "no"
+about = """\
+Adds functionality to search, load and manage STAC APIs resources inside QGIS.
+"""
+# changelog: dynamically pulled from the README.md file
+# description: dynamically pulled from the tool.poetry.description section
+# version: dynamically pulled from the tool.poetry.version section
+# author: dynamically pulled from the tool.poetry.authors section
+# email: dynamically pulled from the tool.poetry.authors section
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
