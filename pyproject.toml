@@ -13,6 +13,7 @@ toml = "^0.10.2"
 typer = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
+PyQt5 = "^5.15.6"
 
 [tool.qgis-plugin.metadata]
 name = "STAC APIs Browser "
