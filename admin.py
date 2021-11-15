@@ -303,6 +303,7 @@ def generate_plugin_repo_xml(
     """.strip()
     contents = "<?xml version = '1.0' encoding = 'UTF-8'?>\n<plugins>"
     all_releases = _get_existing_releases(context=context)
+    _log(f"Found {len(all_releases)} release(s)...", context=context)
     for release in [r for r in _get_latest_releases(all_releases) if r is not None]:
         tag_name = release.tag_name
         _log(f"Processing release {tag_name}...", context=context)
@@ -453,7 +454,7 @@ def _get_existing_releases(
     :rtype: List[GithubRelease]
     """
     base_url = "https://api.github.com/repos/" \
-               "stac-utils/qgis_stac-plugin/releases"
+               "stac-utils/qgis-stac-plugin/releases"
     response = httpx.get(base_url)
     result = []
     if response.status_code == 200:

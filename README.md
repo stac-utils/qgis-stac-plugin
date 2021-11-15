@@ -2,7 +2,6 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/stac-utils/qgis-stac-plugin/Continuous%20Integration)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/stac-utils/qgis-stac-plugin?include_prereleases)
-
 ![GitHub](https://img.shields.io/github/license/stac-utils/qgis-stac-plugin)
 
 QGIS plugin for reading STAC APIs
