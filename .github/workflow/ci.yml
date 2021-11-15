@@ -1,7 +1,6 @@
 name: Continous Integration
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,7 +11,7 @@ on:
       - reopened
       - synchronize
     branches:
-      - develop
+      - main
 
 env:
   # Global environment variable

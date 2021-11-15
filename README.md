@@ -15,13 +15,13 @@ the new plugin repository.
 After adding the new repository, the plugin should be available from the list
 of all plugins that can be installed.
 
-Alternavitely the plugin can be installed using **Install from ZIP** option on the 
+Alternatively the plugin can be installed using **Install from ZIP** option on the 
 QGIS plugin manager. Download zip file from the required plugin released version
 https://github.com/stac-utils/qgis-stac-plugin/releases/download/{tagname}/qgis_stac.{version}.zip.
 
 From the **Install from ZIP** page select the zip file and click the **Install** button to install
 plugin
-![Screenshot for installf from zip option](docs/images/install_from_zip.png)
+![Screenshot for install from zip option](docs/images/install_from_zip.png)
 
 When the development work is complete the plugin will be available on the QGIS
 official plugin repository.
