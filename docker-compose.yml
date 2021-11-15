@@ -3,7 +3,7 @@ services:
   qgis-testing-environment:
     image: ${IMAGE}:${QGIS_VERSION_TAG}
     volumes:
-      - ./build:/tests_directory
+      - ./build/qgis_stac:/tests_directory
     environment:
       QGIS_VERSION_TAG: "${QGIS_VERSION_TAG}"
       WITH_PYTHON_PEP: "${WITH_PYTHON_PEP}"

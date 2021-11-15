@@ -1,4 +1,10 @@
 # qgis-stac-plugin
+
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/stac-utils/qgis-stac-plugin/Continuous%20Integration)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/stac-utils/qgis-stac-plugin?include_prereleases)
+
+![GitHub](https://img.shields.io/github/license/stac-utils/qgis-stac-plugin)
+
 QGIS plugin for reading STAC APIs
 
 ### Installation
@@ -31,10 +37,10 @@ official plugin repository.
 
 To use the plugin for development purposes, clone the repository locally,
 install poetry, a python dependencies management tool see https://python-poetry.org/docs/#installation
-then using the poetry tool, install the plugin dependencies by running 
+then using the poetry tool, update the poetry lock file and install plugin dependencies by running 
 ``` 
 poetry update --lock
-poetry install
+poetry install --no-dev
 ```
 
 To install the plugin into the QGIS application use the below command
