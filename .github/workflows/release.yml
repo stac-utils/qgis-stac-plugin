@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: fix Python command
+      - name: Fix Python command
         run: apt-get install python-is-python3
 
       - name: Install poetry
@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "::set-output name=IS_EXPERIMENTAL::$(poetry run python -c "import toml; data=toml.load('pyproject.toml'); print(data['tool']['qgis-plugin']['metadata']['experimental'].lower())")"
 
-      - name: create release from tag
+      - name: Create release from tag
         id: create-release
         uses: actions/create-release@v1
         env:
@@ -38,7 +38,7 @@ jobs:
           prerelease: ${{ steps.get-experimental.outputs.IS_EXPERIMENTAL }}
           draft: false
 
-      - name: generate zip
+      - name: Generate zip
         run: poetry run python admin.py generate-zip
 
       - name: get zip details
@@ -47,7 +47,7 @@ jobs:
           echo "::set-output name=ZIP_PATH::dist/$(ls dist)\n"
           echo "::set-output name=ZIP_NAME::$(ls dist)"
 
-      - name: upload release asset
+      - name: Upload release asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
@@ -58,8 +58,8 @@ jobs:
           asset_name: ${{ steps.get-zip-details.outputs.ZIP_NAME}}
           asset_content_type: application/zip
 
-      - name: generate plugin repo XML
+      - name: Generate plugin repo XML
         run: poetry run python admin.py --verbose generate-plugin-repo-xml
 
-      - name: update release repository
+      - name: Update release repository
         run: poetry run mkdocs gh-deploy --force
