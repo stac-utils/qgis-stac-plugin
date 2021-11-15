@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/qgis_stac" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,67 @@
+name: Create a release
+on:
+  push:
+    tags:
+      - "v*"
+    branch:
+      - "release-*"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-20.04
+    container:
+      image: qgis/qgis:release-3_20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: fix Python command
+        run: apt-get install python-is-python3
+
+      - name: Install poetry
+        uses: Gr1N/setup-poetry@v4
+
+      - name: Install plugin dependencies
+        run: poetry install
+
+      - name: Get experimental info
+        id: get-experimental
+        run: |
+          echo "::set-output name=IS_EXPERIMENTAL::$(poetry run python -c "import toml; data=toml.load('pyproject.toml'); print(data['tool']['qgis-plugin']['metadata']['experimental'].lower())")"
+
+      - name: create release from tag
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          prerelease: ${{ steps.get-experimental.outputs.IS_EXPERIMENTAL }}
+          draft: false
+
+      - name: generate zip
+        run: poetry run python admin.py generate-zip
+
+      - name: get zip details
+        id: get-zip-details
+        run: |
+          echo "::set-output name=ZIP_PATH::dist/$(ls dist)\n"
+          echo "::set-output name=ZIP_NAME::$(ls dist)"
+
+      - name: upload release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url}}
+          asset_path: ${{ steps.get-zip-details.outputs.ZIP_PATH}}
+          asset_name: ${{ steps.get-zip-details.outputs.ZIP_NAME}}
+          asset_content_type: application/zip
+
+      - name: generate plugin repo XML
+        run: poetry run python admin.py --verbose generate-plugin-repo-xml
+
+      - name: update release repository
+        run: poetry run mkdocs gh-deploy --force
