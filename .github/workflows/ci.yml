@@ -32,7 +32,7 @@ jobs:
           - release-3_16
           - release-3_18
           - release-3_20
-          - final-3_22_0
+          - release-3_22
 
     steps:
 
