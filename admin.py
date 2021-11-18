@@ -92,7 +92,7 @@ def install(context: typer.Context):
 
 @app.command()
 def uninstall(context: typer.Context):
-    """Remove plugin from QGIS plugins directory
+    """Removes the plugin from QGIS plugins directory
 
     :param context: Application context
     :type context: typer.Context
@@ -109,7 +109,7 @@ def uninstall(context: typer.Context):
 def generate_zip(
         context: typer.Context,
         output_directory: typing.Optional[Path] = LOCAL_ROOT_DIR / "dist"):
-    """ Generate plugin zip folder, that can be used to installed the
+    """ Generates plugin zip folder, that can be used to installed the
         plugin in QGIS
 
     :param context: Application context
