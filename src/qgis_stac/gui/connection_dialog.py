@@ -16,4 +16,3 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         super().__init__(parent)
         self.setupUi(self)
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(self.reject)
