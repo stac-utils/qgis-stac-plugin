@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    Handles access to storage and retrieval of the plugin QgsSettings
+    Handles storage and retrieval of the plugin QgsSettings.
 """
 
 import contextlib
@@ -19,14 +19,13 @@ logger = logging.getLogger(__name__)
 
 @contextlib.contextmanager
 def qgis_settings(group_root: str):
-    """
-    Context manager to help defining groups when creating QgsSettings
+    """Context manager to help defining groups when creating QgsSettings.
 
     :param group_root: Name of the root group for the settings.
     :type group_root: str
 
-    :yields: Instance of the created settings
-    :type QgsSettings
+    :yields: Instance of the created settings.
+    :type: QgsSettings
     """
     settings = QgsSettings()
     settings.beginGroup(group_root)
@@ -38,7 +37,8 @@ def qgis_settings(group_root: str):
 
 @dataclasses.dataclass
 class ConnectionSettings:
-    """Manages STAC API connection settings"""
+    """Manages STAC API connection settings.
+    """
 
     id: uuid.UUID
     name: str
@@ -51,7 +51,7 @@ class ConnectionSettings:
             cls,
             identifier: str,
             settings: QgsSettings):
-        """ Reads QGIS settings and parses them into a connection
+        """Reads QGIS settings and parses them into a connection
         settings instance with the respective settings values as properties.
 
         :param identifier: Connection identifier
@@ -75,17 +75,75 @@ class ConnectionSettings:
             auth_config=auth_cfg,
         )
 
+
 class SettingsManager(QtCore.QObject):
-    """Manage saving/loading settings for the plugin in QgsSettings"""
+    """Manages saving/loading settings for the plugin in QgsSettings.
+    """
 
     BASE_GROUP_NAME: str = "qgis_stac"
     CONNECTION_GROUP_NAME: str = "connections"
     SELECTED_CONNECTION_KEY: str = "selected_connection"
 
-    current_connection_changed = QtCore.pyqtSignal(str)
+    settings = QgsSettings()
+
+    def set_value(self, name: str, value):
+        """Adds a new setting key and value on the plugin specific settings.
+
+        :param name: Name of setting key
+        :type name: str
+
+        :param value: Value of the setting
+        :type value: Any
+
+        """
+        self.settings.setValue(
+            f"{self.BASE_GROUP_NAME}/{name}",
+            value
+        )
+
+    def get_value(
+            self,
+            name: str,
+            default=None,
+            setting_type=None):
+        """Gets value of the setting with the passed name.
+
+        :param name: Name of the setting key
+        :type name: str
+
+        :param default: Default value returned when the
+         setting key does not exists
+        :type default: Any
+
+        :param setting_type: Type of the store setting
+        :type setting_type: Any
+
+        :returns: Value of the setting
+        :rtype: Any
+        """
+        if setting_type:
+            return self.settings.value(
+                f"{self.BASE_GROUP_NAME}/{name}",
+                default,
+                setting_type
+            )
+        return self.settings.value(
+            f"{self.BASE_GROUP_NAME}/{name}",
+            default
+        )
+
+    def remove(self, name):
+        """Remove the setting with the specified name.
+
+        :param name: Name of the setting key
+        :type name: str
+        """
+        self.settings.remove(
+            f"{self.BASE_GROUP_NAME}/{name}"
+        )
 
     def list_connections(self) -> typing.List[ConnectionSettings]:
-        """ Lists all the plugin connections stored in the QgsSettings.
+        """Lists all the plugin connections stored in the QgsSettings.
 
         :return: Plugin connections
         :rtype: List[ConnectionSettings]
@@ -110,8 +168,7 @@ class SettingsManager(QtCore.QObject):
         return result
 
     def delete_all_connections(self):
-        """
-        Deletes all the plugin connections settings in QgsSettings
+        """Deletes all the plugin connections settings in QgsSettings.
         """
         with qgis_settings(
                 f"{self.BASE_GROUP_NAME}"
@@ -122,8 +179,7 @@ class SettingsManager(QtCore.QObject):
         self.clear_current_connection()
 
     def find_connection_by_name(self, name):
-        """
-        Finds a connection setting inside the plugin QgsSettings by name.
+        """Finds a connection setting inside the plugin QgsSettings by name.
 
         :param name: Name of the connection
         :type: str
@@ -155,8 +211,7 @@ class SettingsManager(QtCore.QObject):
     def get_connection_settings(
             self,
             identifier: uuid.UUID) -> ConnectionSettings:
-        """
-         Gets the connection setting with the specified identifier.
+        """Gets the connection setting with the specified identifier.
 
         :param identifier: Connection identifier
         :type identifier: uuid.UUID
@@ -173,20 +228,21 @@ class SettingsManager(QtCore.QObject):
 
     def save_connection_settings(
             self,
-            settings: ConnectionSettings):
-        """
-        Saves connection settings from the given connection settings object
+            connection_settings: ConnectionSettings):
+        """Saves connection settings from the given connection object.
 
-        :param settings: Connection settings object
-        :type settings: ConnectionSettings
+        :param connection_settings: Connection settings object
+        :type connection_settings: ConnectionSettings
 
         """
-        settings_key = self._get_connection_settings_base(settings.id)
+        settings_key = self._get_connection_settings_base(
+            connection_settings.id
+        )
         with qgis_settings(settings_key) as settings:
-            settings.setValue("name", settings.name)
-            settings.setValue("url", settings.base_url)
-            settings.setValue("page_size", settings.page_size)
-            settings.setValue("auth_config", settings.auth_config)
+            settings.setValue("name", connection_settings.name)
+            settings.setValue("url", connection_settings.url)
+            settings.setValue("page_size", connection_settings.page_size)
+            settings.setValue("auth_config", connection_settings.auth_config)
 
     def delete_connection(self, identifier: uuid.UUID):
         """Deletes plugin connection that match the passed identifier.
@@ -200,10 +256,10 @@ class SettingsManager(QtCore.QObject):
                 f"{self.BASE_GROUP_NAME}/"
                 f"{self.CONNECTION_GROUP_NAME}")\
                 as settings:
-            settings.remove(str(id))
+            settings.remove(str(identifier))
 
     def get_current_connection(self) -> typing.Optional[ConnectionSettings]:
-        """ Gets the current active connection from the QgsSettings
+        """Gets the current active connection from the QgsSettings.
 
         :returns Connection settings instance
         :rtype ConnectionSettings
@@ -229,20 +285,18 @@ class SettingsManager(QtCore.QObject):
         serialized_id = str(identifier)
         with qgis_settings(self.BASE_GROUP_NAME) as settings:
             settings.setValue(self.SELECTED_CONNECTION_KEY, serialized_id)
-        self.current_connection_changed.emit(serialized_id)
 
     def clear_current_connection(self):
-        """ Removes the selected connection settings.
+        """Removes the current selected connection in the settings.
         """
         with qgis_settings(self.BASE_GROUP_NAME) as settings:
             settings.setValue(self.SELECTED_CONNECTION_KEY, None)
-        self.current_connection_changed.emit("")
 
     def is_current_connection(self, identifier: uuid.UUID):
-        """ Checks if the connection with the passed identifier
+        """Checks if the connection with the passed identifier
             is the current selected connection.
 
-        :param identifier: Connection settings identifier
+        :param identifier: Connection settings identifier.
         :type identifier: uuid.UUID
         """
         current = self.get_current_connection()
@@ -251,7 +305,7 @@ class SettingsManager(QtCore.QObject):
     def _get_connection_settings_base(
             self,
             identifier: typing.Union[str, uuid.UUID]):
-        """ Gets the connection settings base url
+        """Gets the connection settings base url.
 
         :param identifier: Connection settings identifier
         :type identifier: uuid.UUID

@@ -22,9 +22,6 @@ do
     sleep 10
 
     docker-compose exec -T qgis-testing-environment qgis_testrunner.sh test_suite.test_package
-    docker-compose exec -T qgis-testing-environment sh -c find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
     docker-compose down
 
 done
-
-rm -rf build/qgis_stac/test/__pycache__
