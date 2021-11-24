@@ -6,143 +6,110 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>729</width>
-    <height>392</height>
+    <width>572</width>
+    <height>303</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Create a New Connection</string>
   </property>
-  <widget class="QGroupBox" name="mConnectionGroupBox_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>710</width>
-     <height>201</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Connection Information</string>
-   </property>
-   <layout class="QGridLayout" name="gridLayout_3">
-    <item row="0" column="0">
-     <widget class="QLabel" name="label_name">
-      <property name="text">
-       <string>Name</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="url_edit">
-      <property name="toolTip">
-       <string>URL of the connection, {x}, {y}, and {z} will be replaced with actual values. Use {-y} for inverted y axis.</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="placeholderText">
-       <string>http://example.com/stac-enpoint/</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_url">
-      <property name="text">
-       <string>URL</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="name_edit">
-      <property name="toolTip">
-       <string>URL of the connection, {x}, {y}, and {z} will be replaced with actual values. Use {-y} for inverted y axis.</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="placeholderText">
-       <string>Planetary Computer</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="2">
-     <widget class="QgsAuthConfigSelect" name="mAuthConfigSelect">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <widget class="QGroupBox" name="groupBox">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>30</y>
-         <width>691</width>
-         <height>71</height>
-        </rect>
-       </property>
-       <property name="title">
-        <string>Options</string>
-       </property>
-       <widget class="QLabel" name="label">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>30</y>
-          <width>66</width>
-          <height>19</height>
-         </rect>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QGroupBox" name="mConnectionGroupBox_2">
+     <property name="title">
+      <string>Connection Information</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="7" column="0" colspan="2">
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Test connection</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QDialogButtonBox" name="buttonBox">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="standardButtons">
+         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QgsAuthConfigSelect" name="mAuthConfigSelect">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Options</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Page size</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QgsSpinBox" name="mQgsSpinBox"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_url">
+        <property name="text">
+         <string>URL</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="url_edit">
+        <property name="toolTip">
+         <string>URL of the connection, {x}, {y}, and {z} will be replaced with actual values. Use {-y} for inverted y axis.</string>
         </property>
         <property name="text">
-         <string>Page size</string>
+         <string/>
+        </property>
+        <property name="placeholderText">
+         <string>http://example.com/stac-enpoint/</string>
         </property>
        </widget>
-       <widget class="QgsSpinBox" name="mQgsSpinBox">
-        <property name="geometry">
-         <rect>
-          <x>280</x>
-          <y>30</y>
-          <width>401</width>
-          <height>28</height>
-         </rect>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="name_edit">
+        <property name="toolTip">
+         <string>URL of the connection, {x}, {y}, and {z} will be replaced with actual values. Use {-y} for inverted y axis.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="placeholderText">
+         <string>Planetary Computer</string>
         </property>
        </widget>
-      </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>380</x>
-     <y>350</y>
-     <width>341</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>220</y>
-     <width>691</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Test connection</string>
-   </property>
-  </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_name">
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>
