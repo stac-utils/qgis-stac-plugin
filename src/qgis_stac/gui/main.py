@@ -13,6 +13,7 @@ WidgetUi, _ = loadUiType(
 
 class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     new_connection_btn: QtWidgets.QPushButton
+    pagination: QtWidgets.QWidget
 
     def __init__(
             self,
@@ -21,6 +22,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         super().__init__(parent)
         self.setupUi(self)
         self.new_connection_btn.clicked.connect(self.add_connection)
+        self.pagination.setVisible(False)
 
     def add_connection(self):
         connection_dialog = ConnectionDialog()
