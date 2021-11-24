@@ -6,7 +6,17 @@
 import datetime
 import enum
 import typing
+import dataclasses
 from uuid import UUID
+
+from qgis.core import QgsRectangle
+
+
+@dataclasses.dataclass
+class ResourcePagination:
+    total_records: int
+    current_page: int
+    page_size: int
 
 
 class GeometryType(enum.Enum):
@@ -118,3 +128,11 @@ class Item:
     assets: typing.Dict[str, ResourceAsset]
     collection: str
 
+
+@dataclasses.dataclass
+class ItemSearch:
+    page: typing.Optional[int] = 1
+    page_size: typing.Optional[int] = 10
+    title: typing.Optional[str] = None
+    collection: typing.Optional[str] = None
+    spatial_extent: typing.Optional[QgsRectangle] = None
