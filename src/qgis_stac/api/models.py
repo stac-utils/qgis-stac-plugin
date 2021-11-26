@@ -38,14 +38,17 @@ class ResourceType(enum.Enum):
     CATALOG = "Catalog"
 
 
+@dataclasses.dataclass
 class SpatialExtent:
     bbox: typing.List[int]
 
 
+@dataclasses.dataclass
 class TemporalExtent:
     interval: typing.List[str]
 
 
+@dataclasses.dataclass
 class ResourceAsset:
     href: str
     title: str
