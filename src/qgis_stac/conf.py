@@ -37,7 +37,7 @@ def qgis_settings(group_root: str):
 
 @dataclasses.dataclass
 class ConnectionSettings:
-    """Manages STAC API connection settings.
+    """Manages the plugin connection settings.
     """
 
     id: uuid.UUID

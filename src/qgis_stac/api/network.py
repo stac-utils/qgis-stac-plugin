@@ -15,7 +15,7 @@ import models
 from qgis_stac.lib.pystac_client import Client
 
 
-class NetworkFetchTask(QgsTask):
+class ContentFetcherTask(QgsTask):
 
     url: str
     search_params: models.ItemSearch
@@ -48,7 +48,8 @@ class NetworkFetchTask(QgsTask):
         if self.resource_type ==\
                 models.ResourceType.FEATURE:
             self.response = self.client.search(
-                self.search_params.to_dict())
+                **self.search_params.params()
+            )
         elif self.resource_type == \
                 models.ResourceType.COLLECTION:
             self.response = self.client.get_collections()

@@ -8,14 +8,14 @@ from qgis.PyQt import (
 
 import models
 
-from network import NetworkFetchTask
+from network import ContentFetcherTask
 from qgis_stac.conf import ConnectionSettings
 
 
 class BaseClient(QtCore.QObject):
     auth_config: str
     url: str
-    network_task: NetworkFetchTask
+    network_task: ContentFetcherTask
 
     collections_received = QtCore.pyqtSignal(
         list[models.Collection],
@@ -54,19 +54,13 @@ class BaseClient(QtCore.QObject):
         item_search: typing.Optional[models.ItemSearch] = None
     ):
         params = self.get_search_params(item_search)
-        self.network_task = NetworkFetchTask(
+        self.network_task = ContentFetcherTask(
             url=self.url,
             search_params=params,
             resource_type=models.ResourceType.FEATURE,
             response_handler=self.handle_items,
             error_handler=self.handle_error,
         )
-
-    def get_items_search_params(self, params: models.ItemSearch):
-        search_params = {
-            ''
-        }
-
 
     def handle_collections(
             self,

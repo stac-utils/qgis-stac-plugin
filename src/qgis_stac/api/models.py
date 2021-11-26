@@ -9,6 +9,10 @@ import typing
 import dataclasses
 from uuid import UUID
 
+from qgis.PyQt import (
+    QtCore
+)
+
 from qgis.core import QgsRectangle
 
 
@@ -131,8 +135,38 @@ class Item:
 
 @dataclasses.dataclass
 class ItemSearch:
+    ids: typing.Optional[int] = 1
     page: typing.Optional[int] = 1
     page_size: typing.Optional[int] = 10
-    title: typing.Optional[str] = None
-    collection: typing.Optional[str] = None
+    collections: typing.Optional[str] = None
+    datetime: typing.Optional[datetime.datetime] = None
     spatial_extent: typing.Optional[QgsRectangle] = None
+    start_datetime: typing.Optional[QtCore.QDateTime] = None
+    end_datetime: typing.Optional[QtCore.QDateTime] = None
+
+    def params(self):
+
+        bbox = [
+            self.spatial_extent.xMinimum(),
+            self.spatial_extent.yMinimum(),
+            self.spatial_extent.xMaximum(),
+            self.spatial_extent.yMaximum(),
+        ]
+        datetime_str = None
+        if self.start_datetime and not self.start_datetime:
+            datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}"
+        elif self.end_datetime and not self.start_datetime:
+            datetime_str = f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
+        elif self.start_datetime and self.end_datetime:
+            datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}\"" \
+                       f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
+
+        parameters = {
+            "ids": self.ids,
+            "collections": self.collections or None,
+            "limit": self.page_size or None,
+            "bbox": bbox or None,
+            "datetime": datetime_str,
+        }
+
+        return parameters
