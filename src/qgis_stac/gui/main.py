@@ -3,6 +3,7 @@ import os
 from qgis.PyQt import QtCore, QtGui, QtNetwork, QtWidgets, QtXml
 from qgis.PyQt.uic import loadUiType
 
+from ..conf import settings_manager
 from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 
@@ -18,6 +19,9 @@ WidgetUi, _ = loadUiType(
 class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     new_connection_btn: QtWidgets.QPushButton
     pagination: QtWidgets.QWidget
+    connections_cmb: QtWidgets.QComboBox
+    edit_connection_btn: QtWidgets.QPushButton
+    delete_connection_btn: QtWidgets.QPushButton
 
     def __init__(
             self,
@@ -26,6 +30,12 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         super().__init__(parent)
         self.setupUi(self)
         self.new_connection_btn.clicked.connect(self.add_connection)
+        self.connections_cmb.currentIndexChanged.connect(
+            self.toggle_connection_management_buttons
+        )
+        self.update_connections_combobox()
+        self.toggle_connection_management_buttons()
+        self.connections_cmb.activated.connect(self.update_current_connection)
         self.pagination.setVisible(False)
 
         self.search_btn.clicked.connect(
@@ -39,15 +49,17 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     def add_connection(self):
         connection_dialog = ConnectionDialog()
         connection_dialog.exec_()
+        self.update_connections_combobox()
 
-    def update_current_connection(self, index):
-        connection_name = self.connections_cmb.currentText()
-        if connection_name == "":
+    def update_current_connection(self, current_index: int):
+        current_text = self.connections_cmb.itemText(current_index)
+        if current_text == "":
             return
-        connection_settings = settings_manager. \
-            find_connection_by_name(connection_name)
+        current_connection = settings_manager.\
+            find_connection_by_name(current_text)
+        settings_manager.set_current_connection(current_connection.id)
         self.api_client = Client.from_connection_settings(
-            connection_settings
+            current_connection
         )
         self.api_client.items_received.connect(self.display_results)
         self.api_client.error_received.connect(self.display_search_error)
@@ -71,3 +83,21 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def display_search_error(self):
         raise NotImplementedError
+
+    def toggle_connection_management_buttons(self):
+        current_name = self.connections_cmb.currentText()
+        enabled = current_name != ""
+        self.edit_connection_btn.setEnabled(enabled)
+        self.delete_connection_btn.setEnabled(enabled)
+
+    def update_connections_combobox(self):
+        existing_connections = settings_manager.list_connections()
+        self.connections_cmb.clear()
+        if len(existing_connections) > 0:
+            self.connections_cmb.addItems(conn.name for conn in existing_connections)
+            current_connection = settings_manager.get_current_connection()
+            if current_connection is not None:
+                current_index = self.connections_cmb.findText(current_connection.name)
+                self.connections_cmb.setCurrentIndex(current_index)
+            else:
+                self.connections_cmb.setCurrentIndex(0)
