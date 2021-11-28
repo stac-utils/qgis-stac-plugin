@@ -11,7 +11,7 @@ class STACApiClientTest(unittest.TestCase):
 
     def test_root(self):
         response = app.test_client().get('/api/v1')
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':
