@@ -13,7 +13,7 @@ a dedicated plugin repository
 https://raw.githubusercontent.com/stac-utils/qgis-stac-plugin/gh-pages/repository/plugins.xml
 
 Open the QGIS plugin manager, then select the **Settings** page, click **Add** 
-button on the **Plugin Repositories** group box and use the above url for 
+button on the **Plugin Repositories** group box and use the above url to create
 the new plugin repository.
 ![Add plugin repository](docs/images/plugin_settings.png)
 
@@ -28,7 +28,7 @@ Alternatively the plugin can be installed using **Install from ZIP** option on t
 QGIS plugin manager. Download zip file from the required plugin released version
 https://github.com/stac-utils/qgis-stac-plugin/releases/download/{tagname}/qgis_stac.{version}.zip.
 
-From the **Install from ZIP** page select the zip file and click the **Install** button to install
+From the **Install from ZIP** page, select the zip file and click the **Install** button to install
 plugin
 ![Screenshot for install from zip option](docs/images/install_from_zip.png)
 
