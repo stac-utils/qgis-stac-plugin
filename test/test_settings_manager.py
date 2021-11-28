@@ -7,8 +7,6 @@ import unittest
 
 import uuid
 
-from utilities_for_testing import get_qgis_app
-QGIS_APP = get_qgis_app()
 
 from qgis_stac.conf import settings_manager
 from qgis_stac.conf import ConnectionSettings

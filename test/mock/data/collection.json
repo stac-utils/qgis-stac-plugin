@@ -1,0 +1,107 @@
+{
+  "id": "simple-collection",
+  "type": "Collection",
+  "stac_extensions": [],
+  "stac_version": "1.0.0",
+  "description": "A simple collection demonstrating core catalog fields with links to a couple of items",
+  "title": "Simple Example Collection",
+  "providers": [
+    {
+      "name": "Provider",
+      "description": "Descriptions",
+      "roles": [
+        "test"
+      ],
+      "url": "http://test"
+    }
+  ],
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          172.91173669923782,
+          1.3438851951615003,
+          172.95469614953714,
+          1.3690476620161975
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "2020-12-11T22:38:32.125Z",
+          "2020-12-14T18:02:31.437Z"
+        ]
+      ]
+    }
+  },
+  "license": "license",
+  "summaries": {
+    "platform": [
+      "platform1",
+      "platform2"
+    ],
+    "constellation": [
+      "test"
+    ],
+    "instruments": [
+      "test1",
+      "test2"
+    ],
+    "gsd": {
+      "minimum": 0.512,
+      "maximum": 0.66
+    },
+    "eo:cloud_cover": {
+      "minimum": 1.2,
+      "maximum": 1.2
+    },
+    "proj:epsg": {
+      "minimum": 32659,
+      "maximum": 32659
+    },
+    "view:sun_elevation": {
+      "minimum": 54.9,
+      "maximum": 54.9
+    },
+    "view:off_nadir": {
+      "minimum": 3.8,
+      "maximum": 3.8
+    },
+    "view:sun_azimuth": {
+      "minimum": 135.7,
+      "maximum": 135.7
+    }
+  },
+  "links": [
+    {
+      "rel": "root",
+      "href": "./collection.json",
+      "type": "application/json",
+      "title": "Example Collection"
+    },
+    {
+      "rel": "item",
+      "href": "./first_item.json",
+      "type": "application/geo+json",
+      "title": "First Item"
+    },
+    {
+      "rel": "item",
+      "href": "./second_item.json",
+      "type": "application/geo+json",
+      "title": "Second Item"
+    },
+    {
+      "rel": "item",
+      "href": "./third-item.json",
+      "type": "application/geo+json",
+      "title": "Third Item"
+    },
+    {
+      "rel": "self",
+      "href": "./collection.json",
+      "type": "application/json"
+    }
+  ]
+}
