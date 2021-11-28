@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-""" QGIS STAC plugin models
+""" QGIS STAC API plugin models
+
+The STAC API related resources have been defined
+in accordance to their definition available on
+https://github.com/radiantearth/stac-api-spec/tree/master/stac-spec
 
 """
 
@@ -18,12 +22,15 @@ from qgis.core import QgsRectangle
 
 @dataclasses.dataclass
 class ResourcePagination:
+    """The plugin resource pagination for the search results"""
     total_records: int
     current_page: int
     page_size: int
 
 
 class GeometryType(enum.Enum):
+    """Enum to represent the available geometry types """
+
     POINT = "Point"
     LINESTRING = "LineString"
     POLYGON = "Polygon"
@@ -33,6 +40,7 @@ class GeometryType(enum.Enum):
 
 
 class ResourceType(enum.Enum):
+    """Represents the STAC API resource types """
     COLLECTION = "Collection"
     FEATURE = "Feature"
     CATALOG = "Catalog"
@@ -40,16 +48,19 @@ class ResourceType(enum.Enum):
 
 @dataclasses.dataclass
 class SpatialExtent:
+    """Spatial extent as defined by the STAC API"""
     bbox: typing.List[int]
 
 
 @dataclasses.dataclass
 class TemporalExtent:
+    """Temporal extent as defined by the STAC API"""
     interval: typing.List[str]
 
 
 @dataclasses.dataclass
 class ResourceAsset:
+    """The STAC API asset"""
     href: str
     title: str
     description: str
@@ -58,11 +69,13 @@ class ResourceAsset:
 
 
 class ResourceExtent:
+    """The STAC API extent"""
     spatial: SpatialExtent
     temporal: TemporalExtent
 
 
 class ResourceLink:
+    """The STAC API extent"""
     href: str
     rel: str
     title: str
@@ -70,6 +83,10 @@ class ResourceLink:
 
 
 class ResourceProperties:
+    """Represents the STAC API Properties object,
+    which contains additional metadata fields
+    for the STAC API resources.
+    """
     title: str
     description: str
     datetime: datetime.datetime
@@ -81,6 +98,10 @@ class ResourceProperties:
 
 
 class ResourceProvider:
+    """Represents the STAC API Provider object,
+    which contains information about the provider that
+    captured the content available on a STAC API collections.
+    """
     name: str
     description: str
     roles: str
@@ -90,11 +111,13 @@ class ResourceProvider:
 # TODO Update the geometry coordinates type to include
 # all geometry types
 class ResourceGeometry:
+    """The GeoJSON geometry footprint STAC API assets"""
     type: GeometryType
     coordinates: typing.List[typing.List[int]]
 
 
 class Catalog:
+    """ Represents the STAC API Catalog"""
     id: int
     uuid: UUID
     title: str
@@ -106,6 +129,7 @@ class Catalog:
 
 
 class Collection:
+    """ Represents the STAC API Collection"""
     id: int
     uuid: UUID
     title: str
@@ -123,6 +147,7 @@ class Collection:
 
 
 class Item:
+    """ Represents the STAC API Item"""
     id: int
     uuid: UUID
     type: ResourceType
@@ -138,6 +163,7 @@ class Item:
 
 @dataclasses.dataclass
 class ItemSearch:
+    """ Definition for the pystac-client item search parameters"""
     ids: typing.Optional[int] = 1
     page: typing.Optional[int] = 1
     page_size: typing.Optional[int] = 10
@@ -148,7 +174,13 @@ class ItemSearch:
     end_datetime: typing.Optional[QtCore.QDateTime] = None
 
     def params(self):
+        """ Converts the class members into a dictionary that
+        can be used in searching the STAC API items using the
+        pystac-client library
 
+        :returns: Dictionary of parameters
+        :rtype: dict
+        """
         bbox = [
             self.spatial_extent.xMinimum(),
             self.spatial_extent.yMinimum(),

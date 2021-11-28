@@ -12,10 +12,15 @@ from qgis.core import (
 
 import models
 
-from qgis_stac.lib.pystac_client import Client
+from ..lib.pystac_client import Client
 
 
 class ContentFetcherTask(QgsTask):
+    """
+    Task to manage the STAC API content search using the pystac_client library,
+    passes the found content to a provided response handler
+    once fetching has finished.
+    """
 
     url: str
     search_params: models.ItemSearch
@@ -34,8 +39,6 @@ class ContentFetcherTask(QgsTask):
         response_handler: typing.Callable = None,
         error_handler: typing.Callable = None,
     ):
-        """
-        """
         super().__init__()
         self.url = url
         self.search_params = search_params
@@ -44,6 +47,12 @@ class ContentFetcherTask(QgsTask):
         self.error_handler = error_handler
 
     def run(self):
+        """
+        Runs the main task operation in the background.
+
+        :returns: Whether the task completed successfully
+        :rtype: bool
+        """
         self.client = Client.open(self.url)
         if self.resource_type ==\
                 models.ResourceType.FEATURE:
@@ -59,6 +68,13 @@ class ContentFetcherTask(QgsTask):
         return self.response is not None
 
     def finished(self, result: bool):
+        """
+        Called after the task run() completes either successfully
+        or upon early termination.
+
+        :param result: Whether task completed with success
+        :type result: bool
+        """
         if result:
             self.response_handler(self.response)
         else:

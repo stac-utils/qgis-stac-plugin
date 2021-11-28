@@ -8,11 +8,15 @@ from qgis.PyQt import (
 
 import models
 
-from network import ContentFetcherTask
-from qgis_stac.conf import ConnectionSettings
+from .network import ContentFetcherTask
+from ..conf import ConnectionSettings
 
 
 class BaseClient(QtCore.QObject):
+    """ Base API client, defines main plugin content fetching operations
+    for the STAC APIs.
+    Inherits from QObject in order to leverage signal and slots mechanism.
+    """
     auth_config: str
     url: str
     network_task: ContentFetcherTask
@@ -44,6 +48,15 @@ class BaseClient(QtCore.QObject):
             cls,
             connection_settings: ConnectionSettings
     ):
+        """Creates a BaseClient instance from the provided connections settings
+
+        :param connection_settings: Connection details retrieved from the
+        plugin settings
+        :type connection_settings: ConnectionSettings
+
+        :returns: Base client instance
+        :rtype: BaseClient
+        """
         return cls(
             url=connection_settings.url,
             auth_config=connection_settings.auth_config,
@@ -51,8 +64,15 @@ class BaseClient(QtCore.QObject):
 
     def get_items(
         self,
-        item_search: typing.Optional[models.ItemSearch] = None
+        item_search: typing.Optional[models.ItemSearch]
     ):
+        """Searches for items in the STAC API defined in this
+        base client.
+
+        :param item_search: Search item object that contains fields
+        used in querying the STAC items
+        :type item_search: ItemSearch
+        """
         params = self.get_search_params(item_search)
         self.network_task = ContentFetcherTask(
             url=self.url,
