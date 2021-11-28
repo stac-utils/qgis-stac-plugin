@@ -3,6 +3,7 @@ import os
 from qgis.PyQt import QtCore, QtGui, QtNetwork, QtWidgets, QtXml
 from qgis.PyQt.uic import loadUiType
 
+from ..conf import settings_manager
 from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 
@@ -121,5 +122,3 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def display_search_error(self):
         raise NotImplementedError
-
-

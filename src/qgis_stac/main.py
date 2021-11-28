@@ -9,8 +9,10 @@
  ***************************************************************************/
 """
 
+import re
 import os.path
 
+import uuid
 from qgis.core import QgsSettings
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
@@ -20,6 +22,12 @@ from qgis.PyQt.QtWidgets import QAction
 from .resources import *
 
 from qgis_stac.gui.main import QgisStacWidget
+from qgis_stac.definitions.catalog import CATALOGS
+
+from qgis_stac.conf import (
+    ConnectionSettings,
+    settings_manager
+)
 
 
 class QgisStac:
@@ -46,6 +54,22 @@ class QgisStac:
         self.toolbar = self.iface.addToolBar("STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
 
+        # Add catalog
+        duplicate_names = []
+        for catalog in CATALOGS:
+            connection_settings = ConnectionSettings(
+                id=uuid.uuid4(),
+                name=catalog['name'],
+                url=catalog['url'],
+                page_size=5,
+                auth_config=None,
+            )
+            name_pattern = re.compile(
+                f"^{connection_settings.name}$|^{connection_settings.name}(\(\d+\))$"
+            )
+            if len(settings_manager.list_connections()) <= len(CATALOGS):
+                settings_manager.save_connection_settings(connection_settings)
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -59,16 +83,16 @@ class QgisStac:
         return QCoreApplication.translate("QgisStac", message)
 
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None,
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None,
     ):
         """Add a toolbar icon to the toolbar.
         :param icon_path: Path to the icon for this action. Can be a resource
