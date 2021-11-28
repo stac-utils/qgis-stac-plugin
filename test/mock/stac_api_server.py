@@ -35,10 +35,10 @@ def collection(collection_id):
 
 
 @app.route("/api/v1/<collection_id>/items")
-def collection(collection_id):
-    items = {}
+def items(collection_id):
+    items_dict = {}
     if collection_id is "simple-collection":
-        items = {
+        items_dict = {
             "type": "FeatureCollection",
             "features": []
         }
@@ -47,5 +47,5 @@ def collection(collection_id):
         for f in files:
             with f.open() as fl:
                 item = json.load(fl)
-                items["features"].append(item)
-    return items
+                items_dict["features"].append(item)
+    return items_dict
