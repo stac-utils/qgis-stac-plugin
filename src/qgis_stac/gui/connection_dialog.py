@@ -15,7 +15,6 @@ DialogUi, _ = loadUiType(
 
 
 class ConnectionDialog(QtWidgets.QDialog, DialogUi):
-    connection_id: uuid.UUID
 
     def __init__(self,
                  connection_settings: typing.Optional[ConnectionSettings] = None
@@ -30,11 +29,6 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         ]
         for signal in ok_signals:
             signal.connect(self.update_ok_buttons)
-        if connection_settings is not None:
-            self.connection_id = connection_settings.id
-            self.load_connection_settings(connection_settings)
-        else:
-            self.connection_id = uuid.uuid4()
 
     def load_connection_settings(self, connection_settings: ConnectionSettings):
         self.name_edit.setText(connection_settings.name)
@@ -42,31 +36,19 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.auth_config.setConfigId(connection_settings.auth_config)
         self.page_size.setValue(connection_settings.page_size)
 
-    def get_connection_settings(self) -> ConnectionSettings:
-
-        return ConnectionSettings(
-            id=self.connection_id,
+    def accept(self):
+        connection_settings = ConnectionSettings(
+            id=uuid.uuid4(),
             name=self.name_edit.text().strip(),
             url=self.url_edit.text().strip(),
             page_size=self.page_size.value(),
             auth_config=self.auth_config.configId(),
         )
-
-    def accept(self):
-        connection_settings = self.get_connection_settings()
-        name_pattern = re.compile(
-            f"^{connection_settings.name}$|^{connection_settings.name}(\(\d+\))$"
-        )
-        duplicate_names = []
-        for connection_conf in settings_manager.list_connections():
-            if connection_conf.id == connection_settings.id:
-                continue  # we don't want to compare against ourselves
-            if name_pattern.search(connection_conf.name) is not None:
-                duplicate_names.append(connection_conf.name)
-        if len(duplicate_names) > 0:
-            connection_settings.name = (
-                f"{connection_settings.name}({len(duplicate_names)})"
-            )
+        existing_connection_names = []
+        if connection_settings.name in (connexion.name for connexion in settings_manager.list_connections()):
+            existing_connection_names.append(connection_settings.name)
+        if len(existing_connection_names) > 0:
+            connection_settings.name = f"{connection_settings.name}_{len(existing_connection_names)}"
         settings_manager.save_connection_settings(connection_settings)
         settings_manager.set_current_connection(connection_settings.id)
         super().accept()
