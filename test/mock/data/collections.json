@@ -78,7 +78,7 @@
       "links": [
         {
           "rel": "root",
-          "href": "./collection.json",
+          "href": "http://localhost:5000/",
           "type": "application/json",
           "title": "Example Collection"
         },
@@ -93,10 +93,10 @@
           "href": "./second_item.json",
           "type": "application/geo+json",
           "title": "Second Item"
-        }
+        },
         {
           "rel": "self",
-          "href": "./collection.json",
+          "href": "http://localhost:5000/collections/simple-collection",
           "type": "application/json"
         }
       ]

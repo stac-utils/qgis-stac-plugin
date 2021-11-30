@@ -24,51 +24,52 @@
   ],
   "links": [
     {
-      "rel": "self",
-      "type": "application/json",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/"
-    },
-    {
       "rel": "root",
       "type": "application/json",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/"
+      "href": "http://localhost:5000/"
     },
     {
       "rel": "data",
       "type": "application/json",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections"
+      "href": "http://localhost:5000/collections"
     },
     {
       "rel": "docs",
       "type": "application/json",
       "title": "OpenAPI docs",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/docs"
+      "href": "http://localhost:5000/docs"
     },
     {
       "rel": "conformance",
       "type": "application/json",
       "title": "STAC/WFS3 conformance classes implemented by this server",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/conformance"
+      "href": "http://localhost:5000/conformance"
     },
     {
       "rel": "search",
       "type": "application/geo+json",
       "title": "STAC search",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/search",
+      "href": "http://localhost:5000/search",
       "method": "GET"
     },
     {
       "rel": "search",
       "type": "application/json",
       "title": "STAC search",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/search",
+      "href": "http://localhost:5000/search",
       "method": "POST"
     },
     {
       "rel": "child",
       "type": "application/json",
-      "title": "USGS Gap Land Cover",
-      "href": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/gap"
+      "title": "Sample child",
+      "href": "http://localhost:5000/collections"
+    },
+    {
+      "rel": "owner",
+      "type": "application/json",
+      "title": "Sample Catalog",
+      "href": "http://localhost:5000/"
     }
   ],
   "stac_extensions": []

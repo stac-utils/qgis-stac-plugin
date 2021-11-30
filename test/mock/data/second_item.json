@@ -56,19 +56,19 @@
   "links": [
     {
       "rel": "collection",
-      "href": "./collection.json",
+      "href": "http://localhost:5000/collections/simple-collection",
       "type": "application/json",
       "title": "Simple Example Collection"
     },
     {
       "rel": "root",
-      "href": "./collection.json",
+      "href": "http://localhost:5000/collections/simple-collection",
       "type": "application/json",
       "title": "Simple Example Collection"
     },
     {
       "rel": "parent",
-      "href": "./collection.json",
+      "href": "http://localhost:5000/collections/simple-collection",
       "type": "application/json",
       "title": "Simple Example Collection"
     }

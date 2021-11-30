@@ -1,0 +1,193 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "assets": {
+        "thumbnail": {
+          "href": "https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2.jpg",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail",
+          "type": "image/jpeg"
+        },
+        "visual": {
+          "href": "https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2.tif",
+          "roles": [
+            "visual"
+          ],
+          "title": "3-Band Visual",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+        }
+      },
+      "bbox": [
+        172.91173669923782,
+        1.3438851951615003,
+        172.95469614953714,
+        1.3690476620161975
+      ],
+      "collection": "simple-collection",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              172.91173669923782,
+              1.3438851951615003
+            ],
+            [
+              172.95469614953714,
+              1.3438851951615003
+            ],
+            [
+              172.95469614953714,
+              1.3690476620161975
+            ],
+            [
+              172.91173669923782,
+              1.3690476620161975
+            ],
+            [
+              172.91173669923782,
+              1.3438851951615003
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "20201211_223832_CS1",
+      "links": [
+        {
+          "href": "http://localhost:5000/collections/simple-collection",
+          "rel": "collection",
+          "title": "Simple Example Collection",
+          "type": "application/json"
+        },
+        {
+          "href": "http://localhost:5000/collections/simple-collection",
+          "rel": "root",
+          "title": "Simple Example Collection",
+          "type": "application/json"
+        },
+        {
+          "href": "http://localhost:5000/collections/simple-collection",
+          "rel": "parent",
+          "title": "Simple Example Collection",
+          "type": "application/json"
+        }
+      ],
+      "properties": {
+        "datetime": "2020-12-11T22:38:32.125000Z"
+      },
+      "stac_extensions": [],
+      "stac_version": "1.0.0",
+      "type": "Feature"
+    },
+    {
+      "assets": {
+        "analytic": {
+          "href": "https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2_analytic.tif",
+          "roles": [
+            "data"
+          ],
+          "title": "4-Band Analytic",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+        },
+        "thumbnail": {
+          "href": "https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2.jpg",
+          "roles": [
+            "thumbnail"
+          ],
+          "title": "Thumbnail",
+          "type": "image/png"
+        },
+        "udm": {
+          "href": "https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2_analytic_udm.tif",
+          "title": "Unusable Data Mask",
+          "type": "image/tiff; application=geotiff;"
+        },
+        "visual": {
+          "href": "https://storage.googleapis.com/open-cogs/stac-examples/20201211_223832_CS2.tif",
+          "roles": [
+            "visual"
+          ],
+          "title": "3-Band Visual",
+          "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+        }
+      },
+      "bbox": [
+        172.91173669923782,
+        1.3438851951615003,
+        172.95469614953714,
+        1.3690476620161975
+      ],
+      "collection": "simple-collection",
+      "geometry": {
+        "coordinates": [
+          [
+            [
+              172.91173669923782,
+              1.3438851951615003
+            ],
+            [
+              172.95469614953714,
+              1.3438851951615003
+            ],
+            [
+              172.95469614953714,
+              1.3690476620161975
+            ],
+            [
+              172.91173669923782,
+              1.3690476620161975
+            ],
+            [
+              172.91173669923782,
+              1.3438851951615003
+            ]
+          ]
+        ],
+        "type": "Polygon"
+      },
+      "id": "20201211_223832_CS2",
+      "links": [
+        {
+          "href": "http://localhost:5000/collections/simple-collection",
+          "rel": "collection",
+          "title": "Simple Example Collection",
+          "type": "application/json"
+        },
+        {
+          "href": "http://localhost:5000/collections/simple-collection",
+          "rel": "root",
+          "title": "Simple Example Collection",
+          "type": "application/json"
+        },
+        {
+          "href": "http://localhost:5000/collections/simple-collection",
+          "rel": "parent",
+          "title": "Simple Example Collection",
+          "type": "application/json"
+        }
+      ],
+      "properties": {
+        "constellation": "test",
+        "created": "2020-12-12T01:48:13.725Z",
+        "datetime": null,
+        "description": "A sample STAC Item that includes examples of all common metadata",
+        "end_datetime": "2020-12-11T22:38:32.327Z",
+        "gsd": 0.512,
+        "instruments": [
+          "test1"
+        ],
+        "mission": "collection 5624",
+        "platform": "cool_sat1",
+        "start_datetime": "2020-12-11T22:38:32.125Z",
+        "title": "First Item",
+        "updated": "2020-12-12T01:48:13.725Z"
+      },
+      "stac_extensions": [],
+      "stac_version": "1.0.0",
+      "type": "Feature"
+    }
+  ]
+}

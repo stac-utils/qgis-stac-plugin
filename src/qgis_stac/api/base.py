@@ -6,7 +6,15 @@ from qgis.PyQt import (
     QtXml
 )
 
-import models
+from qgis.core import QgsApplication
+
+from .models import (
+    Collection,
+    Item,
+    ItemSearch,
+    ResourcePagination,
+    ResourceType,
+)
 
 from .network import ContentFetcherTask
 from ..conf import ConnectionSettings
@@ -19,15 +27,15 @@ class BaseClient(QtCore.QObject):
     """
     auth_config: str
     url: str
-    network_task: ContentFetcherTask
+    content_task: ContentFetcherTask
 
     collections_received = QtCore.pyqtSignal(
-        list[models.Collection],
-        models.ResourcePagination
+        list,
+        ResourcePagination
     )
     items_received = QtCore.pyqtSignal(
-        list[models.Item],
-        models.ResourcePagination
+        list,
+        ResourcePagination
     )
     error_received = QtCore.pyqtSignal([str], [str, int, str])
 
@@ -41,7 +49,7 @@ class BaseClient(QtCore.QObject):
         super().__init__(*args, **kwargs)
         self.auth_config = auth_config or ""
         self.url = url.rstrip("/")
-        self.network_task = None
+        self.content_task = None
 
     @classmethod
     def from_connection_settings(
@@ -64,7 +72,7 @@ class BaseClient(QtCore.QObject):
 
     def get_items(
         self,
-        item_search: typing.Optional[models.ItemSearch]
+        item_search: typing.Optional[ItemSearch]
     ):
         """Searches for items in the STAC API defined in this
         base client.
@@ -73,14 +81,31 @@ class BaseClient(QtCore.QObject):
         used in querying the STAC items
         :type item_search: ItemSearch
         """
-        params = self.get_search_params(item_search)
-        self.network_task = ContentFetcherTask(
+        self.content_task = ContentFetcherTask(
             url=self.url,
-            search_params=params,
-            resource_type=models.ResourceType.FEATURE,
+            search_params=item_search,
+            resource_type=ResourceType.FEATURE,
             response_handler=self.handle_items,
             error_handler=self.handle_error,
         )
+
+        QgsApplication.taskManager().addTask(self.content_task)
+
+    def get_collections(
+        self
+    ):
+        """Fetches all the collections in the STAC API defined in this
+        base client.
+        """
+        self.content_task = ContentFetcherTask(
+            url=self.url,
+            search_params=None,
+            resource_type=ResourceType.COLLECTION,
+            response_handler=self.handle_collections,
+            error_handler=self.handle_error,
+        )
+
+        QgsApplication.taskManager().addTask(self.content_task)
 
     def handle_collections(
             self,

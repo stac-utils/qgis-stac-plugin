@@ -1,5 +1,6 @@
 
 from .base import BaseClient
+from .models import Collection, Item, ResourcePagination
 
 
 class Client(BaseClient):
@@ -8,26 +9,49 @@ class Client(BaseClient):
         """
     def handle_items(
             self,
-            items
+            items_response
     ):
         """Emits the search results items, so plugin signal observers
         eg. gui can use the data.
 
-        :param items: Search results items
-        :type items: List[models.Items]
+        :param items_response: Search results items
+        :type items_response: List[models.Items]
         """
-        self.items_received.emit(items, None)
+        items = []
+        for item in items_response.get_items():
+            item_result = Item(
+                id=item.id
+            )
+            items.append(item_result)
+
+        # TODO query filter pagination results from the
+        # response
+        pagination = ResourcePagination()
+
+        self.items_received.emit(items, pagination)
 
     def handle_collections(
             self,
-            collections
+            collections_response
     ):
         """Emits the search results collections.
 
-        :param collections: Search results collections
-        :type collections: List[models.Collection]
+        :param collections_response: Search results collections
+        :type collections_response: List[models.Collection]
         """
-        self.items_received.emit(collections, None)
+        collections = []
+        for collection in collections_response:
+            collection_result = Collection(
+                id=collection.id,
+                title=collection.title
+            )
+            collections.append(collection_result)
+
+        # TODO query filter pagination results from the
+        # response
+        pagination = ResourcePagination()
+
+        self.collections_received.emit(collections, pagination)
 
     def handle_error(
             self,

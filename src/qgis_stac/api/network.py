@@ -10,7 +10,12 @@ from qgis.core import (
     QgsTask,
 )
 
-import models
+from .models import(
+    Collection,
+    ItemSearch,
+    ResourcePagination,
+    ResourceType,
+)
 
 from ..lib.pystac_client import Client
 
@@ -23,19 +28,19 @@ class ContentFetcherTask(QgsTask):
     """
 
     url: str
-    search_params: models.ItemSearch
-    resource_type: models.ResourceType
+    search_params: ItemSearch
+    resource_type: ResourceType
     response_handler: typing.Callable
     error_handler: typing.Callable
 
-    response: QtCore.QByteArray = None
+    response = None
     client: Client = None
 
     def __init__(
         self,
         url: str,
-        search_params: models.ItemSearch,
-        resource_type: models.ResourceType,
+        search_params: ItemSearch,
+        resource_type: ResourceType,
         response_handler: typing.Callable = None,
         error_handler: typing.Callable = None,
     ):
@@ -55,12 +60,12 @@ class ContentFetcherTask(QgsTask):
         """
         self.client = Client.open(self.url)
         if self.resource_type ==\
-                models.ResourceType.FEATURE:
+                ResourceType.FEATURE:
             self.response = self.client.search(
                 **self.search_params.params()
             )
         elif self.resource_type == \
-                models.ResourceType.COLLECTION:
+                ResourceType.COLLECTION:
             self.response = self.client.get_collections()
         else:
             raise NotImplementedError

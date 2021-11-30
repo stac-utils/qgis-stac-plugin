@@ -23,9 +23,9 @@ from qgis.core import QgsRectangle
 @dataclasses.dataclass
 class ResourcePagination:
     """The plugin resource pagination for the search results"""
-    total_records: int
-    current_page: int
-    page_size: int
+    total_records: int = 0
+    current_page: int = 1
+    page_size: int = 10
 
 
 class GeometryType(enum.Enum):
@@ -75,7 +75,7 @@ class ResourceExtent:
 
 
 class ResourceLink:
-    """The STAC API extent"""
+    """The STAC API link resource"""
     href: str
     rel: str
     title: str
@@ -116,6 +116,8 @@ class ResourceGeometry:
     coordinates: typing.List[typing.List[int]]
 
 
+
+@dataclasses.dataclass
 class Catalog:
     """ Represents the STAC API Catalog"""
     id: int
@@ -128,6 +130,7 @@ class Catalog:
     links: typing.List[ResourceLink]
 
 
+@dataclasses.dataclass
 class Collection:
     """ Represents the STAC API Collection"""
     id: int
@@ -146,29 +149,30 @@ class Collection:
     summaries: typing.Dict[str, str]
 
 
+@dataclasses.dataclass
 class Item:
     """ Represents the STAC API Item"""
     id: int
-    uuid: UUID
-    type: ResourceType
-    stac_version: str
-    stac_extensions: typing.List[str]
-    geometry: ResourceGeometry
-    bbox: typing.List[float]
-    properties: ResourceProperties
-    links: typing.List[ResourceLink]
-    assets: typing.Dict[str, ResourceAsset]
-    collection: str
+    uuid: UUID = None
+    type: ResourceType = None
+    stac_version: str = None
+    stac_extensions: typing.List[str] = None
+    geometry: ResourceGeometry = None
+    bbox: typing.List[float] = None
+    properties: ResourceProperties = None
+    links: typing.List[ResourceLink] = None
+    assets: typing.Dict[str, ResourceAsset] = None
+    collection: str = None
 
 
 @dataclasses.dataclass
 class ItemSearch:
     """ Definition for the pystac-client item search parameters"""
-    ids: typing.Optional[int] = 1
+    ids: typing.Optional[list] = None
     page: typing.Optional[int] = 1
     page_size: typing.Optional[int] = 10
-    collections: typing.Optional[str] = None
-    datetime: typing.Optional[datetime.datetime] = None
+    collections: typing.Optional[list] = None
+    datetime: typing.Optional[QtCore.QDateTime] = None
     spatial_extent: typing.Optional[QgsRectangle] = None
     start_datetime: typing.Optional[QtCore.QDateTime] = None
     end_datetime: typing.Optional[QtCore.QDateTime] = None
@@ -181,14 +185,16 @@ class ItemSearch:
         :returns: Dictionary of parameters
         :rtype: dict
         """
+
         bbox = [
             self.spatial_extent.xMinimum(),
             self.spatial_extent.yMinimum(),
             self.spatial_extent.xMaximum(),
             self.spatial_extent.yMaximum(),
-        ]
+        ] if self.spatial_extent else None
+
         datetime_str = None
-        if self.start_datetime and not self.start_datetime:
+        if self.start_datetime and not self.end_datetime:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}"
         elif self.end_datetime and not self.start_datetime:
             datetime_str = f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
@@ -200,7 +206,7 @@ class ItemSearch:
             "ids": self.ids,
             "collections": self.collections or None,
             "limit": self.page_size or None,
-            "bbox": bbox or None,
+            "bbox": bbox,
             "datetime": datetime_str,
         }
 
