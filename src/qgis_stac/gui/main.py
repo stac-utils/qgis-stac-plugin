@@ -42,6 +42,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def update_current_connection(self, index):
         connection_name = self.connections_cmb.currentText()
+        if connection_name == "":
+            return
         connection_settings = settings_manager. \
             find_connection_by_name(connection_name)
         self.api_client = Client.from_connection_settings(
