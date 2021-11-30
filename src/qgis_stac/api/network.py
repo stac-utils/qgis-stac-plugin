@@ -10,7 +10,7 @@ from qgis.core import (
     QgsTask,
 )
 
-from .models import(
+from .models import (
     Collection,
     ItemSearch,
     ResourcePagination,

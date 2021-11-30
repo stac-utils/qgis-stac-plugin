@@ -3,7 +3,6 @@
 
 """
 import unittest
-import requests
 
 from mock.mock_http_server import MockSTACApiServer
 from qgis.PyQt.QtTest import QSignalSpy
