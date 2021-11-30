@@ -45,14 +45,19 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             auth_config=self.auth_config.configId(),
         )
         existing_connection_names = []
-        if connection_settings.name in (connexion.name for connexion in settings_manager.list_connections()):
+        if connection_settings.name in (
+                connection.name for connection in
+                settings_manager.list_connections()):
             existing_connection_names.append(connection_settings.name)
         if len(existing_connection_names) > 0:
-            connection_settings.name = f"{connection_settings.name}_{len(existing_connection_names)}"
+            connection_settings.name = f"{connection_settings.name}" \
+                                       f"_{len(existing_connection_names)}"
         settings_manager.save_connection_settings(connection_settings)
         settings_manager.set_current_connection(connection_settings.id)
         super().accept()
 
     def update_ok_buttons(self):
-        enabled_state = self.name_edit.text() != "" and self.url_edit.text() != ""
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(enabled_state)
+        enabled_state = self.name_edit.text() != "" and \
+                        self.url_edit.text() != ""
+        self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Ok).setEnabled(enabled_state)

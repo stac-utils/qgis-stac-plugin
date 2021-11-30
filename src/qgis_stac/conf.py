@@ -164,7 +164,6 @@ class SettingsManager(QtCore.QObject):
                             connection_id, connection_settings
                         )
                     )
-        result.sort(key=lambda obj: obj.name)
         return result
 
     def delete_all_connections(self):
