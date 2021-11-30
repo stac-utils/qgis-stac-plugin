@@ -17,11 +17,6 @@ WidgetUi, _ = loadUiType(
 
 
 class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
-    new_connection_btn: QtWidgets.QPushButton
-    pagination: QtWidgets.QWidget
-    connections_cmb: QtWidgets.QComboBox
-    edit_connection_btn: QtWidgets.QPushButton
-    delete_connection_btn: QtWidgets.QPushButton
 
     def __init__(
             self,
@@ -101,3 +96,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 self.connections_cmb.setCurrentIndex(current_index)
             else:
                 self.connections_cmb.setCurrentIndex(0)
+
+    def update_current_connection(self, current_index: int):
+        current_text = self.connections_cmb.itemText(current_index)
+        if current_text != "":
+            current_connection = settings_manager.\
+                find_connection_by_name(current_text)
+            settings_manager.set_current_connection(
+                current_connection.id
+            )
+
