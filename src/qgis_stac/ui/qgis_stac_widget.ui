@@ -49,7 +49,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QComboBox" name="connections_cmb"/>
+           <widget class="QComboBox" name="connections_box"/>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">

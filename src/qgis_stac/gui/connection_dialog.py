@@ -15,9 +15,9 @@ DialogUi, _ = loadUiType(
 
 
 class ConnectionDialog(QtWidgets.QDialog, DialogUi):
+    """ Dialog for adding, editing plugin connections"""
 
-    def __init__(self,
-                 connection_settings: typing.Optional[ConnectionSettings] = None
+    def __init__(self
                  ):
         super().__init__()
         self.setupUi(self)
@@ -31,6 +31,11 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             signal.connect(self.update_ok_buttons)
 
     def load_connection_settings(self, connection_settings: ConnectionSettings):
+        """ Sets this dialog inputs values as defined in the passed connection settings.
+
+        :param connection_settings: Connection settings corresponding with the dialog.
+        :type connection_settings: ConnectionSettings
+        """
         self.name_edit.setText(connection_settings.name)
         self.url_edit.setText(connection_settings.base_url)
         self.auth_config.setConfigId(connection_settings.auth_config)
@@ -57,6 +62,9 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         super().accept()
 
     def update_ok_buttons(self):
+        """ Changes state of the connection dialog OK button
+        due to the avaialable values on the name and url inputs.
+        """
         enabled_state = self.name_edit.text() != "" and \
                         self.url_edit.text() != ""
         self.buttonBox.button(

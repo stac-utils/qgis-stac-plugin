@@ -17,7 +17,7 @@ WidgetUi, _ = loadUiType(
 
 
 class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
-
+    """ Main plugin widget that has tabs for search, results and settings."""
     def __init__(
             self,
             parent=None,
@@ -25,12 +25,12 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         super().__init__(parent)
         self.setupUi(self)
         self.new_connection_btn.clicked.connect(self.add_connection)
-        self.connections_cmb.currentIndexChanged.connect(
-            self.toggle_connection_management_buttons
+        self.connections_box.currentIndexChanged.connect(
+            self.update_connection_buttons
         )
         self.update_connections_combobox()
-        self.toggle_connection_management_buttons()
-        self.connections_cmb.activated.connect(self.update_current_connection)
+        self.update_connection_buttons()
+        self.connections_box.activated.connect(self.update_current_connection)
         self.pagination.setVisible(False)
 
         self.search_btn.clicked.connect(
@@ -42,9 +42,20 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.update_current_connection(self.connections_cmb.currentIndex())
 
     def add_connection(self):
+        """ Adds a new connection into the plugin, then updates
+        the connections combo box list to show the added connection.
+        """
         connection_dialog = ConnectionDialog()
         connection_dialog.exec_()
         self.update_connections_combobox()
+
+    def update_connection_buttons(self):
+        """ Updates the edit and delete connection buttons state
+        """
+        current_name = self.connections_cmb.currentText()
+        enabled = current_name != ""
+        self.edit_connection_btn.setEnabled(enabled)
+        self.delete_connection_btn.setEnabled(enabled)
 
     def update_current_connection(self, current_index: int):
         current_text = self.connections_cmb.itemText(current_index)
@@ -79,13 +90,10 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     def display_search_error(self):
         raise NotImplementedError
 
-    def toggle_connection_management_buttons(self):
-        current_name = self.connections_cmb.currentText()
-        enabled = current_name != ""
-        self.edit_connection_btn.setEnabled(enabled)
-        self.delete_connection_btn.setEnabled(enabled)
-
     def update_connections_combobox(self):
+        """ Updates connections list displayed on the connection
+        combox box to contain latest list of the connections.
+        """
         existing_connections = settings_manager.list_connections()
         self.connections_cmb.clear()
         if len(existing_connections) > 0:
@@ -98,6 +106,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 self.connections_cmb.setCurrentIndex(0)
 
     def update_current_connection(self, current_index: int):
+        """ Sets the select connection from the connection combo box as the
+        current selected connection.
+
+        :param current_index: Index of the selected item from the connection combo
+        box
+        :type current_index: int
+        """
         current_text = self.connections_cmb.itemText(current_index)
         if current_text != "":
             current_connection = settings_manager.\
