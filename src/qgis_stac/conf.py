@@ -92,7 +92,7 @@ class SettingsManager(QtCore.QObject):
 
     settings = QgsSettings()
 
-    connections_settings_updated = QtCore.pyqtSignal(str)
+    connections_settings_updated = QtCore.pyqtSignal()
 
     def set_value(self, name: str, value):
         """Adds a new setting key and value on the plugin specific settings.
@@ -184,7 +184,7 @@ class SettingsManager(QtCore.QObject):
             for connection_name in settings.childGroups():
                 settings.remove(connection_name)
         self.clear_current_connection()
-        self.connections_settings_updated.emit("")
+        self.connections_settings_updated.emit()
 
     def find_connection_by_name(self, name):
         """Finds a connection setting inside the plugin QgsSettings by name.
@@ -254,7 +254,7 @@ class SettingsManager(QtCore.QObject):
             settings.setValue("page_size", connection_settings.page_size)
             settings.setValue("created_date", created_date)
             settings.setValue("auth_config", connection_settings.auth_config)
-        self.connections_settings_updated.emit("")
+        self.connections_settings_updated.emit()
 
     def delete_connection(self, identifier: uuid.UUID):
         """Deletes plugin connection that match the passed identifier.
@@ -269,7 +269,7 @@ class SettingsManager(QtCore.QObject):
                 f"{self.CONNECTION_GROUP_NAME}")\
                 as settings:
             settings.remove(str(identifier))
-        self.connections_settings_updated.emit("")
+        self.connections_settings_updated.emit()
 
     def get_current_connection(self) -> typing.Optional[ConnectionSettings]:
         """Gets the current active connection from the QgsSettings.
@@ -316,14 +316,14 @@ class SettingsManager(QtCore.QObject):
         serialized_id = str(identifier)
         with qgis_settings(self.BASE_GROUP_NAME) as settings:
             settings.setValue(self.SELECTED_CONNECTION_KEY, serialized_id)
-        self.connections_settings_updated.emit("")
+        self.connections_settings_updated.emit()
 
     def clear_current_connection(self):
         """Removes the current selected connection in the settings.
         """
         with qgis_settings(self.BASE_GROUP_NAME) as settings:
             settings.setValue(self.SELECTED_CONNECTION_KEY, None)
-        self.connections_settings_updated.emit("")
+        self.connections_settings_updated.emit()
 
     def is_current_connection(self, identifier: uuid.UUID):
         """Checks if the connection with the passed identifier
