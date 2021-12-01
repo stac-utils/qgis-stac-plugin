@@ -77,7 +77,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="delete_connection_btn">
+             <widget class="QPushButton" name="remove_connection_btn">
               <property name="enabled">
                <bool>false</bool>
               </property>

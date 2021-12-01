@@ -3,13 +3,29 @@
     Plugin utilities
 """
 import uuid
+import datetime
 
+from qgis.PyQt import QtCore
 from .conf import (
     ConnectionSettings,
     settings_manager
 )
 
 from .definitions.catalog import CATALOGS
+
+
+def tr(message):
+    """Get the translation for a string using Qt translation API.
+    We implement this ourselves since we do not inherit QObject.
+
+    :param message: String for translation.
+    :type message: str, QString
+
+    :returns: Translated version of message.
+    :rtype: QString
+    """
+    # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+    return QtCore.QCoreApplication.translate("QgisStac", message)
 
 
 def config_defaults_catalogs():
@@ -27,6 +43,7 @@ def config_defaults_catalogs():
                 name=catalog['name'],
                 url=catalog['url'],
                 page_size=5,
+                created_date=datetime.datetime.now(),
                 auth_config=None,
             )
             settings_manager.save_connection_settings(connection_settings)
