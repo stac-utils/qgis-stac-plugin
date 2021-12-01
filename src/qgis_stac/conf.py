@@ -7,6 +7,7 @@ import contextlib
 import dataclasses
 import typing
 import uuid
+import datetime
 
 from qgis.PyQt import (
     QtCore,
@@ -42,6 +43,7 @@ class ConnectionSettings:
     name: str
     url: str
     page_size: int
+    created_date: datetime.datetime = datetime.datetime.now()
     auth_config: typing.Optional[str] = None
 
     @classmethod
@@ -61,8 +63,13 @@ class ConnectionSettings:
         :returns: Connection settings object
         :rtype: ConnectionSettings
         """
+        created_date = datetime.datetime.strptime(
+            settings.value("created_date"),
+            "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
         try:
             auth_cfg = settings.value("auth_config").strip()
+
         except AttributeError:
             auth_cfg = None
         return cls(
@@ -70,6 +77,7 @@ class ConnectionSettings:
             name=settings.value("name"),
             url=settings.value("url"),
             page_size=int(settings.value("page_size", defaultValue=10)),
+            created_date=created_date,
             auth_config=auth_cfg,
         )
 
@@ -238,10 +246,13 @@ class SettingsManager(QtCore.QObject):
         settings_key = self._get_connection_settings_base(
             connection_settings.id
         )
+        created_date = connection_settings.created_date.\
+            strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         with qgis_settings(settings_key) as settings:
             settings.setValue("name", connection_settings.name)
             settings.setValue("url", connection_settings.url)
             settings.setValue("page_size", connection_settings.page_size)
+            settings.setValue("created_date", created_date)
             settings.setValue("auth_config", connection_settings.auth_config)
         self.connections_settings_updated.emit("")
 
@@ -274,6 +285,24 @@ class SettingsManager(QtCore.QObject):
         else:
             result = None
         return result
+
+    def get_latest_connection(self) -> typing.Optional[ConnectionSettings]:
+        """Gets the most recent added connection from the QgsSettings.
+
+        :returns Connection settings instance
+        :rtype ConnectionSettings
+
+        """
+        connection_list = self.list_connections()
+        if len(connection_list) < 1:
+            return None
+        latest_connection = connection_list[0]
+
+        for connection in connection_list:
+            if connection.created_date > latest_connection.created_date:
+                latest_connection = connection
+
+        return latest_connection
 
     def set_current_connection(self, identifier: uuid.UUID):
         """Updates the plugin settings and set the connection with the

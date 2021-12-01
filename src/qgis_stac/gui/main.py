@@ -11,6 +11,8 @@ from ..conf import settings_manager
 from ..api.models import ItemSearch
 from ..api.client import Client
 
+from ..utils import tr
+
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/qgis_stac_widget.ui")
 )
@@ -27,6 +29,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         super().__init__(parent)
         self.setupUi(self)
         self.new_connection_btn.clicked.connect(self.add_connection)
+        self.edit_connection_btn.clicked.connect(self.edit_connection)
+        self.remove_connection_btn.clicked.connect(self.remove_connection)
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
         )
@@ -55,13 +59,46 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         connection_dialog.exec_()
         self.update_connections_box()
 
+    def edit_connection(self):
+        """ Edits the passed connection and updates the connection box list.
+        """
+        current_text = self.connections_box.currentText()
+        if current_text == "":
+            return
+        connection = settings_manager.find_connection_by_name(current_text)
+        connection_dialog = ConnectionDialog(connection)
+        connection_dialog.exec_()
+        self.update_connections_box()
+
+    def remove_connection(self):
+        """ Removes the current active connection.
+        """
+        current_text = self.connections_box.currentText()
+        if current_text == "":
+            return
+        connection = settings_manager.find_connection_by_name(current_text)
+        reply = QtWidgets.QMessageBox.warning(
+            self,
+            tr('STAC API Browser'),
+            tr('Remove the connection "{}"?').format(current_text),
+            QtWidgets.QMessageBox.Yes,
+            QtWidgets.QMessageBox.No
+        )
+        if reply == QtWidgets.QMessageBox.Yes:
+            settings_manager.delete_connection(connection.id)
+            latest_connection = settings_manager.get_latest_connection()
+            settings_manager.set_current_connection(
+                latest_connection.id
+            ) if latest_connection is not None else None
+            self.update_connections_box()
+
     def update_connection_buttons(self):
         """ Updates the edit and remove connection buttons state
         """
         current_name = self.connections_box.currentText()
         enabled = current_name != ""
         self.edit_connection_btn.setEnabled(enabled)
-        self.delete_connection_btn.setEnabled(enabled)
+        self.remove_connection_btn.setEnabled(enabled)
 
     def update_current_connection(self, index: int):
         """ Sets the connection with the passed index to be the

@@ -1,7 +1,8 @@
+
 import os
-import re
 import uuid
-import typing
+import datetime
+
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.uic import loadUiType
 from ..conf import (
@@ -17,11 +18,19 @@ DialogUi, _ = loadUiType(
 class ConnectionDialog(QtWidgets.QDialog, DialogUi):
     """ Dialog for adding and editing plugin connections details"""
 
-    def __init__(self
-                 ):
+    def __init__(
+            self,
+            connection=None
+    ):
+        """ Constructor
+
+        :param connection: Connection settings
+        :type connection: ConnectionSettings
+        """
         super().__init__()
         self.setupUi(self)
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
+        self.connection = connection
 
         ok_signals = [
             self.name_edit.textChanged,
@@ -30,6 +39,9 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         for signal in ok_signals:
             signal.connect(self.update_ok_buttons)
 
+        if connection:
+            self.load_connection_settings(connection)
+
     def load_connection_settings(self, connection_settings: ConnectionSettings):
         """ Sets this dialog inputs values as defined in the passed connection settings.
 
@@ -37,17 +49,22 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         :type connection_settings: ConnectionSettings
         """
         self.name_edit.setText(connection_settings.name)
-        self.url_edit.setText(connection_settings.base_url)
+        self.url_edit.setText(connection_settings.url)
         self.auth_config.setConfigId(connection_settings.auth_config)
         self.page_size.setValue(connection_settings.page_size)
 
     def accept(self):
         """ Handles logic for adding new connections"""
+        connection_id = uuid.uuid4()
+        if self.connection is not None:
+           connection_id = self.connection.id
+
         connection_settings = ConnectionSettings(
-            id=uuid.uuid4(),
+            id=connection_id,
             name=self.name_edit.text().strip(),
             url=self.url_edit.text().strip(),
             page_size=self.page_size.value(),
+            created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )
         existing_connection_names = []
@@ -57,7 +74,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             existing_connection_names.append(connection_settings.name)
         if len(existing_connection_names) > 0:
             connection_settings.name = f"{connection_settings.name}" \
-                                       f"_{len(existing_connection_names)}"
+                                       f"({len(existing_connection_names)})"
         settings_manager.save_connection_settings(connection_settings)
         settings_manager.set_current_connection(connection_settings.id)
         super().accept()
