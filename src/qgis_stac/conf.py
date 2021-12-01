@@ -306,6 +306,16 @@ class SettingsManager(QtCore.QObject):
         current = self.get_current_connection()
         return False if current is None else current.id == identifier
 
+    def is_connection(self, identifier: uuid.UUID):
+        """Checks if the connection with the identifier exists
+
+        :param identifier: Connection settings identifier.
+        :type identifier: uuid.UUID
+        """
+        connections = self.list_connections()
+        exists = any([connection.id == identifier for connection in connections])
+        return exists
+
     def _get_connection_settings_base(
             self,
             identifier: typing.Union[str, uuid.UUID]):

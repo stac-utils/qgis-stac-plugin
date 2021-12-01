@@ -9,6 +9,7 @@
  ***************************************************************************/
 """
 
+import re
 import os.path
 
 from qgis.core import QgsSettings
@@ -19,7 +20,9 @@ from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
 from .resources import *
 
-from qgis_stac.gui.main import QgisStacWidget
+from .gui.main import QgisStacWidget
+from .conf import settings_manager
+from .utils import config_defaults_catalogs
 
 
 class QgisStac:
@@ -46,6 +49,15 @@ class QgisStac:
         self.toolbar = self.iface.addToolBar("STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
 
+        # Add default catalogs, first check if they have already
+        # been set.
+        if not settings_manager.get_value(
+                "default_catalogs_set",
+                default=False,
+                setting_type=bool
+        ):
+            config_defaults_catalogs()
+
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -59,16 +71,16 @@ class QgisStac:
         return QCoreApplication.translate("QgisStac", message)
 
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None,
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None,
     ):
         """Add a toolbar icon to the toolbar.
         :param icon_path: Path to the icon for this action. Can be a resource
