@@ -15,7 +15,7 @@ DialogUi, _ = loadUiType(
 
 
 class ConnectionDialog(QtWidgets.QDialog, DialogUi):
-    """ Dialog for adding, editing plugin connections"""
+    """ Dialog for adding and editing plugin connections details"""
 
     def __init__(self
                  ):
@@ -42,6 +42,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.page_size.setValue(connection_settings.page_size)
 
     def accept(self):
+        """ Handles logic for adding new connections"""
         connection_settings = ConnectionSettings(
             id=uuid.uuid4(),
             name=self.name_edit.text().strip(),
@@ -62,8 +63,8 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         super().accept()
 
     def update_ok_buttons(self):
-        """ Changes state of the connection dialog OK button
-        due to the avaialable values on the name and url inputs.
+        """ Responsible for changing the state of the
+         connection dialog OK button.
         """
         enabled_state = self.name_edit.text() != "" and \
                         self.url_edit.text() != ""
