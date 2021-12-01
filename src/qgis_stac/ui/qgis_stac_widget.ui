@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>891</width>
+    <width>855</width>
     <height>734</height>
    </rect>
   </property>
@@ -90,7 +90,7 @@
              </widget>
             </item>
             <item>
-             <spacer>
+             <spacer name="horizontal_space">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -131,37 +131,53 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="filter_date">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
+        <widget class="QgsCollapsibleGroupBox" name="date_filter">
          <property name="title">
           <string>Filter by date</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
          </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="2" column="1">
-           <widget class="QDateTimeEdit" name="dateTimeEdit_2"/>
+         <property name="collapsed">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>End</string>
+            </property>
+           </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QDateTimeEdit" name="dateTimeEdit"/>
-          </item>
-          <item row="1" column="0">
+          <item row="0" column="0">
            <widget class="QLabel" name="label_13">
             <property name="text">
              <string>Start</string>
             </property>
            </widget>
           </item>
+          <item row="1" column="0">
+           <widget class="QgsDateTimeEdit" name="start_dte">
+            <property name="dateTime">
+             <datetime>
+              <hour>22</hour>
+              <minute>5</minute>
+              <second>0</second>
+              <year>2000</year>
+              <month>12</month>
+              <day>1</day>
+             </datetime>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>End</string>
+           <widget class="QgsDateTimeEdit" name="end_dte">
+            <property name="date">
+             <date>
+              <year>2000</year>
+              <month>12</month>
+              <day>1</day>
+             </date>
             </property>
            </widget>
           </item>
@@ -171,7 +187,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QgsExtentGroupBox" name="mExtentGroupBox">
+          <widget class="QgsExtentGroupBox" name="extent_box">
            <property name="enabled">
             <bool>true</bool>
            </property>
@@ -193,74 +209,22 @@
            <property name="flat">
             <bool>false</bool>
            </property>
-           <widget class="QWidget" name="layoutWidget">
-            <property name="geometry">
-             <rect>
-              <x>400</x>
-              <y>130</y>
-              <width>411</width>
-              <height>30</height>
-             </rect>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item>
-              <spacer name="horizontalSpacer_4">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>48</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_8">
-               <property name="text">
-                <string>Draw on Canvas</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton">
-               <property name="text">
-                <string>Map canvas extent</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QGroupBox" name="filter_metadata">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
+        <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
          <property name="title">
           <string>Metadata</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
          </property>
-         <layout class="QGridLayout" name="gridLayout_7">
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="lineEdit_5"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Mission</string>
-            </property>
-           </widget>
-          </item>
+         <property name="collapsed">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
@@ -268,8 +232,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEdit_2"/>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit"/>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_5">
@@ -277,6 +241,9 @@
              <string>Platform</string>
             </property>
            </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEdit_2"/>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_6">
@@ -288,6 +255,13 @@
           <item row="2" column="1">
            <widget class="QLineEdit" name="lineEdit_3"/>
           </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Mission</string>
+            </property>
+           </widget>
+          </item>
           <item row="3" column="1">
            <widget class="QLineEdit" name="lineEdit_4"/>
           </item>
@@ -298,11 +272,24 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEdit"/>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="lineEdit_5"/>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -500,20 +487,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Time Out</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_url">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Page Size</string>
+                 <string>Timeout</string>
                 </property>
                </widget>
               </item>
@@ -530,9 +504,6 @@
                  </sizepolicy>
                 </property>
                </widget>
-              </item>
-              <item>
-               <widget class="QSpinBox" name="spinBox_2"/>
               </item>
              </layout>
             </item>
@@ -577,6 +548,11 @@
    <extends>QGroupBox</extends>
    <header>qgscollapsiblegroupbox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QgsDateTimeEdit</class>
+   <extends>QDateTimeEdit</extends>
+   <header>qgsdatetimeedit.h</header>
   </customwidget>
   <customwidget>
    <class>QgsExtentGroupBox</class>
