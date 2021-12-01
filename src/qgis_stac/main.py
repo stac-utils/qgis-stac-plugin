@@ -12,7 +12,6 @@
 import re
 import os.path
 
-import uuid
 from qgis.core import QgsSettings
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
@@ -21,13 +20,9 @@ from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
 from .resources import *
 
-from qgis_stac.gui.main import QgisStacWidget
-from qgis_stac.definitions.catalog import CATALOGS
-
-from qgis_stac.conf import (
-    ConnectionSettings,
-    settings_manager
-)
+from .gui.main import QgisStacWidget
+from .conf import settings_manager
+from .utils import config_defaults_catalogs
 
 
 class QgisStac:
@@ -54,21 +49,14 @@ class QgisStac:
         self.toolbar = self.iface.addToolBar("STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
 
-        # Add catalog
-        duplicate_names = []
-        for catalog in CATALOGS:
-            connection_settings = ConnectionSettings(
-                id=uuid.uuid4(),
-                name=catalog['name'],
-                url=catalog['url'],
-                page_size=5,
-                auth_config=None,
-            )
-            name_pattern = re.compile(
-                f"^{connection_settings.name}$|^{connection_settings.name}(\(\d+\))$"
-            )
-            if len(settings_manager.list_connections()) <= len(CATALOGS):
-                settings_manager.save_connection_settings(connection_settings)
+        # Add default catalogs, first check if they have already
+        # been set.
+        if not settings_manager.get_value(
+                "default_catalogs_set",
+                default=False,
+                setting_type=bool
+        ):
+            config_defaults_catalogs()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):

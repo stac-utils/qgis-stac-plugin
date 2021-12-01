@@ -1,55 +1,32 @@
 CATALOGS = [
     {
+        "id": "07e3e9dd-cbad-4cf6-8336-424b88abf8f3",
         "name": "Microsoft Planetary Computer STAC API",
-        "url": "https://planetarycomputer.microsoft.com/api/stac/v1"
+        "url": "https://planetarycomputer.microsoft.com/api/stac/v1",
+        "selected": True,
     },
     {
+        "id": "d74817bf-da1f-44d7-a464-b87d4009c8a3",
         "name": "Earth Search",
-        "url": "https://earth-search.aws.element84.com/v0"
+        "url": "https://earth-search.aws.element84.com/v0",
+        "selected": False,
     },
     {
+        "id": "aff201e0-58aa-483d-9e87-090c8baecd3c",
         "name": "Digital Earth Africa",
-        "url": "https://explorer.digitalearth.africa/stac/"
+        "url": "https://explorer.digitalearth.africa/stac/",
+        "selected": False,
     },
     {
-        "name": "Sentinel Hub STAC catalog",
-        "url": "https://services.sentinel-hub.com/api/v1/catalog/"
-    },
-    {
-        "name": "Sentinel-2 and Landsat-8 catalog",
-        "url": "https://tamn.snapplanet.io/"
-    },
-    {
-        "name": "openEO Platform",
-        "url": "https://openeocloud.vito.be/openeo/1.0.0/"
-    },
-    {
+        "id": "98c95473-9f32-4947-83b2-acc8bbf71f36",
         "name": "Radiant MLHub",
-        "url": "https://api.radiant.earth/mlhub/v1/"
+        "url": "https://api.radiant.earth/mlhub/v1/",
+        "selected": False,
     },
     {
+        "id": "17a79ce2-9a61-457d-926f-03d37c0606b6",
         "name": "NASA CMR STAC",
-        "url": "https://cmr.earthdata.nasa.gov/stac"
-    },
-    {
-        "name": "NASA AVIRIS catalog",
-        "url": "https://franklin.nasa-hsi.azavea.com/"
-    },
-    {
-        "name": "data.geo.admin.ch",
-        "url": "https://data.geo.admin.ch/api/stac/v0.9/"
-    },
-    {
-        "name": "Digital Earth Australia",
-        "url": "https://explorer.sandbox.dea.ga.gov.au/stac/"
-    },
-    {
-        "name": "CBERS",
-        "url": "https://stac.amskepler.com/v100"
-    },
-    {
-        "name": "Astraea Earth OnDemand",
-        "url": "https://eod-catalog-svc-prod.astraea.earth/"
-    },
-
+        "url": "https://cmr.earthdata.nasa.gov/stac",
+        "selected": False,
+    }
 ]
