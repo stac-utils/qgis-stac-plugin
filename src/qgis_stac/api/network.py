@@ -17,8 +17,10 @@ from .models import (
     ResourceType,
 )
 
-from ..lib.pystac_client import Client
-from ..lib.pystac_client.exceptions import APIError
+from pystac_client import Client
+from pystac_client.exceptions import APIError
+
+from ..utils import log
 
 
 class ContentFetcherTask(QgsTask):
@@ -73,6 +75,7 @@ class ContentFetcherTask(QgsTask):
             else:
                 raise NotImplementedError
         except APIError as err:
+            log(str(err))
             self.error = str(err)
 
         return self.response is not None
