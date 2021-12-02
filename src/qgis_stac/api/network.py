@@ -18,6 +18,7 @@ from .models import (
 )
 
 from ..lib.pystac_client import Client
+from ..lib.pystac_client.exceptions import APIError
 
 
 class ContentFetcherTask(QgsTask):
@@ -34,6 +35,7 @@ class ContentFetcherTask(QgsTask):
     error_handler: typing.Callable
 
     response = None
+    error = None
     client: Client = None
 
     def __init__(
@@ -59,16 +61,19 @@ class ContentFetcherTask(QgsTask):
         :rtype: bool
         """
         self.client = Client.open(self.url)
-        if self.resource_type ==\
-                ResourceType.FEATURE:
-            self.response = self.client.search(
-                **self.search_params.params()
-            )
-        elif self.resource_type == \
-                ResourceType.COLLECTION:
-            self.response = self.client.get_collections()
-        else:
-            raise NotImplementedError
+        try:
+            if self.resource_type ==\
+                    ResourceType.FEATURE:
+                self.response = self.client.search(
+                    **self.search_params.params()
+                )
+            elif self.resource_type == \
+                    ResourceType.COLLECTION:
+                self.response = self.client.get_collections()
+            else:
+                raise NotImplementedError
+        except APIError as err:
+            self.error = str(err)
 
         return self.response is not None
 
@@ -83,5 +88,6 @@ class ContentFetcherTask(QgsTask):
         if result:
             self.response_handler(self.response)
         else:
-            message = f"Error fetching content for {self.url!r}"
+            message = f"Problem in fetching content for {self.url!r}," \
+                      f"Error {self.error}"
             self.error_handler(message)

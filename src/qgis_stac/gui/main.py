@@ -154,8 +154,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             )
         )
 
-    def display_results(self):
+    def display_results(self, results):
         raise NotImplementedError
 
-    def display_search_error(self):
-        raise NotImplementedError
+    def display_search_error(self, message):
+        self.message_bar.pushMessage(message)
