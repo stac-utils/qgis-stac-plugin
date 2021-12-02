@@ -1,9 +1,17 @@
 import os
 
-from qgis.PyQt import QtCore, QtGui, QtNetwork, QtWidgets, QtXml
+from qgis.PyQt import (
+    QtCore,
+    QtGui,
+    QtNetwork,
+    QtWidgets,
+    QtXml,
+)
 from qgis.PyQt.uic import loadUiType
 
-from ..conf import settings_manager
+from qgis.core import Qgis
+from qgis.gui import QgsMessageBar
+
 from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 
@@ -21,6 +29,9 @@ WidgetUi, _ = loadUiType(
 class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     """ Main plugin widget that contains tabs for search, results and settings
     functionalities"""
+
+    search_started = QtCore.pyqtSignal()
+    search_completed = QtCore.pyqtSignal()
 
     def __init__(
             self,
@@ -50,6 +61,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         settings_manager.connections_settings_updated.connect(
             self.update_connections_box
         )
+
+        self.search_started.connect(self.handle_search_start)
+        self.search_completed.connect(self.handle_search_end)
+
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.message_bar = QgsMessageBar()
+        self.prepare_message_bar()
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -140,6 +158,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     def search_api(self):
         """ Uses the filters available on the search tab to
         search the STAC API server defined by the current connection details.
+        Emits the search started signal to alert UI about the
+        search operation.
         """
         start_dte = self.start_dte.dateTime()
         end_dte = self.end_dte.dateTime()
@@ -153,9 +173,53 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 )
             )
         )
+        self.search_started.emit()
+
+    def show_progress(self, message):
+        message_bar_item = self.message_bar.createMessage(message)
+        progress_bar = QtWidgets.QProgressBar()
+        progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        progress_bar.setMinimum(0)
+        progress_bar.setMaximum(0)
+        message_bar_item.layout().addWidget(progress_bar)
+        self.message_bar.pushWidget(message_bar_item, Qgis.Info)
+
+    def handle_search_start(self):
+        self.message_bar.clearWidgets()
+        self.show_progress("Searching...")
+        self.update_search_inputs(enabled=False)
+
+    def handle_search_end(self):
+        self.update_search_inputs(enabled=True)
+
+    def update_search_inputs(self, enabled):
+        self.connections_group.setEnabled(enabled)
+        self.date_filter_group.setEnabled(enabled)
+        self.extent_box.setEnabled(enabled)
+        self.metadata_group.setEnabled(enabled)
+        self.search_btn.setEnabled(enabled)
+
+    def prepare_message_bar(self):
+        self.message_bar.setSizePolicy(
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Fixed
+        )
+        self.grid_layout.addWidget(
+            self.container,
+            0, 0, 1, 1
+        )
+        self.grid_layout.addWidget(
+            self.message_bar,
+            0, 0, 1, 1,
+            alignment=QtCore.Qt.AlignTop
+        )
+        self.layout().insertLayout(0, self.grid_layout)
 
     def display_results(self, results):
+        self.search_completed.emit()
         raise NotImplementedError
 
     def display_search_error(self, message):
-        self.message_bar.pushMessage(message)
+        self.message_bar.clearWidgets()
+        self.show_message(message, level=Qgis.Critical)
+        self.search_completed.emit()
