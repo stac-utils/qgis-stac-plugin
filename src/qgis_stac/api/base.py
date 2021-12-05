@@ -107,6 +107,16 @@ class BaseClient(QtCore.QObject):
 
         QgsApplication.taskManager().addTask(self.content_task)
 
+    def get_pagination(self, item_collection):
+        pagination = ResourcePagination()
+        for link in item_collection['links']:
+            if link['rel'] == "next":
+                pagination.next_page = link['href']
+            elif link['rel'] == "previous":
+                pagination.previous_page = link['href']
+
+        return pagination
+
     def handle_collections(
             self,
             collections

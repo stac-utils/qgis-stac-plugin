@@ -26,6 +26,8 @@ class ResourcePagination:
     total_records: int = 0
     current_page: int = 1
     page_size: int = 10
+    next_page: str = None
+    previous_page: str = None
 
 
 class GeometryType(enum.Enum):
@@ -205,7 +207,7 @@ class ItemSearch:
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
-            "page": self.page,
+            "limit": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
         }

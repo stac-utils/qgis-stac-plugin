@@ -196,6 +196,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             else:
                 self.connections_box.setCurrentIndex(0)
 
+    def previous_items(self):
+        self.page -= 1
+        self.search_api()
+
+    def next_items(self):
+        self.page += 1
+        self.search_api()
 
     def search_api(self):
         """ Uses the filters available on the search tab to
@@ -216,7 +223,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             ItemSearch(
                 collections=collections,
                 page_size=page_size,
-                page=self.page,
                 start_datetime=start_dte,
                 end_datetime=end_dte,
             )
