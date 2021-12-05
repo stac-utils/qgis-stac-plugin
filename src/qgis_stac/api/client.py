@@ -18,13 +18,12 @@ class Client(BaseClient):
         :type items_response: List[models.Items]
         """
         items = []
-        pagination = self.get_pagination(items_response.get_item_collections()[0])
-        for item_collection in items_response.get_item_collections():
-            for item in item_collection:
-                item_result = Item(
-                    id=item.id
-                )
-                items.append(item_result)
+        pagination = ResourcePagination()
+        for item in items_response.get_items():
+            item_result = Item(
+                id=item.id
+            )
+            items.append(item_result)
 
         self.items_received.emit(items, pagination)
 

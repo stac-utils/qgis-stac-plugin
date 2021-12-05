@@ -109,7 +109,7 @@ class BaseClient(QtCore.QObject):
 
     def get_pagination(self, item_collection):
         pagination = ResourcePagination()
-        for link in item_collection['links']:
+        for link in item_collection.to_dict()['links']:
             if link['rel'] == "next":
                 pagination.next_page = link['href']
             elif link['rel'] == "previous":

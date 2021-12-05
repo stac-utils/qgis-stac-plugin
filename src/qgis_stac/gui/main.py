@@ -67,6 +67,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
 
         self.search_type = ResourceType.FEATURE
+        self.current_progress_message = tr("Searching...")
 
         self.search_started.connect(self.handle_search_start)
         self.search_completed.connect(self.handle_search_end)
@@ -90,10 +91,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.collections_tree.setModel(self.proxy_model)
 
         self.filter_text.textChanged.connect(self.filter_changed)
-        self.collections_tree.selectionModel().\
-            selectionChanged.connect(
-            self.collection_selection_changed
-        )
 
         # prepare sort and filter model for the searched items
         self.items_model = QtGui.QStandardItemModel()
@@ -211,6 +208,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         search operation.
         """
         self.search_type = ResourceType.FEATURE
+        self.current_progress_message = tr("Searching for items...")
 
         start_dte = self.start_dte.dateTime() \
             if self.date_filter_group.isChecked() else None
@@ -233,6 +231,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         """ Searches for the collections available on the
         """
         self.search_type = ResourceType.COLLECTION
+        self.current_progress_message = tr("Searching for collections...")
 
         self.api_client.get_collections()
         self.search_started.emit()
@@ -248,7 +247,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def handle_search_start(self):
         self.message_bar.clearWidgets()
-        self.show_progress("Searching...")
+        self.show_progress(self.current_progress_message)
         self.update_search_inputs(enabled=False)
 
     def handle_search_end(self):
@@ -256,7 +255,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.update_search_inputs(enabled=True)
 
     def update_search_inputs(self, enabled):
-        self.connections_group.setEnabled(enabled)
+        self.collections_group.setEnabled(enabled)
         self.date_filter_group.setEnabled(enabled)
         self.extent_box.setEnabled(enabled)
         self.metadata_group.setEnabled(enabled)
@@ -316,14 +315,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.message_bar.clearWidgets()
         self.show_message(message, level=Qgis.Critical)
         self.search_completed.emit()
-
-    def collection_selection_changed(self, selected, deselected):
-        collections = self.selected_collections.text()
-        for index in deselected.indexes():
-            collections = collections.replace(f"{index.data(1)},", "")
-        for index in selected.indexes():
-            collections += f"{index.data(1)},"
-        self.selected_collections.setText(collections)
 
     def filter_changed(self, filter_text):
         exp_reg = QtCore.QRegExp(

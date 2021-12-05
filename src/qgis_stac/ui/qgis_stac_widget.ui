@@ -29,7 +29,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="search">
       <attribute name="title">
@@ -131,7 +131,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QgsCollapsibleGroupBox" name="collections_group_box">
+        <widget class="QgsCollapsibleGroupBox" name="collections_group">
          <property name="title">
           <string>Collections</string>
          </property>
@@ -141,25 +141,22 @@
          <layout class="QVBoxLayout" name="verticalLayout_10">
           <item>
            <layout class="QGridLayout" name="gridLayout_4">
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="selected_collections"/>
-            </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Selected collections</string>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="filter_text">
+              <property name="toolTip">
+               <string>Filter and search the fetched collections, using the title property.</string>
               </property>
              </widget>
             </item>
-            <item row="4" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="label_2">
+              <property name="toolTip">
+               <string>Filter and search the fetched collections, using the title property.</string>
+              </property>
               <property name="text">
-               <string>Filter </string>
+               <string>Search for collection</string>
               </property>
              </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QLineEdit" name="filter_text"/>
             </item>
            </layout>
           </item>
@@ -167,6 +164,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <widget class="QTreeView" name="collections_tree">
+              <property name="toolTip">
+               <string>Click on an item to select the collection.</string>
+              </property>
               <property name="editTriggers">
                <set>QAbstractItemView::NoEditTriggers</set>
               </property>
@@ -193,6 +193,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QPushButton" name="fetch_collections_btn">
+              <property name="toolTip">
+               <string>Get all collections provided by the current STAC API connection</string>
+              </property>
               <property name="text">
                <string>Fetch collections</string>
               </property>
