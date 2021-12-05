@@ -64,7 +64,7 @@ class ContentFetcherTask(QgsTask):
         """
         self.client = Client.open(self.url)
         try:
-            if self.resource_type ==\
+            if self.resource_type == \
                     ResourceType.FEATURE:
                 self.response = self.client.search(
                     **self.search_params.params()

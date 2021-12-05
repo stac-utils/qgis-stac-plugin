@@ -9,14 +9,15 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsCoordinateReferenceSystem
 from qgis.gui import QgsMessageBar
+from qgis.utils import iface
 
 from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 
 from ..conf import settings_manager
-from ..api.models import ItemSearch
+from ..api.models import ItemSearch, ResourceType
 from ..api.client import Client
 
 from ..utils import tr
@@ -48,10 +49,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.update_connections_box()
         self.update_connection_buttons()
         self.connections_box.activated.connect(self.update_current_connection)
-        self.pagination.setVisible(False)
 
         self.search_btn.clicked.connect(
             self.search_api
+        )
+
+        self.fetch_collections_btn.clicked.connect(
+            self.search_collections
         )
 
         self.api_client = None
@@ -62,12 +66,48 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.update_connections_box
         )
 
+        self.search_type = ResourceType.FEATURE
+
         self.search_started.connect(self.handle_search_start)
         self.search_completed.connect(self.handle_search_end)
+
+        # self.collections_tree.itemDoubleClicked.connect(self.show_collection_info)
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.message_bar = QgsMessageBar()
         self.prepare_message_bar()
+
+        self.prepare_extent_box()
+
+        # prepare sort and filter model for the collections
+        self.model = QtGui.QStandardItemModel()
+        self.model.setHorizontalHeaderLabels(['Title'])
+        self.proxy_model = QtCore.QSortFilterProxyModel()
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.collections_tree.setModel(self.proxy_model)
+
+        self.filter_text.textChanged.connect(self.filter_changed)
+        self.collections_tree.selectionModel().\
+            selectionChanged.connect(
+            self.collection_selection_changed
+        )
+
+        # prepare sort and filter model for the searched items
+        self.items_model = QtGui.QStandardItemModel()
+        self.items_model.setHorizontalHeaderLabels(['Id'])
+        self.items_proxy_model = QtCore.QSortFilterProxyModel()
+        self.items_proxy_model.setSourceModel(self.items_model)
+        self.items_proxy_model.setDynamicSortFilter(True)
+        self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.items_tree.setModel(self.items_proxy_model)
+
+        # initialize page
+
+        self.page = 1
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -135,6 +175,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             current_connection
         )
         self.api_client.items_received.connect(self.display_results)
+        self.api_client.collections_received.connect(self.display_results)
         self.api_client.error_received.connect(self.display_search_error)
 
     def update_connections_box(self):
@@ -155,24 +196,39 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             else:
                 self.connections_box.setCurrentIndex(0)
 
+
     def search_api(self):
         """ Uses the filters available on the search tab to
         search the STAC API server defined by the current connection details.
         Emits the search started signal to alert UI about the
         search operation.
         """
-        start_dte = self.start_dte.dateTime()
-        end_dte = self.end_dte.dateTime()
+        self.search_type = ResourceType.FEATURE
+
+        start_dte = self.start_dte.dateTime() \
+            if self.date_filter_group.isChecked() else None
+        end_dte = self.end_dte.dateTime() \
+            if self.date_filter_group.isChecked() else None
+
+        collections = self.get_selected_collections()
+        page_size = settings_manager.get_current_connection().page_size
         self.api_client.get_items(
             ItemSearch(
-                start_datetime=(
-                    start_dte if not start_dte.isNull() else None
-                ),
-                end_datetime=(
-                    end_dte if not end_dte.isNull() else None
-                )
+                collections=collections,
+                page_size=page_size,
+                page=self.page,
+                start_datetime=start_dte,
+                end_datetime=end_dte,
             )
         )
+        self.search_started.emit()
+
+    def search_collections(self):
+        """ Searches for the collections available on the
+        """
+        self.search_type = ResourceType.COLLECTION
+
+        self.api_client.get_collections()
         self.search_started.emit()
 
     def show_progress(self, message):
@@ -190,6 +246,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.update_search_inputs(enabled=False)
 
     def handle_search_end(self):
+        self.message_bar.clearWidgets()
         self.update_search_inputs(enabled=True)
 
     def update_search_inputs(self, enabled):
@@ -215,11 +272,66 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
         self.layout().insertLayout(0, self.grid_layout)
 
+    def prepare_extent_box(self):
+        self.extent_box.setOutputCrs(
+            QgsCoordinateReferenceSystem("EPSG:4326")
+        )
+        map_canvas = iface.mapCanvas()
+        self.extent_box.setCurrentExtent(
+            map_canvas.mapSettings().destinationCrs().bounds(),
+            map_canvas.mapSettings().destinationCrs()
+        )
+        self.extent_box.setOutputExtentFromCurrent()
+        self.extent_box.setMapCanvas(map_canvas)
+
     def display_results(self, results):
+        if self.search_type == ResourceType.COLLECTION:
+            self.model.removeRows(0, self.model.rowCount())
+            for result in results:
+                item = QtGui.QStandardItem(result.title)
+                item.setData(result.id, 1)
+                self.model.appendRow(item)
+
+            self.proxy_model.setSourceModel(self.model)
+
+        elif self.search_type == ResourceType.FEATURE:
+            self.items_model.removeRows(0, self.items_model.rowCount())
+            for result in results:
+                item = QtGui.QStandardItem(result.id)
+                self.items_model.appendRow(item)
+
+            self.items_proxy_model.setSourceModel(self.items_model)
+            self.container.setCurrentIndex(1)
+        else:
+            raise NotImplementedError
         self.search_completed.emit()
-        raise NotImplementedError
 
     def display_search_error(self, message):
         self.message_bar.clearWidgets()
         self.show_message(message, level=Qgis.Critical)
         self.search_completed.emit()
+
+    def collection_selection_changed(self, selected, deselected):
+        collections = self.selected_collections.text()
+        for index in deselected.indexes():
+            collections = collections.replace(f"{index.data(1)},", "")
+        for index in selected.indexes():
+            collections += f"{index.data(1)},"
+        self.selected_collections.setText(collections)
+
+    def filter_changed(self, filter_text):
+        exp_reg = QtCore.QRegExp(
+            filter_text,
+            QtCore.Qt.CaseInsensitive,
+            QtCore.QRegExp.FixedString
+        )
+        self.proxy_model.setFilterRegExp(exp_reg)
+
+    def get_selected_collections(self):
+        indexes = self.collections_tree.selectionModel().selectedIndexes()
+        collections_ids = []
+
+        for index in indexes:
+            collections_ids.append(index.data(1))
+
+        return collections_ids

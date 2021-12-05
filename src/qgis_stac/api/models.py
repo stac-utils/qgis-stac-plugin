@@ -133,20 +133,20 @@ class Catalog:
 @dataclasses.dataclass
 class Collection:
     """ Represents the STAC API Collection"""
-    id: int
-    uuid: UUID
-    title: str
-    description: str
-    keywords: typing.List[str]
-    license: str
-    type: ResourceType
-    stac_version: str
-    stac_extensions: typing.List[str]
-    links: typing.List[ResourceLink]
-    assets: typing.Dict[str, ResourceAsset]
-    providers: typing.List[ResourceProvider]
-    extent: ResourceExtent
-    summaries: typing.Dict[str, str]
+    id: int = None
+    uuid: UUID = None
+    title: str = None
+    description: str = None
+    keywords: typing.List[str] = None
+    license: str = None
+    type: ResourceType = None
+    stac_version: str = None
+    stac_extensions: typing.List[str] = None
+    links: typing.List[ResourceLink] = None
+    assets: typing.Dict[str, ResourceAsset] = None
+    providers: typing.List[ResourceProvider] = None
+    extent: ResourceExtent = None
+    summaries: typing.Dict[str, str] = None
 
 
 @dataclasses.dataclass
@@ -199,13 +199,13 @@ class ItemSearch:
         elif self.end_datetime and not self.start_datetime:
             datetime_str = f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
         elif self.start_datetime and self.end_datetime:
-            datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}\"" \
+            datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                        f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
-            "limit": self.page_size or None,
+            "page": self.page,
             "bbox": bbox,
             "datetime": datetime_str,
         }
