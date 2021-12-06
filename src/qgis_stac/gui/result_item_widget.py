@@ -21,4 +21,4 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         super().__init__(parent)
         self.setupUi(self)
         self.item = item
-        self.title_la = item
+        self.title_la.setText(item.id)
