@@ -30,6 +30,12 @@ class ResourcePagination:
     previous_page: str = None
 
 
+class SortField(enum.Enum):
+    ID = 'name'
+    COLLECTION = 'collection'
+    DATE = 'date'
+
+
 class GeometryType(enum.Enum):
     """Enum to represent the available geometry types """
 

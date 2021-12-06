@@ -19,6 +19,10 @@ from ..gui.connection_dialog import ConnectionDialog
 from ..conf import settings_manager
 from ..api.models import ItemSearch, ResourceType
 from ..api.client import Client
+from ..api.models import SortField
+
+from .result_item_delegate import ResultItemDelegate
+from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
 
 from ..utils import tr
 
@@ -93,17 +97,29 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.filter_text.textChanged.connect(self.filter_changed)
 
         # prepare sort and filter model for the searched items
-        self.items_model = QtGui.QStandardItemModel()
-        self.items_model.setHorizontalHeaderLabels(['Id'])
-        self.items_proxy_model = QtCore.QSortFilterProxyModel()
-        self.items_proxy_model.setSourceModel(self.items_model)
-        self.items_proxy_model.setDynamicSortFilter(True)
-        self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.items_tree.setIndentation(0)
+        self.items_tree.verticalScrollBar().setSingleStep(10)
 
-        self.items_tree.setModel(self.items_proxy_model)
+        self.items_delegate = ResultItemDelegate(
+            parent=self.items_tree
+        )
+
+        self.items_tree.setItemDelegate(self.items_delegate)
+        self.items_model = ItemsModel(items=[])
+
+        self.standard_model = QtGui.QStandardItemModel()
+        self.standard_model.setHorizontalHeaderLabels(['Id'])
+
+        self.items_proxy_model = ItemsSortFilterProxyModel(SortField.DATE)
+
+        self.items_proxy_model.setSourceModel(self.standard_model)
+        self.items_filter.textChanged.connect(self.items_filter_changed)
+
+        self.standard_proxy_model = QtCore.QSortFilterProxyModel()
+        self.standard_proxy_model.setSourceModel(self.standard_model)
+        self.items_tree.setModel(self.standard_proxy_model)
 
         # initialize page
-
         self.page = 1
 
     def add_connection(self):
@@ -292,6 +308,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     def display_results(self, results):
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
+            self.result_collections_la.setText(
+                tr("Found {} STAC collection(s)").format(len(results))
+            )
             for result in results:
                 item = QtGui.QStandardItem(result.title)
                 item.setData(result.id, 1)
@@ -300,12 +319,17 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.proxy_model.setSourceModel(self.model)
 
         elif self.search_type == ResourceType.FEATURE:
-            self.items_model.removeRows(0, self.items_model.rowCount())
+            self.result_items_la.setText(
+                tr("Found {} STAC item(s)").format(len(results))
+            )
+            self.standard_model.removeRows(0, self.model.rowCount())
             for result in results:
                 item = QtGui.QStandardItem(result.id)
-                self.items_model.appendRow(item)
+                item.setData(result.id, 1)
+                self.standard_model.appendRow(item)
 
-            self.items_proxy_model.setSourceModel(self.items_model)
+            self.standard_proxy_model.setSourceModel(self.standard_model)
+
             self.container.setCurrentIndex(1)
         else:
             raise NotImplementedError
@@ -323,6 +347,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             QtCore.QRegExp.FixedString
         )
         self.proxy_model.setFilterRegExp(exp_reg)
+
+    def items_filter_changed(self, filter_text):
+        exp_reg = QtCore.QRegExp(
+            filter_text,
+            QtCore.Qt.CaseInsensitive,
+            QtCore.QRegExp.FixedString
+        )
+        self.standard_proxy_model.setFilterRegExp(exp_reg)
 
     def get_selected_collections(self):
         indexes = self.collections_tree.selectionModel().selectedIndexes()
