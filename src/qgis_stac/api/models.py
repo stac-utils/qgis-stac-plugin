@@ -30,6 +30,12 @@ class ResourcePagination:
     previous_page: str = None
 
 
+class LAYER_TYPES(enum.Enum):
+    PNG = ''
+    COLLECTION = 'collection'
+    DATE = 'date'
+
+
 class SortField(enum.Enum):
     ID = 'name'
     COLLECTION = 'collection'
@@ -90,21 +96,23 @@ class ResourceLink:
     type: str
 
 
+@dataclasses.dataclass
 class ResourceProperties:
     """Represents the STAC API Properties object,
     which contains additional metadata fields
     for the STAC API resources.
     """
-    title: str
-    description: str
-    datetime: datetime.datetime
-    created: datetime.datetime
-    updated: datetime.datetime
-    start_datetime: datetime.datetime
-    end_datetime: datetime.datetime
-    license: str
+    title: str = None
+    description: str = None
+    resource_datetime: datetime.datetime = None
+    created: datetime.datetime = None
+    updated: datetime.datetime = None
+    start_datetime: datetime.datetime = None
+    end_datetime: datetime.datetime = None
+    license: str = None
 
 
+@dataclasses.dataclass
 class ResourceProvider:
     """Represents the STAC API Provider object,
     which contains information about the provider that
@@ -122,7 +130,6 @@ class ResourceGeometry:
     """The GeoJSON geometry footprint STAC API assets"""
     type: GeometryType
     coordinates: typing.List[typing.List[int]]
-
 
 
 @dataclasses.dataclass
@@ -160,7 +167,7 @@ class Collection:
 @dataclasses.dataclass
 class Item:
     """ Represents the STAC API Item"""
-    id: int
+    id: str
     uuid: UUID = None
     type: ResourceType = None
     stac_version: str = None

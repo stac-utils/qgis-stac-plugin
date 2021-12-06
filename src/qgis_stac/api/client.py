@@ -1,6 +1,13 @@
+import datetime
 
 from .base import BaseClient
-from .models import Collection, Item, ResourcePagination
+from .models import (
+    Collection,
+    Item,
+    ResourceAsset,
+    ResourcePagination,
+    ResourceProperties,
+)
 
 
 class Client(BaseClient):
@@ -20,8 +27,29 @@ class Client(BaseClient):
         items = []
         pagination = ResourcePagination()
         for item in items_response.get_items():
+            item_datetime = datetime.datetime.strptime(
+                item.properties.get("datetime"),
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+            properties = ResourceProperties(
+                resource_datetime=item_datetime
+            )
+            assets = []
+            for key, asset in item.assets.items():
+                item_asset = ResourceAsset(
+                    href=asset.href,
+                    title=asset.title,
+                    description=asset.description,
+                    type=asset.media_type,
+                    roles=asset.roles
+                )
+                assets.append(item_asset)
             item_result = Item(
-                id=item.id
+                id=item.id,
+                properties=properties,
+                collection=item.collection_id,
+                assets=assets
+
             )
             items.append(item_result)
 

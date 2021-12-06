@@ -107,11 +107,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.items_tree.setItemDelegate(self.items_delegate)
 
-        # self.standard_model = QtGui.QStandardItemModel()
-        # self.standard_proxy_model = QtCore.QSortFilterProxyModel()
-        # self.standard_proxy_model.setSourceModel(self.standard_model)
-        # self.items_tree.setModel(self.standard_proxy_model)
-
         self.items_proxy_model = ItemsSortFilterProxyModel(SortField.DATE)
 
         # initialize page
@@ -317,13 +312,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.result_items_la.setText(
                 tr("Found {} STAC item(s)").format(len(results))
             )
-            # self.standard_model.removeRows(0, self.model.rowCount())
-            # for result in results:
-            #     item = QtGui.QStandardItem(result.id)
-            #     item.setData(result.id, 1)
-            #     self.standard_model.appendRow(item)
-            #
-            # self.container.setCurrentIndex(1)
 
             items_model = ItemsModel(items=results)
             self.items_proxy_model.setSourceModel(items_model)

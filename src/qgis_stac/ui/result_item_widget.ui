@@ -94,7 +94,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Date acquired</string>
+             <string>Date acquired:</string>
             </property>
            </widget>
           </item>
@@ -120,7 +120,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QLabel" name="description_la">
+         <widget class="QLabel" name="collection_name">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -144,7 +144,7 @@
         <item>
          <layout class="QHBoxLayout" name="action_buttons_layout">
           <item>
-           <widget class="QToolButton" name="add_footprint">
+           <widget class="QToolButton" name="footprint_box">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open resource in Browser&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -154,7 +154,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="add_assests_box">
+           <widget class="QComboBox" name="assets_box">
             <item>
              <property name="text">
               <string>Add assets as layers</string>
@@ -163,7 +163,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="assets_download_box">
             <item>
              <property name="text">
               <string>Download assests</string>
