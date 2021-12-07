@@ -107,6 +107,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.items_tree.verticalScrollBar().setSingleStep(10)
 
         self.items_delegate = ResultItemDelegate(
+            main_widget=self,
             parent=self.items_tree
         )
         self.standard_model = QtGui.QStandardItemModel()
