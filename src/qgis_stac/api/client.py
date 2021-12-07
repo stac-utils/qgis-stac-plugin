@@ -1,6 +1,15 @@
+import datetime
 
 from .base import BaseClient
-from .models import Collection, Item, ResourcePagination
+from .models import (
+    Collection,
+    Item,
+    ResourceAsset,
+    ResourcePagination,
+    ResourceProperties,
+)
+
+from ..utils import log
 
 
 class Client(BaseClient):
@@ -18,15 +27,38 @@ class Client(BaseClient):
         :type items_response: List[models.Items]
         """
         items = []
+        pagination = ResourcePagination()
+        properties = None
         for item in items_response.get_items():
+            try:
+                item_datetime = datetime.datetime.strptime(
+                    item.properties.get("datetime"),
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
+                properties = ResourceProperties(
+                    resource_datetime=item_datetime
+                )
+            except (TypeError, ValueError) as e:
+                log(f"Error in passing item properties datetime, {str(e)}")
+                pass
+            assets = []
+            for key, asset in item.assets.items():
+                item_asset = ResourceAsset(
+                    href=asset.href,
+                    title=asset.title,
+                    description=asset.description,
+                    type=asset.media_type,
+                    roles=asset.roles or []
+                )
+                assets.append(item_asset)
             item_result = Item(
-                id=item.id
+                id=item.id,
+                properties=properties,
+                collection=item.collection_id,
+                assets=assets
+
             )
             items.append(item_result)
-
-        # TODO query filter pagination results from the
-        # response
-        pagination = ResourcePagination()
 
         self.items_received.emit(items, pagination)
 

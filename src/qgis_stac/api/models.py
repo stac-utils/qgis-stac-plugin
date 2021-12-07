@@ -26,6 +26,26 @@ class ResourcePagination:
     total_records: int = 0
     current_page: int = 1
     page_size: int = 10
+    next_page: str = None
+    previous_page: str = None
+
+
+class AssetRoles(enum.Enum):
+    """ STAC Item assets roles defined as outlined in
+    https://github.com/radiantearth/stac-api-spec/blob/
+    master/stac-spec/item-spec/item-spec.md#asset-roles
+    """
+    THUMBNAIL = 'thumbnail'
+    OVERVIEW = 'overview'
+    DATA = 'data'
+    METADATA = 'metadata'
+
+
+class SortField(enum.Enum):
+    """ Holds the field value used when sorting items results."""
+    ID = 'name'
+    COLLECTION = 'collection'
+    DATE = 'date'
 
 
 class GeometryType(enum.Enum):
@@ -82,21 +102,23 @@ class ResourceLink:
     type: str
 
 
+@dataclasses.dataclass
 class ResourceProperties:
     """Represents the STAC API Properties object,
     which contains additional metadata fields
     for the STAC API resources.
     """
-    title: str
-    description: str
-    datetime: datetime.datetime
-    created: datetime.datetime
-    updated: datetime.datetime
-    start_datetime: datetime.datetime
-    end_datetime: datetime.datetime
-    license: str
+    title: str = None
+    description: str = None
+    resource_datetime: datetime.datetime = None
+    created: datetime.datetime = None
+    updated: datetime.datetime = None
+    start_datetime: datetime.datetime = None
+    end_datetime: datetime.datetime = None
+    license: str = None
 
 
+@dataclasses.dataclass
 class ResourceProvider:
     """Represents the STAC API Provider object,
     which contains information about the provider that
@@ -116,7 +138,6 @@ class ResourceGeometry:
     coordinates: typing.List[typing.List[int]]
 
 
-
 @dataclasses.dataclass
 class Catalog:
     """ Represents the STAC API Catalog"""
@@ -133,26 +154,26 @@ class Catalog:
 @dataclasses.dataclass
 class Collection:
     """ Represents the STAC API Collection"""
-    id: int
-    uuid: UUID
-    title: str
-    description: str
-    keywords: typing.List[str]
-    license: str
-    type: ResourceType
-    stac_version: str
-    stac_extensions: typing.List[str]
-    links: typing.List[ResourceLink]
-    assets: typing.Dict[str, ResourceAsset]
-    providers: typing.List[ResourceProvider]
-    extent: ResourceExtent
-    summaries: typing.Dict[str, str]
+    id: int = None
+    uuid: UUID = None
+    title: str = None
+    description: str = None
+    keywords: typing.List[str] = None
+    license: str = None
+    type: ResourceType = None
+    stac_version: str = None
+    stac_extensions: typing.List[str] = None
+    links: typing.List[ResourceLink] = None
+    assets: typing.Dict[str, ResourceAsset] = None
+    providers: typing.List[ResourceProvider] = None
+    extent: ResourceExtent = None
+    summaries: typing.Dict[str, str] = None
 
 
 @dataclasses.dataclass
 class Item:
     """ Represents the STAC API Item"""
-    id: int
+    id: str
     uuid: UUID = None
     type: ResourceType = None
     stac_version: str = None
@@ -185,13 +206,15 @@ class ItemSearch:
         :returns: Dictionary of parameters
         :rtype: dict
         """
-
+        spatial_extent_available = (self.spatial_extent and
+                                    not self.spatial_extent.isNull()
+                                    )
         bbox = [
             self.spatial_extent.xMinimum(),
             self.spatial_extent.yMinimum(),
             self.spatial_extent.xMaximum(),
             self.spatial_extent.yMaximum(),
-        ] if self.spatial_extent else None
+        ] if spatial_extent_available else None
 
         datetime_str = None
         if self.start_datetime and not self.end_datetime:
@@ -199,13 +222,13 @@ class ItemSearch:
         elif self.end_datetime and not self.start_datetime:
             datetime_str = f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
         elif self.start_datetime and self.end_datetime:
-            datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}\"" \
-                       f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
+            datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
+                           f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
-            "limit": self.page_size or None,
+            "max_items": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
         }

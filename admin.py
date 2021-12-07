@@ -3,6 +3,8 @@
 
 """
 
+import os
+
 import configparser
 import datetime as dt
 import re
@@ -67,16 +69,25 @@ def main(
 
 
 @app.command()
-def install(context: typer.Context):
+def install(
+        context: typer.Context,
+        build_src: bool = True
+):
     """Deploys plugin to QGIS plugins directory
 
     :param context: Application context
     :type context: typer.Context
+
+    :param build_src: Whether to build plugin files from source
+    :type build_src: bool
     """
     _log("Uninstalling...", context=context)
     uninstall(context)
     _log("Building...", context=context)
-    built_directory = build(context, clean=True)
+
+    built_directory = build(context, clean=True) \
+        if build_src else LOCAL_ROOT_DIR / "build" / SRC_NAME
+
     root_directory = Path.home() / \
                      f".local/share/QGIS/QGIS3/profiles/" \
                      f"{context.obj['qgis_profile']}"
@@ -88,6 +99,30 @@ def install(context: typer.Context):
         f"Installed {str(built_directory)!r}"
         f" into {str(base_target_directory)!r}",
         context=context)
+
+
+@app.command()
+def symlink(
+        context: typer.Context
+):
+    """Create a plugin symlink to QGIS plugins directory
+
+    :param context: Application context
+    :type context: typer.Context
+    """
+
+    build_path = LOCAL_ROOT_DIR / "build" / SRC_NAME
+
+    root_directory = Path.home() / \
+                     f".local/share/QGIS/QGIS3/profiles/" \
+                     f"{context.obj['qgis_profile']}"
+
+    destination_path = root_directory / "python/plugins" / SRC_NAME
+
+    if not os.path.islink(destination_path):
+        os.symlink(build_path, destination_path)
+    else:
+        _log(f"Symlink already exists, skipping creation.", context=context)
 
 
 @app.command()

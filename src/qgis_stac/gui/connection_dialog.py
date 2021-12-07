@@ -70,7 +70,9 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         existing_connection_names = []
         if connection_settings.name in (
                 connection.name for connection in
-                settings_manager.list_connections()):
+                settings_manager.list_connections()
+                if connection.id != connection_settings.id
+        ):
             existing_connection_names.append(connection_settings.name)
         if len(existing_connection_names) > 0:
             connection_settings.name = f"{connection_settings.name}" \

@@ -20,7 +20,7 @@ from qgis.PyQt.QtWidgets import QAction
 # Initialize Qt resources from file resources.py
 from .resources import *
 
-from .gui.main import QgisStacWidget
+from .gui.qgis_stac_widget import QgisStacWidget
 from .conf import settings_manager
 from .utils import config_defaults_catalogs
 
