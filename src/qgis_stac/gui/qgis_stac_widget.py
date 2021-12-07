@@ -245,6 +245,22 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.api_client.get_collections()
         self.search_started.emit()
 
+    def show_message(
+            self,
+            message,
+            level=Qgis.Warning
+    ):
+        """ Shows message on the main widget message bar
+
+        :param message: Message text
+        :type message: str
+
+        :param level: Message level type
+        :type level: Qgis.MessageLevel
+        """
+        self.message_bar.clearWidgets()
+        self.message_bar.pushMessage(message, level=level)
+
     def show_progress(self, message):
         """ Shows the progress message on the main widget message bar
 
