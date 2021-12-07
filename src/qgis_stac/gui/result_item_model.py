@@ -1,4 +1,7 @@
-
+# -*- coding: utf-8 -*-
+"""
+    Contains GUI models used to store search result items.
+"""
 from qgis.PyQt import (
     QtCore,
     QtGui,
@@ -9,6 +12,7 @@ from ..api.models import SortField
 
 
 class ItemsModel(QtCore.QAbstractItemModel):
+    """ Stores the search result items"""
 
     def __init__(self, items, parent=None):
         super().__init__(parent)
@@ -64,6 +68,9 @@ class ItemsModel(QtCore.QAbstractItemModel):
 
 
 class ItemsSortFilterProxyModel(QtCore.QSortFilterProxyModel):
+    """ Handles the custom functionality in sorting and filtering the
+    search items results.
+    """
 
     def __init__(self, current_sort_field, *args, **kwargs):
         super().__init__(*args, **kwargs)

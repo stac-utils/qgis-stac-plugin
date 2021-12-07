@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+    Definitions for all pre-installed STAC API catalog connections
+"""
+
 CATALOGS = [
     {
         "id": "07e3e9dd-cbad-4cf6-8336-424b88abf8f3",

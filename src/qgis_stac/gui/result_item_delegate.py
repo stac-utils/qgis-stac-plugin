@@ -1,4 +1,8 @@
-
+# -*- coding: utf-8 -*-
+"""
+    Delegate logic used by the result tab tree view in loading the
+    result item widget.
+"""
 from qgis.PyQt import (
     QtCore,
     QtGui,
@@ -9,6 +13,9 @@ from .result_item_widget import ResultItemWidget
 
 
 class ResultItemDelegate(QtWidgets.QStyledItemDelegate):
+    """ Result item class paints the item result widget into the
+        provided view.
+    """
 
     def __init__(
             self,

@@ -30,13 +30,19 @@ class ResourcePagination:
     previous_page: str = None
 
 
-class LAYER_TYPES(enum.Enum):
-    PNG = ''
-    COLLECTION = 'collection'
-    DATE = 'date'
+class AssetRoles(enum.Enum):
+    """ STAC Item assets roles defined as outlined in
+    https://github.com/radiantearth/stac-api-spec/blob/
+    master/stac-spec/item-spec/item-spec.md#asset-roles
+    """
+    THUMBNAIL = 'thumbnail'
+    OVERVIEW = 'overview'
+    DATA = 'data'
+    METADATA = 'metadata'
 
 
 class SortField(enum.Enum):
+    """ Holds the field value used when sorting items results."""
     ID = 'name'
     COLLECTION = 'collection'
     DATE = 'date'

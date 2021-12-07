@@ -55,7 +55,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.connections_box.activated.connect(self.update_current_connection)
 
         self.search_btn.clicked.connect(
-            self.search_api
+            self.search_items
         )
 
         self.fetch_collections_btn.clicked.connect(
@@ -201,13 +201,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def previous_items(self):
         self.page -= 1
-        self.search_api()
+        self.search_items()
 
     def next_items(self):
         self.page += 1
-        self.search_api()
+        self.search_items()
 
-    def search_api(self):
+    def search_items(self):
         """ Uses the filters available on the search tab to
         search the STAC API server defined by the current connection details.
         Emits the search started signal to alert UI about the
@@ -236,7 +236,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_started.emit()
 
     def search_collections(self):
-        """ Searches for the collections available on the
+        """ Searches for the collections available on the current
+            STAC API connection.
         """
         self.search_type = ResourceType.COLLECTION
         self.current_progress_message = tr("Searching for collections...")
@@ -245,6 +246,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_started.emit()
 
     def show_progress(self, message):
+        """ Shows the progress message on the main widget message bar
+
+        :param message: Progress message
+        :type message: str
+        """
         message_bar_item = self.message_bar.createMessage(message)
         progress_bar = QtWidgets.QProgressBar()
         progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -254,15 +260,22 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.message_bar.pushWidget(message_bar_item, Qgis.Info)
 
     def handle_search_start(self):
+        """ Handles the logic to be executed when searching has started"""
         self.message_bar.clearWidgets()
         self.show_progress(self.current_progress_message)
         self.update_search_inputs(enabled=False)
 
     def handle_search_end(self):
+        """ Handles the logic to be executed when searching has ended"""
         self.message_bar.clearWidgets()
         self.update_search_inputs(enabled=True)
 
     def update_search_inputs(self, enabled):
+        """ Sets the search inputs state using the provided enabled status
+
+        :param enabled: Whether to enable the inputs
+        :type enabled: bool
+        """
         self.collections_group.setEnabled(enabled)
         self.date_filter_group.setEnabled(enabled)
         self.extent_box.setEnabled(enabled)
@@ -270,6 +283,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_btn.setEnabled(enabled)
 
     def prepare_message_bar(self):
+        """ Initializes the widget message bar settings"""
         self.message_bar.setSizePolicy(
             QtWidgets.QSizePolicy.Minimum,
             QtWidgets.QSizePolicy.Fixed
@@ -286,6 +300,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.layout().insertLayout(0, self.grid_layout)
 
     def prepare_extent_box(self):
+        """ Configure the spatial extent box with the initial settings. """
         self.extent_box.setOutputCrs(
             QgsCoordinateReferenceSystem("EPSG:4326")
         )
@@ -298,6 +313,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.setMapCanvas(map_canvas)
 
     def display_results(self, results):
+        """ Shows the found results into their respective view. Emits
+        the search end signal after completing loading up the results
+        into the view.
+
+        :param results: Search results
+        :return: list
+        """
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
             self.result_collections_la.setText(
@@ -327,11 +349,24 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_completed.emit()
 
     def display_search_error(self, message):
+        """
+        Show the search error message.
+
+        :param message: search error message.
+        :type message: str
+        """
         self.message_bar.clearWidgets()
         self.show_message(message, level=Qgis.Critical)
         self.search_completed.emit()
 
     def filter_changed(self, filter_text):
+        """
+        Sets the filter on the collections proxy model and trigger
+        filter action on the model.
+
+        :param filter_text: Filter text
+        :type: str
+        """
         exp_reg = QtCore.QRegExp(
             filter_text,
             QtCore.Qt.CaseInsensitive,
@@ -340,6 +375,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.proxy_model.setFilterRegExp(exp_reg)
 
     def items_filter_changed(self, filter_text):
+        """
+        Sets the filter on the items proxy model and trigger
+        filter action on the model.
+
+        :param filter_text: Filter text
+        :type: str
+        """
         exp_reg = QtCore.QRegExp(
             filter_text,
             QtCore.Qt.CaseInsensitive,
@@ -348,6 +390,12 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.items_proxy_model.setFilterRegExp(exp_reg)
 
     def get_selected_collections(self):
+        """ Gets the currently selected collections ids from the collection
+        view.
+
+        :returns: Collection ids
+        :rtype: list
+        """
         indexes = self.collections_tree.selectionModel().selectedIndexes()
         collections_ids = []
 
