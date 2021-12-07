@@ -57,7 +57,7 @@ def log(
         message,
         name,
         level=level,
-        notify_user=notify,
+        notifyUser=notify,
     )
 
 

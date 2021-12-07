@@ -9,6 +9,8 @@ from .models import (
     ResourceProperties,
 )
 
+from ..utils import log
+
 
 class Client(BaseClient):
     """ API client class that provides implementation of the
@@ -36,7 +38,8 @@ class Client(BaseClient):
                 properties = ResourceProperties(
                     resource_datetime=item_datetime
                 )
-            except:
+            except (TypeError, ValueError) as e:
+                log(f"Error in passing item properties datetime, {str(e)}")
                 pass
             assets = []
             for key, asset in item.assets.items():
