@@ -217,18 +217,20 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.current_progress_message = tr("Searching for items...")
 
         start_dte = self.start_dte.dateTime() \
-            if self.date_filter_group.isChecked() else None
+            if not self.start_dte.dateTime().isNull() else None
         end_dte = self.end_dte.dateTime() \
-            if self.date_filter_group.isChecked() else None
+            if not self.end_dte.dateTime().isNull() else None
 
         collections = self.get_selected_collections()
         page_size = settings_manager.get_current_connection().page_size
+        spatial_extent = self.extent_box.outputExtent()
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
                 page_size=page_size,
                 start_datetime=start_dte,
                 end_datetime=end_dte,
+                spatial_extent=spatial_extent,
             )
         )
         self.search_started.emit()

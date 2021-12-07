@@ -200,13 +200,15 @@ class ItemSearch:
         :returns: Dictionary of parameters
         :rtype: dict
         """
-
+        spatial_extent_available = (self.spatial_extent and
+                                    not self.spatial_extent.isNull()
+                                    )
         bbox = [
             self.spatial_extent.xMinimum(),
             self.spatial_extent.yMinimum(),
             self.spatial_extent.xMaximum(),
             self.spatial_extent.yMaximum(),
-        ] if self.spatial_extent else None
+        ] if spatial_extent_available else None
 
         datetime_str = None
         if self.start_datetime and not self.end_datetime:
@@ -215,7 +217,7 @@ class ItemSearch:
             datetime_str = f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
         elif self.start_datetime and self.end_datetime:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
-                       f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
+                           f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
         parameters = {
             "ids": self.ids,

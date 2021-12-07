@@ -26,14 +26,18 @@ class Client(BaseClient):
         """
         items = []
         pagination = ResourcePagination()
+        properties = None
         for item in items_response.get_items():
-            item_datetime = datetime.datetime.strptime(
-                item.properties.get("datetime"),
-                "%Y-%m-%dT%H:%M:%SZ"
-            )
-            properties = ResourceProperties(
-                resource_datetime=item_datetime
-            )
+            try:
+                item_datetime = datetime.datetime.strptime(
+                    item.properties.get("datetime"),
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
+                properties = ResourceProperties(
+                    resource_datetime=item_datetime
+                )
+            except:
+                pass
             assets = []
             for key, asset in item.assets.items():
                 item_asset = ResourceAsset(
@@ -41,7 +45,7 @@ class Client(BaseClient):
                     title=asset.title,
                     description=asset.description,
                     type=asset.media_type,
-                    roles=asset.roles
+                    roles=asset.roles or []
                 )
                 assets.append(item_asset)
             item_result = Item(

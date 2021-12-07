@@ -154,7 +154,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="assets_box">
+           <widget class="QComboBox" name="assets_load_box">
             <item>
              <property name="text">
               <string>Add assets as layers</string>
@@ -166,7 +166,7 @@
            <widget class="QComboBox" name="assets_download_box">
             <item>
              <property name="text">
-              <string>Download assests</string>
+              <string>Download assets</string>
              </property>
             </item>
            </widget>

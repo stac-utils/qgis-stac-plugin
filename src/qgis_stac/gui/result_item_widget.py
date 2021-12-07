@@ -47,7 +47,8 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
 
         self.created_date.setText(
             str(self.item.properties.resource_datetime)
-        )
+        ) if self.item.properties else None
+
         layer_types = [
             "image/tiff; "
             "application=geotiff; "
