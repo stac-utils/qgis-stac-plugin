@@ -47,6 +47,12 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.new_connection_btn.clicked.connect(self.add_connection)
         self.edit_connection_btn.clicked.connect(self.edit_connection)
         self.remove_connection_btn.clicked.connect(self.remove_connection)
+
+        current_connection = settings_manager.get_current_connection()
+        self.api_client = Client.from_connection_settings(
+            current_connection
+        ) if current_connection else None
+
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
         )
@@ -61,9 +67,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.fetch_collections_btn.clicked.connect(
             self.search_collections
         )
-
-        self.api_client = None
-        self.connections_box.activated.connect(self.update_current_connection)
         self.update_current_connection(self.connections_box.currentIndex())
 
         settings_manager.connections_settings_updated.connect(
@@ -174,12 +177,15 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         current_connection = settings_manager.\
             find_connection_by_name(current_text)
         settings_manager.set_current_connection(current_connection.id)
-        self.api_client = Client.from_connection_settings(
-            current_connection
-        )
-        self.api_client.items_received.connect(self.display_results)
-        self.api_client.collections_received.connect(self.display_results)
-        self.api_client.error_received.connect(self.display_search_error)
+        if current_connection:
+            self.api_client = Client.from_connection_settings(
+                current_connection
+            )
+            self.api_client.items_received.connect(self.display_results)
+            self.api_client.collections_received.connect(self.display_results)
+            self.api_client.error_received.connect(self.display_search_error)
+
+        self.search_btn.setEnabled(current_connection is not None)
 
     def update_connections_box(self):
         """ Updates connections list displayed on the connection
