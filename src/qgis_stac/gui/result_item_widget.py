@@ -18,8 +18,13 @@ from qgis.PyQt.uic import loadUiType
 
 from  qgis.core import (
     QgsApplication,
+    QgsMapLayer,
     QgsNetworkContentFetcherTask,
-    QgsTask
+    QgsProject,
+    QgsRasterLayer,
+    QgsTask,
+    QgsVectorLayer,
+
 )
 
 from ..resources import *
@@ -52,6 +57,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.title_la.setText(item.id)
         self.collection_name.setText(item.collection)
         self.thumbnail_url = None
+        self.cog_string = '/vsicurl/'
         self.initialize_ui()
         # if self.thumbnail_url:
         #     self.add_thumbnail()
@@ -81,6 +87,31 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
                 )
             if AssetRoles.THUMBNAIL in asset.roles:
                 self.thumbnail_url = asset.href
+
+        self.assets_load_box.activated.connect(self.load_asset)
+        # self.assets_load_box.currentIndexChanged(self.load_asset)
+
+    def load_asset(self, index):
+        """ Loads asset into QGIS"""
+
+        asset_href = f"{self.cog_string}{self.assets_load_box.itemData(index)}"
+        asset_name = self.assets_load_box.itemText(index)
+
+        layer_loader = LayerLoader(
+            asset_href,
+            asset_name,
+            QgsMapLayer.RasterLayer,
+            self.add_layer
+        )
+        QgsApplication.taskManager().addTask(layer_loader)
+
+    def add_layer(self, layer):
+        """ Adds layer into the current QGIS project
+
+        :param layer: QGIS layer
+        :type layer: QgsMapLayer
+        """
+        QgsProject.instance().addMapLayer(layer)
 
     def add_thumbnail(self):
         """ Downloads and loads the STAC Item thumbnail"""
@@ -186,4 +217,63 @@ class ThumbnailLoader(QgsTask):
             thumbnail_pixmap = QtGui.QPixmap.fromImage(self.thumbnail_image)
             self.label.setPixmap(thumbnail_pixmap)
         else:
-            log(f"Couldn't load thumbnail")
+            log("Couldn't load thumbnail")
+
+
+class LayerLoader(QgsTask):
+    """ Prepares and loads items as assets inside QGIS as layers."""
+    def __init__(
+        self,
+        layer_uri,
+        layer_name,
+        layer_type,
+        handler
+    ):
+
+        super().__init__()
+        self.layer_uri = layer_uri
+        self.layer_name = layer_name
+        self.layer_type = layer_type
+        self.handler = handler
+        self.layer = None
+
+    def run(self):
+        """ Operates the main layers loading logic
+        """
+        if self.layer_type is QgsMapLayer.RasterLayer:
+            self.layer = QgsRasterLayer(
+                self.layer_uri,
+                self.layer_name
+            )
+            return self.layer.isValid()
+        elif self.layer_type is QgsMapLayer.VectorLayer:
+            self.layer = QgsVectorLayer(
+                self.layer_uri,
+                self.layer_name,
+                "ogr"
+            )
+            return self.layer.isValid()
+        else:
+            raise NotImplementedError
+
+        return False
+
+    def finished(self, result: bool):
+        """ Calls the handler responsible for adding the
+         layer into QGIS project.
+
+        :param result: Whether the run() operation finished successfully
+        :type result: bool
+        """
+        if result and self.layer:
+            self.handler(self.layer)
+            log(
+                f"Successfully fetched layer with URI"
+                f"{self.layer_uri} "
+            )
+        else:
+            log(
+                f"Couldn't load layer "
+                f"{self.layer_uri}, "
+                f"error {self.layer.dataProvider().error()}"
+            )
