@@ -70,13 +70,12 @@ class ConnectionSettings:
                 settings.value("created_date"),
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
-        except Nonetype:
-            created_date = datetime.datetime.now()
-        try:
             auth_cfg = settings.value("auth_config").strip()
 
         except AttributeError:
+            created_date = datetime.datetime.now()
             auth_cfg = None
+
         return cls(
             id=uuid.UUID(identifier),
             name=settings.value("name"),
