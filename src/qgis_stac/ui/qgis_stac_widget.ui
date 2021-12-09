@@ -615,7 +615,7 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Go to previous page&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Go back to previous page</string>
            </property>
            <property name="text">
             <string>Previous</string>
@@ -634,7 +634,7 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Go to next page&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Go to next page</string>
            </property>
            <property name="text">
             <string>Next</string>

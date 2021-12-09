@@ -119,6 +119,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         # initialize page
         self.page = 1
+        self.total_pages = 0
 
         self.current_collections = []
         self.get_filters()
@@ -330,8 +331,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.setEnabled(enabled)
         self.metadata_group.setEnabled(enabled)
         self.search_btn.setEnabled(enabled)
-        self.prev_btn.setEnabled(enabled)
-        self.next_btn.setEnabled(enabled)
+        self.next_btn.setEnabled(self.page < self.total_pages)
+        self.prev_btn.setEnabled(self.page > 1)
 
     def prepare_message_bar(self):
         """ Initializes the widget message bar settings"""
@@ -391,6 +392,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                         pagination.total_items
                     )
                 )
+            self.total_pages = pagination.total_pages
             self.next_btn.setEnabled(self.page < pagination.total_pages)
             self.prev_btn.setEnabled(self.page > 1)
 

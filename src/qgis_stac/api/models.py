@@ -229,7 +229,7 @@ class ItemSearch:
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
-            "max_items": self.page_size,
+            "limit": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
         }
