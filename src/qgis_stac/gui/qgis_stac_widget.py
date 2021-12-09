@@ -19,7 +19,7 @@ from ..gui.connection_dialog import ConnectionDialog
 from ..conf import settings_manager
 from ..api.models import ItemSearch, ResourceType
 from ..api.client import Client
-from ..api.models import SortField
+from ..api.models import SearchFilters, SortField
 
 from .result_item_delegate import ResultItemDelegate
 from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
@@ -114,6 +114,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         # initialize page
         self.page = 1
+
+        self.current_collections = []
+        self.get_filters()
+
+        self.start_dte.valueChanged.connect(self.save_filters)
+        self.end_dte.valueChanged.connect(self.save_filters)
+        self.extent_box.extentChanged.connect(self.save_filters)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -347,12 +354,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.result_collections_la.setText(
                 tr("Found {} STAC collection(s)").format(len(results))
             )
-            for result in results:
-                item = QtGui.QStandardItem(result.title)
-                item.setData(result.id, 1)
-                self.model.appendRow(item)
-
-            self.proxy_model.setSourceModel(self.model)
+            self.current_collections = results
+            self.load_collections(results)
+            self.save_filters()
 
         elif self.search_type == ResourceType.FEATURE:
             self.result_items_la.setText(
@@ -425,3 +429,64 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             collections_ids.append(index.data(1))
 
         return collections_ids
+
+    def load_collections(self, collections):
+        """ Adds the collections results into collections tree view
+
+        :param collections: List of collections to be added
+        :type collections: []
+        """
+        for result in collections:
+            item = QtGui.QStandardItem(result.title)
+            item.setData(result.id, 1)
+            self.model.appendRow(item)
+
+        self.proxy_model.setSourceModel(self.model)
+
+    def save_filters(self):
+        """ Save search filters fetched from the corresponding UI inputs """
+
+        filters = SearchFilters(
+            collections=self.current_collections,
+            start_date=(
+                self.start_dte.dateTime()
+                if not self.start_dte.dateTime().isNull() else None
+
+            ),
+            end_date=(
+                self.end_dte.dateTime()
+                if not self.end_dte.dateTime().isNull() else None
+            ),
+            spatial_extent=self.extent_box.outputExtent(),
+        )
+        settings_manager.save_search_filters(filters)
+
+    def get_filters(self):
+        """ Get the store search filters and load the into their
+        respectively UI components
+        """
+
+        filters = settings_manager.get_search_filters()
+        if filters.collections:
+            self.load_collections(filters.collections)
+        if filters.start_date is not None:
+            self.start_dte.setDateTime(
+                filters.start_date
+            )
+        else:
+            self.start_dte.setDateTime(
+                QtCore.QDateTime()
+            )
+        if filters.end_date is not None:
+            self.end_dte.setDateTime(
+                filters.end_date
+            )
+        else:
+            self.end_dte.setDateTime(
+                QtCore.QDateTime()
+            )
+        if filters.spatial_extent is not None:
+            self.extent_box.setOutputExtentFromUser(
+                filters.spatial_extent,
+                QgsCoordinateReferenceSystem("EPSG:4326"),
+            )

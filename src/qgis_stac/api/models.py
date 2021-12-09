@@ -234,3 +234,13 @@ class ItemSearch:
         }
 
         return parameters
+
+
+@dataclasses.dataclass
+class SearchFilters:
+    page: typing.Optional[int] = 1
+    page_size: typing.Optional[int] = 10
+    collections: typing.Optional[list] = None
+    start_date: typing.Optional[QtCore.QDateTime] = None
+    end_date: typing.Optional[QtCore.QDateTime] = None
+    spatial_extent: typing.Optional[QgsRectangle] = None

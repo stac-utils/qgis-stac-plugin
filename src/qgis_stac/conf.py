@@ -15,6 +15,8 @@ from qgis.PyQt import (
 )
 from qgis.core import QgsRectangle, QgsSettings
 
+from .api.models import SearchFilters
+
 
 @contextlib.contextmanager
 def qgis_settings(group_root: str):
@@ -79,6 +81,39 @@ class ConnectionSettings:
             page_size=int(settings.value("page_size", defaultValue=10)),
             created_date=created_date,
             auth_config=auth_cfg,
+        )
+
+
+@dataclasses.dataclass
+class CollectionSettings:
+    """Plugin STAC API collection setting
+    """
+
+    collection_id: uuid.UUID
+    title: str
+    id: str
+
+    @classmethod
+    def from_qgs_settings(
+            cls,
+            identifier: str,
+            settings: QgsSettings):
+        """Reads QGIS settings and parses them into a collection
+        settings instance with the respective settings values as properties.
+
+        :param identifier: Collection identifier
+        :type identifier: str
+
+        :param settings: QGIS settings.
+        :type settings: QgsSettings
+
+        :returns: Collection settings object
+        :rtype: CollectionSettings
+        """
+        return cls(
+            collection_id=uuid.UUID(identifier),
+            title=settings.value("title"),
+            id=settings.value("id")
         )
 
 
@@ -357,11 +392,155 @@ class SettingsManager(QtCore.QObject):
                f"{self.CONNECTION_GROUP_NAME}/" \
                f"{str(identifier)}"
 
-    def store_search_filters(self, filters):
-        raise NotImplementedError
+    def save_collection(self, collection_settings):
+        """ Save the passed colection settings into the plugin settings
+
+        :param collection_settings: Collection settings
+        :type collection_settings:  CollectionSettings
+        """
+        settings_key = f"" \
+                       f"{self.BASE_GROUP_NAME}" \
+                       f"/search_filters/collections/" \
+                       f"{collection_settings.collection_id}"
+
+        with qgis_settings(settings_key) as settings:
+            settings.setValue("title", collection_settings.title)
+            settings.setValue("id", collection_settings.id)
+
+    def get_collection(self, identifier):
+        """ Retrieves the collection with the identifier
+
+        :param identifier: Collection identifier
+        :type identifier: str
+        """
+
+        settings_key = f"" \
+                       f"{self.BASE_GROUP_NAME}" \
+                       f"/search_filters/collections/" \
+                       f"{identifier}"
+        with qgis_settings(settings_key) as settings:
+            collection_settings = CollectionSettings.from_qgs_settings(
+                str(identifier), settings
+            )
+        return collection_settings
+
+    def get_all_collections(self):
+        """ Gets all the available collections settings"""
+        result = []
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/"
+                f"search_filters/collections") \
+                as settings:
+            for collection_id in settings.childGroups():
+                collection_settings_key = f"" \
+                                          f"{self.BASE_GROUP_NAME}/" \
+                                          f"search_filters/collections/" \
+                                          f"{collection_id}"
+                with qgis_settings(collection_settings_key) \
+                        as collection_settings:
+                    result.append(
+                        CollectionSettings.from_qgs_settings(
+                            collection_id, collection_settings
+                        )
+                    )
+        return result
+
+    def delete_all_collections(self):
+        """Deletes all the plugin connections collections settings.
+        """
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}"
+                f"/search_filters/collections") \
+                as settings:
+            for collection_name in settings.childGroups():
+                settings.remove(collection_name)
+
+    def save_search_filters(
+        self,
+        filters
+    ):
+        """ Save the search filters into the plugin settings
+
+        :param filters: Search filters
+        :type filters: SearchFilters
+        """
+        with qgis_settings(
+            f"{self.BASE_GROUP_NAME}/search_filters"
+        ) as settings:
+            if filters.start_date is not None:
+                settings.setValue(
+                    "start_date",
+                    filters.start_date.toString(QtCore.Qt.ISODate),
+                )
+            else:
+                settings.setValue("start_date", None)
+            if filters.end_date is not None:
+                settings.setValue(
+                    "end_date",
+                    filters.end_date.toString(QtCore.Qt.ISODate),
+                )
+            else:
+                settings.setValue("end_date", None)
+            if filters.spatial_extent is not None:
+                settings.setValue(
+                    "spatial_extent_north",
+                    filters.spatial_extent.yMaximum()
+                )
+                settings.setValue(
+                    "spatial_extent_south",
+                    filters.spatial_extent.yMinimum()
+                )
+                settings.setValue(
+                    "spatial_extent_east",
+                    filters.spatial_extent.xMaximum()
+                )
+                settings.setValue(
+                    "spatial_extent_west",
+                    filters.spatial_extent.xMinimum()
+                )
+        if filters.collections:
+            self.delete_all_collections()
+        for collection in filters.collections:
+            collection = CollectionSettings(
+                collection_id=uuid.uuid4(),
+                id=collection.id,
+                title=collection.title
+            )
+            self.save_collection(collection)
 
     def get_search_filters(self):
-        raise NotImplementedError
+        """ Retrieve the store fitlers settings"""
+        with qgis_settings(
+            f"{self.BASE_GROUP_NAME}/search_filters"
+        ) as settings:
+            start_date = None
+            end_date = None
+            spatial_extent = None
+
+            collections = self.get_all_collections()
+
+            if settings.value("start_date"):
+                start_date = QtCore.QDateTime.fromString(
+                    settings.value("start_date"), QtCore.Qt.ISODate
+                )
+            if settings.value("end_date"):
+                end_date = QtCore.QDateTime.fromString(
+                    settings.value("end_date"), QtCore.Qt.ISODate
+                )
+            if settings.value("spatial_extent_north") is not None:
+                spatial_extent = QgsRectangle(
+                    float(settings.value("spatial_extent_east")),
+                    float(settings.value("spatial_extent_south")),
+                    float(settings.value("spatial_extent_west")),
+                    float(settings.value("spatial_extent_north")),
+                )
+
+            return SearchFilters(
+                collections=collections,
+                start_date=start_date,
+                end_date=end_date,
+                spatial_extent=spatial_extent,
+            )
 
 
 settings_manager = SettingsManager()
