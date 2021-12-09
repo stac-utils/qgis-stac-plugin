@@ -76,13 +76,28 @@ class ItemsSortFilterProxyModel(QtCore.QSortFilterProxyModel):
         super().__init__(*args, **kwargs)
         self.current_sort_field = current_sort_field
 
+    def set_sort_field(self, field):
+        self.current_sort_field = field
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QtCore.QModelIndex):
+        index = self.sourceModel().index(source_row, 0, source_parent)
+
+        match = self.filterRegularExpression().match(
+            self.sourceModel().data(index).id
+        )
+        return match.hasMatch()
+
     def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
         model = self.sourceModel()
         left_item = model.data(left)
         right_item = model.data(right)
 
-        if self.current_sort_field == SortField.DATE:
+        if self.current_sort_field == SortField.ID:
             result = left_item.id < right_item.id
+        elif self.current_sort_field == SortField.COLLECTION:
+            result = left_item.collection < right_item.collection
+        elif self.current_sort_field == SortField.DATE:
+            pass
         else:
             raise NotImplementedError
 

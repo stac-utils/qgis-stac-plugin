@@ -109,8 +109,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.standard_model = QtGui.QStandardItemModel()
 
         self.items_tree.setItemDelegate(self.items_delegate)
-
-        self.items_proxy_model = ItemsSortFilterProxyModel(SortField.DATE)
+        self.items_proxy_model = ItemsSortFilterProxyModel(SortField.ID)
 
         # initialize page
         self.page = 1
@@ -121,6 +120,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.start_dte.valueChanged.connect(self.save_filters)
         self.end_dte.valueChanged.connect(self.save_filters)
         self.extent_box.extentChanged.connect(self.save_filters)
+
+        self.populate_sorting_field()
+        self.sort_cmb.activated.connect(self.sort_items)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -408,12 +410,42 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param filter_text: Filter text
         :type: str
         """
-        exp_reg = QtCore.QRegExp(
-            filter_text,
-            QtCore.Qt.CaseInsensitive,
-            QtCore.QRegExp.FixedString
+        # TODO update to user QtCore.QRegExp, QRegularExpression will be
+        # deprecated.
+        options = QtCore.QRegularExpression.NoPatternOption
+        options |= QtCore.QRegularExpression.CaseInsensitiveOption
+        regular_expression = QtCore.QRegularExpression(filter_text, options)
+        self.items_proxy_model.setFilterRegularExpression(regular_expression)
+
+    def populate_sorting_field(self):
+        """" Initializes sorting field combo box list items"""
+        default = SortField.ID
+        labels = {
+            SortField.ID: tr("Name"),
+            SortField.COLLECTION: tr("Collection"),
+            # SortField.DATE: tr("Date")
+        }
+        for ordering_type, item_text in labels.items():
+            self.sort_cmb.addItem(item_text, ordering_type)
+        self.sort_cmb.setCurrentIndex(
+            self.sort_cmb.findData(default, role=QtCore.Qt.UserRole)
         )
-        self.items_proxy_model.setFilterRegExp(exp_reg)
+
+    def sort_items(self, index):
+        """ Sort the tree view items based on the current selected sort field
+        in the sort fields combo box
+
+        :param index: Current index of the sort fields list
+        :type index: int
+        """
+        sort_field = self.sort_cmb.itemData(index)
+        self.items_proxy_model.set_sort_field(sort_field)
+        order = QtCore.Qt.AscendingOrder \
+            if not self.reverse_order_box.isChecked() \
+            else QtCore.Qt.DescendingOrder
+        self.items_proxy_model.sort(index, order)
+        # Force refresh of the tree view items
+        self.items_tree.setModel(self.items_proxy_model)
 
     def get_selected_collections(self):
         """ Gets the currently selected collections ids from the collection
