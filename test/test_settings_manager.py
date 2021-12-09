@@ -81,8 +81,13 @@ class SettingsManagerTest(unittest.TestCase):
                 connection_id
             )
         self.assertEqual(
-            connection,
-            stored_connection
+            connection.auth_config,
+            stored_connection.auth_config
+        )
+
+        self.assertEqual(
+            connection.created_date.replace(second=0, microsecond=0),
+            stored_connection.created_date.replace(second=0, microsecond=0)
         )
 
         # Adding a second connection, setting it a current selected
@@ -102,8 +107,13 @@ class SettingsManagerTest(unittest.TestCase):
                 second_connection_id
             )
         self.assertEqual(
-            second_connection,
-            second_stored_connection
+            second_connection.auth_config,
+            second_stored_connection.auth_config
+        )
+
+        self.assertEqual(
+            second_connection.created_date.replace(second=0, microsecond=0),
+            second_stored_connection.created_date.replace(second=0, microsecond=0)
         )
         settings_manager.set_current_connection(
             second_connection_id
@@ -113,9 +123,15 @@ class SettingsManagerTest(unittest.TestCase):
         self.assertTrue(settings_manager.is_current_connection(
             second_connection_id
         ))
+
         self.assertEqual(
-            second_connection,
-            current_connection
+            second_connection.auth_config,
+            current_connection.auth_config
+        )
+
+        self.assertEqual(
+            second_connection.created_date.replace(second=0, microsecond=0),
+            current_connection.created_date.replace(second=0, microsecond=0)
         )
 
         # Retrieve all the connections

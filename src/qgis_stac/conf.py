@@ -65,15 +65,17 @@ class ConnectionSettings:
         :returns: Connection settings object
         :rtype: ConnectionSettings
         """
-        created_date = datetime.datetime.strptime(
-            settings.value("created_date"),
-            "%Y-%m-%dT%H:%M:%S.%fZ"
-        )
         try:
+            created_date = datetime.datetime.strptime(
+                settings.value("created_date"),
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
             auth_cfg = settings.value("auth_config").strip()
 
         except AttributeError:
+            created_date = datetime.datetime.now()
             auth_cfg = None
+
         return cls(
             id=uuid.UUID(identifier),
             name=settings.value("name"),
