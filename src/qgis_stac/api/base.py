@@ -19,6 +19,8 @@ from .models import (
 from .network import ContentFetcherTask
 from ..conf import ConnectionSettings
 
+from ..lib.pystac import ItemCollection
+
 
 class BaseClient(QtCore.QObject):
     """ Base API client, defines main plugin content fetching operations
@@ -36,6 +38,9 @@ class BaseClient(QtCore.QObject):
     items_received = QtCore.pyqtSignal(
         list,
         ResourcePagination
+    )
+    item_collections_received = QtCore.pyqtSignal(
+        ItemCollection
     )
     error_received = QtCore.pyqtSignal([str], [str, int, str])
 
@@ -107,24 +112,6 @@ class BaseClient(QtCore.QObject):
 
         QgsApplication.taskManager().addTask(self.content_task)
 
-    def get_pagination(self, item_collection):
-        """ Generates pagination details from the pystac_client item collection
-
-        :param item_collection: Collection of items generator
-        :type item_collection: ItemCollection
-
-        :returns: Pagination instance
-        :rtype: ResourcePagination
-         """
-        pagination = ResourcePagination()
-        for link in item_collection.to_dict()['links']:
-            if link['rel'] == "next":
-                pagination.next_page = link['href']
-            elif link['rel'] == "previous":
-                pagination.previous_page = link['href']
-
-        return pagination
-
     def handle_collections(
             self,
             collections
@@ -132,6 +119,12 @@ class BaseClient(QtCore.QObject):
         raise NotImplementedError
 
     def handle_items(
+            self,
+            items
+    ):
+        raise NotImplementedError
+
+    def handle_item_collections(
             self,
             items
     ):

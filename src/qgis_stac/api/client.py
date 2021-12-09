@@ -1,4 +1,5 @@
 import datetime
+import typing
 
 from .base import BaseClient
 from .models import (
@@ -10,6 +11,7 @@ from .models import (
 )
 
 from ..utils import log
+from ..lib.pystac import ItemCollection
 
 
 class Client(BaseClient):
@@ -18,7 +20,8 @@ class Client(BaseClient):
         """
     def handle_items(
             self,
-            items_response
+            items_response,
+            pagination
     ):
         """Emits the search results items, so plugin signal observers
         eg. gui can use the data.
@@ -27,9 +30,8 @@ class Client(BaseClient):
         :type items_response: List[models.Items]
         """
         items = []
-        pagination = ResourcePagination()
         properties = None
-        for item in items_response.get_items():
+        for item in items_response.items:
             try:
                 item_datetime = datetime.datetime.strptime(
                     item.properties.get("datetime"),
@@ -62,9 +64,25 @@ class Client(BaseClient):
 
         self.items_received.emit(items, pagination)
 
+    def handle_item_collections(
+            self,
+            items_response,
+            pagination
+    ):
+        """Emits the search results item collections generator
+
+        :param items_response: Search results items
+        :type items_response: List[models.Items]
+        """
+        self.item_collections_received.emit(
+            items_response.get_item_collections(),
+            pagination
+        )
+
     def handle_collections(
             self,
-            collections_response
+            collections_response,
+            pagination
     ):
         """Emits the search results collections.
 

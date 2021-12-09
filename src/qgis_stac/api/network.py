@@ -38,7 +38,8 @@ class ContentFetcherTask(QgsTask):
 
     response = None
     error = None
-    client: Client = None
+    client = None
+    pagination = None
 
     def __init__(
         self,
@@ -66,9 +67,22 @@ class ContentFetcherTask(QgsTask):
         try:
             if self.resource_type == \
                     ResourceType.FEATURE:
-                self.response = self.client.search(
+                response = self.client.search(
                     **self.search_params.params()
                 )
+                pages = 1
+                items = 0
+                self.pagination = ResourcePagination()
+
+                for i, collection in enumerate(response.get_item_collections()):
+                    pages = pages + i
+                    items += len(collection.items)
+                    if self.search_params.page == (i + 1):
+                        self.response = collection
+
+                self.pagination.total_pages = pages
+                self.pagination.total_items = items
+
             elif self.resource_type == \
                     ResourceType.COLLECTION:
                 self.response = self.client.get_collections()
@@ -89,7 +103,7 @@ class ContentFetcherTask(QgsTask):
         :type result: bool
         """
         if result:
-            self.response_handler(self.response)
+            self.response_handler(self.response, self.pagination)
         else:
             message = f"Problem in fetching content for {self.url!r}," \
                       f"Error {self.error}"
