@@ -61,7 +61,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.connections_box.activated.connect(self.update_current_connection)
 
         self.search_btn.clicked.connect(
-            self.search_items
+            self.search_items_api
+        )
+        self.next_btn.clicked.connect(
+            self.next_items
+        )
+        self.prev_btn.clicked.connect(
+            self.previous_items
         )
 
         self.fetch_collections_btn.clicked.connect(
@@ -183,7 +189,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         current_text = self.connections_box.itemText(index)
         if current_text == "":
             return
-        current_connection = settings_manager.\
+        current_connection = settings_manager. \
             find_connection_by_name(current_text)
         settings_manager.set_current_connection(current_connection.id)
         if current_connection:
@@ -208,18 +214,31 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             )
             current_connection = settings_manager.get_current_connection()
             if current_connection is not None:
-                current_index = self.connections_box.\
+                current_index = self.connections_box. \
                     findText(current_connection.name)
                 self.connections_box.setCurrentIndex(current_index)
             else:
                 self.connections_box.setCurrentIndex(0)
 
+    def search_items_api(self):
+        self.current_progress_message = tr(
+            f"Searching items ..."
+        )
+        self.page = 1
+        self.search_items()
+
     def previous_items(self):
         self.page -= 1
+        self.current_progress_message = tr(
+            f"Retrieving data"
+        )
         self.search_items()
 
     def next_items(self):
         self.page += 1
+        self.current_progress_message = tr(
+            f"Retrieving data"
+        )
         self.search_items()
 
     def search_items(self):
@@ -229,8 +248,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         search operation.
         """
         self.search_type = ResourceType.FEATURE
-        self.current_progress_message = tr("Searching for items...")
-
         start_dte = self.start_dte.dateTime() \
             if not self.start_dte.dateTime().isNull() else None
         end_dte = self.end_dte.dateTime() \
@@ -243,6 +260,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             ItemSearch(
                 collections=collections,
                 page_size=page_size,
+                page=self.page,
                 start_datetime=start_dte,
                 end_datetime=end_dte,
                 spatial_extent=spatial_extent,
@@ -312,6 +330,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.setEnabled(enabled)
         self.metadata_group.setEnabled(enabled)
         self.search_btn.setEnabled(enabled)
+        self.prev_btn.setEnabled(enabled)
+        self.next_btn.setEnabled(enabled)
 
     def prepare_message_bar(self):
         """ Initializes the widget message bar settings"""
@@ -343,7 +363,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.setOutputExtentFromCurrent()
         self.extent_box.setMapCanvas(map_canvas)
 
-    def display_results(self, results):
+    def display_results(self, results, pagination):
         """ Shows the found results into their respective view. Emits
         the search end signal after completing loading up the results
         into the view.
@@ -361,9 +381,18 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.save_filters()
 
         elif self.search_type == ResourceType.FEATURE:
-            self.result_items_la.setText(
-                tr("Found {} STAC item(s)").format(len(results))
-            )
+            if pagination.total_items != 0:
+                self.result_items_la.setText(
+                    tr(
+                        "Page {} out {} pages, "
+                        "total {} STAC item(s) found.").format(
+                        self.page,
+                        pagination.total_pages,
+                        pagination.total_items
+                    )
+                )
+            self.next_btn.setEnabled(self.page < pagination.total_pages)
+            self.prev_btn.setEnabled(self.page > 1)
 
             items_model = ItemsModel(items=results)
             self.items_proxy_model.setSourceModel(items_model)

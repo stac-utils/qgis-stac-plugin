@@ -604,9 +604,9 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="previous_btn">
+          <widget class="QPushButton" name="prev_btn">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
@@ -625,7 +625,7 @@
          <item>
           <widget class="QPushButton" name="next_btn">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">

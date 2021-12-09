@@ -23,7 +23,8 @@ from qgis.core import QgsRectangle
 @dataclasses.dataclass
 class ResourcePagination:
     """The plugin resource pagination for the search results"""
-    total_records: int = 0
+    total_items: int = 0
+    total_pages: int = 0
     current_page: int = 1
     page_size: int = 10
     next_page: str = None
