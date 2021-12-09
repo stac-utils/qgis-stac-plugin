@@ -1,0 +1,8 @@
+site_name: QGIS STAC APIs Plugin
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - User Guide: user-guide.md
+  - Development: development.md
+  - About: about.md
+  - Changelog: changelog.md

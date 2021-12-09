@@ -7,15 +7,15 @@
         
         
         
-        <link rel="shortcut icon" href="/img/favicon.ico">
-        <title>QGIS STAC APIs Plugin</title>
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/css/font-awesome.min.css" rel="stylesheet">
-        <link href="/css/base.css" rel="stylesheet">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>User Guide - QGIS STAC APIs Plugin</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
-        <script src="/js/jquery-1.10.2.min.js" defer></script>
-        <script src="/js/bootstrap.min.js" defer></script>
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script> 
     </head>
@@ -23,7 +23,7 @@
     <body>
         <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="/.">QGIS STAC APIs Plugin</a>
+                <a class="navbar-brand" href="..">QGIS STAC APIs Plugin</a>
                 <!-- Expander button -->
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
@@ -34,22 +34,22 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem">
-                                <a href="/." class="nav-link">Home</a>
+                                <a href=".." class="nav-link">Home</a>
                             </li>
                             <li class="navitem">
-                                <a href="/installation/" class="nav-link">Installation</a>
+                                <a href="../installation/" class="nav-link">Installation</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">User Guide</a>
                             </li>
                             <li class="navitem">
-                                <a href="/user-guide/" class="nav-link">User Guide</a>
+                                <a href="../development/" class="nav-link">Development</a>
                             </li>
                             <li class="navitem">
-                                <a href="/development/" class="nav-link">Development</a>
+                                <a href="../about/" class="nav-link">About</a>
                             </li>
                             <li class="navitem">
-                                <a href="/about/" class="nav-link">About</a>
-                            </li>
-                            <li class="navitem">
-                                <a href="/changelog/" class="nav-link">Changelog</a>
+                                <a href="../changelog/" class="nav-link">Changelog</a>
                             </li>
                         </ul>
 
@@ -59,6 +59,16 @@
                                 <i class="fa fa-search"></i> Search
                             </a>
                         </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../installation/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../development/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
                     </ul>
                 </div>
             </div>
@@ -66,15 +76,48 @@
 
         <div class="container">
             <div class="row">
-
-    <div class="row-fluid">
-      <div id="main-content" class="span12">
-        <h1 id="404-page-not-found" style="text-align: center">404</h1>
-        <p style="text-align: center"><strong>Page not found</strong></p>
-      </div>
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
     </div>
 
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="2"><a href="#add-a-stac-catalog" class="nav-link">Add a STAC Catalog</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="2"><a href="#search-and-add-item-into-qgis" class="nav-link">Search and add Item into QGIS</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
 
+<p>In QGIS toolbars click on the STAC APIs Browser icon</p>
+<p><img alt="image" src="../images/toolbar.png" /></p>
+<h2 id="add-a-stac-catalog">Add a STAC Catalog</h2>
+<p><strong>STAC Catalog</strong> is a simple, flexible JSON file of links that provides a structure to organize and browse STAC Items</p>
+<p><img alt="image" src="../images/add-connection.png" /></p>
+<h2 id="search-and-add-item-into-qgis">Search and add Item into QGIS</h2>
+<h3 id="using-the-search-filters">Using the search filters</h3>
+<p>Searching STAC Item can be filtered by:</p>
+<ul>
+<li>Collections</li>
+<li>Date</li>
+<li>Zone of Interest (ZOI)/ Extent</li>
+<li>Metadata</li>
+</ul>
+<p><img alt="image" src="../images/filters.png" /></p>
+<h3 id="add-item-as-raster-onto-qgis">Add item as raster onto QGIS</h3>
+<p>Result STAC Itmes can be add as raster and also vector ( the footprint) into QGIS</p></div>
             </div>
         </div>
 
@@ -83,11 +126,11 @@
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>
-            var base_url = "/",
+            var base_url = "..",
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
-        <script src="/js/base.js" defer></script>
-        <script src="/search/main.js" defer></script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
