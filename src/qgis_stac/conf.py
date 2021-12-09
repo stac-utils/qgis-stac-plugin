@@ -65,10 +65,13 @@ class ConnectionSettings:
         :returns: Connection settings object
         :rtype: ConnectionSettings
         """
-        created_date = datetime.datetime.strptime(
-            settings.value("created_date"),
-            "%Y-%m-%dT%H:%M:%S.%fZ"
-        )
+        try:
+            created_date = datetime.datetime.strptime(
+                settings.value("created_date"),
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
+        except Nonetype:
+            created_date = datetime.datetime.now()
         try:
             auth_cfg = settings.value("auth_config").strip()
 
