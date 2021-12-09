@@ -1,0 +1,22 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<plugins>
+<pyqgis_plugin name="STAC APIs Browser " version="1.0.0-beta">
+                <description><![CDATA[QGIS plugin for reading STAC APIs]]></description>
+                <about><![CDATA[Adds functionality to search, load and manage STAC APIs resources inside QGIS.
+]]></about>
+                <version>1.0.0-beta</version>
+                <qgis_minimum_version>3.0</qgis_minimum_version>
+                <homepage><![CDATA[https://stac-utils.github.io/qgis-stac-api]]></homepage>
+                <file_name>qgis_stac.1.0.0.zip</file_name>
+                <icon>icon.png</icon>
+                <author_name><![CDATA[Kartoza]]></author_name>
+                <download_url>https://github.com/stac-utils/qgis-stac-plugin/releases/download/v1.0.0-beta/qgis_stac.1.0.0.zip</download_url>
+                <update_date>2021-12-09 20:48:18</update_date>
+                <experimental>True</experimental>
+                <deprecated>False</deprecated>
+                <tracker><![CDATA[https://github.com/stac-utils/qgis-stac-api/issues]]></tracker>
+                <repository><![CDATA[https://github.com/stac-utils/qgis-stac-api]]></repository>
+                <tags><![CDATA[stac-api]]></tags>
+                <server>False</server>
+            </pyqgis_plugin>
+</plugins>
