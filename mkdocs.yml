@@ -1,11 +1,14 @@
 site_name: QGIS STAC APIs Plugin
 
 repo_url: https://github.com/stac-utils/qgis-stac-plugin
-repo_name: qgis-stac-plugin
+repo_name: GitHub
 
 site_description: QGIS STAC APIs plugin
 
 site_author: Kartoza
 
 nav:
-  - QGIS Repo: 'repository/plugins.xml'
+  - Home: 'index.md'
+
+theme:
+  name: lumen
