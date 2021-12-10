@@ -13,7 +13,6 @@ nav:
   - User Guide: "user-guide.md"
   - Development: "development.md"
   - About: "about.md"
-  - Changelog: "changelog.md"
 
 theme:
   name: lumen

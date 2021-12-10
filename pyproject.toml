@@ -7,7 +7,6 @@ license = "GPL v3.0"
 
 [tool.poetry.dependencies]
 mkdocs = "^1.2.3"
-mkdocs-material = "^8.1.0"
 mkdocs-bootswatch = "^1.1"
 python = "^3.8"
 httpx = "^0.20.0"
