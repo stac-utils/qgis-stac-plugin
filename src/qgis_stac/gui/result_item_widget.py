@@ -30,7 +30,7 @@ from  qgis.core import (
 from ..resources import *
 from ..utils import log
 
-from ..api.models import AssetRoles
+from ..api.models import AssetLayerType, AssetRoles
 
 
 WidgetUi, _ = loadUiType(
@@ -83,7 +83,10 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             if asset.type in layer_types:
                 self.assets_load_box.addItem(
                     asset.title,
-                    asset.href
+                    {
+                        "href": asset.href,
+                        "type": asset.type,
+                    }
                 )
             if AssetRoles.THUMBNAIL in asset.roles:
                 self.thumbnail_url = asset.href
@@ -94,14 +97,23 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
     def load_asset(self, index):
         """ Loads asset into QGIS"""
 
-        asset_href = f"{self.cog_string}{self.assets_load_box.itemData(index)}"
+        assert_type = self.assets_load_box.itemData(index)['type']
+
+        if AssetLayerType.COG.value in assert_type:
+            asset_href = f"{self.cog_string}" \
+                         f"{self.assets_load_box.itemData(index)['href']}"
+        else:
+            asset_href = f"{self.assets_load_box.itemData(index)['href']}"
         asset_name = self.assets_load_box.itemText(index)
+
+        log("Started adding asset into QGIS")
 
         layer_loader = LayerLoader(
             asset_href,
             asset_name,
             QgsMapLayer.RasterLayer,
-            self.add_layer
+            self.add_layer,
+            self.handle_layer_error
         )
         QgsApplication.taskManager().addTask(layer_loader)
 
@@ -112,6 +124,15 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         :type layer: QgsMapLayer
         """
         QgsProject.instance().addMapLayer(layer)
+        log("Successfully added asset into QGIS")
+
+    def handle_layer_error(self, message):
+        """ Handles the error message from the layer loading task
+
+        :param message: The error message
+        :type message: str
+        """
+        log(message)
 
     def add_thumbnail(self):
         """ Downloads and loads the STAC Item thumbnail"""
@@ -227,7 +248,8 @@ class LayerLoader(QgsTask):
         layer_uri,
         layer_name,
         layer_type,
-        handler
+        handler,
+        error_handler
     ):
 
         super().__init__()
@@ -235,11 +257,15 @@ class LayerLoader(QgsTask):
         self.layer_name = layer_name
         self.layer_type = layer_type
         self.handler = handler
+        self.error_handler = error_handler
         self.layer = None
 
     def run(self):
         """ Operates the main layers loading logic
         """
+        log(
+            "Fetching layers in a background task."
+        )
         if self.layer_type is QgsMapLayer.RasterLayer:
             self.layer = QgsRasterLayer(
                 self.layer_uri,
@@ -266,14 +292,20 @@ class LayerLoader(QgsTask):
         :type result: bool
         """
         if result and self.layer:
-            self.handler(self.layer)
             log(
                 f"Successfully fetched layer with URI"
                 f"{self.layer_uri} "
             )
+            # Due to the way QGIS is handling layers sharing between tasks and
+            # the main thread, sending the layer to the main thread
+            # without cloning it can lead to unpredicted crashes, hence we clone
+            # the layer before sharing it with the main thread.
+            layer = self.layer.clone()
+            self.handler(layer)
         else:
             log(
                 f"Couldn't load layer "
                 f"{self.layer_uri}, "
                 f"error {self.layer.dataProvider().error()}"
             )
+            self.error_handler("Problem loading layer into QGIS")

@@ -42,6 +42,11 @@ class AssetRoles(enum.Enum):
     METADATA = 'metadata'
 
 
+class AssetLayerType(enum.Enum):
+    """ Types of assets layers that can be added to QGIS"""
+    COG = 'profile=cloud-optimized'
+
+
 class SortField(enum.Enum):
     """ Holds the field value used when sorting items results."""
     ID = 'name'
