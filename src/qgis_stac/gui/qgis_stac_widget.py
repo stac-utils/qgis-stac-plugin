@@ -74,7 +74,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.search_collections
         )
         self.update_current_connection(self.connections_box.currentIndex())
-
         settings_manager.connections_settings_updated.connect(
             self.update_connections_box
         )
@@ -84,8 +83,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.search_started.connect(self.handle_search_start)
         self.search_completed.connect(self.handle_search_end)
-
-        # self.collections_tree.itemDoubleClicked.connect(self.show_collection_info)
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.message_bar = QgsMessageBar()
@@ -113,7 +110,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             parent=self.items_tree
         )
         self.standard_model = QtGui.QStandardItemModel()
-
         self.items_tree.setItemDelegate(self.items_delegate)
         self.items_proxy_model = ItemsSortFilterProxyModel(SortField.ID)
 
