@@ -49,6 +49,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
     def __init__(
         self,
         item,
+        main_widget,
         parent=None,
     ):
         super().__init__(parent)
@@ -58,6 +59,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.collection_name.setText(item.collection)
         self.thumbnail_url = None
         self.cog_string = '/vsicurl/'
+        self.main_widget = main_widget
         self.initialize_ui()
         # if self.thumbnail_url:
         #     self.add_thumbnail()
@@ -88,7 +90,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
                         "type": asset.type,
                     }
                 )
-            if AssetRoles.THUMBNAIL in asset.roles:
+            if AssetRoles.THUMBNAIL.value in asset.roles:
                 self.thumbnail_url = asset.href
 
         self.assets_load_box.activated.connect(self.load_asset)
@@ -97,6 +99,8 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
     def load_asset(self, index):
         """ Loads asset into QGIS"""
 
+        if self.assets_load_box.count() < 1 or index < 1:
+            return
         assert_type = self.assets_load_box.itemData(index)['type']
 
         if AssetLayerType.COG.value in assert_type:
