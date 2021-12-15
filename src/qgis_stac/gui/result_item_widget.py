@@ -61,8 +61,8 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.cog_string = '/vsicurl/'
         self.main_widget = main_widget
         self.initialize_ui()
-        if self.thumbnail_url:
-            self.add_thumbnail()
+        # if self.thumbnail_url:
+        #     self.add_thumbnail()
 
     def initialize_ui(self):
         """ Populate UI inputs when loading the widget"""
