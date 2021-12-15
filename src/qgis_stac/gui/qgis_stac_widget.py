@@ -298,6 +298,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param message: Progress message
         :type message: str
         """
+        self.message_bar.clearWidgets()
         message_bar_item = self.message_bar.createMessage(message)
         progress_bar = QtWidgets.QProgressBar()
         progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)

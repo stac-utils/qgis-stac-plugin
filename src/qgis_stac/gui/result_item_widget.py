@@ -96,6 +96,11 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.assets_load_box.activated.connect(self.load_asset)
         # self.assets_load_box.currentIndexChanged(self.load_asset)
 
+    def update_inputs(self, enabled):
+        self.assets_load_box.setEnabled(enabled)
+        self.assets_download_box.setEnabled(enabled)
+        self.footprint_box.setEnabled(enabled)
+
     def load_asset(self, index):
         """ Loads asset into QGIS"""
 
@@ -110,8 +115,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             asset_href = f"{self.assets_load_box.itemData(index)['href']}"
         asset_name = self.assets_load_box.itemText(index)
 
-        log("Started adding asset into QGIS")
-
+        self.update_inputs(False)
         layer_loader = LayerLoader(
             asset_href,
             asset_name,
@@ -119,6 +123,12 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             self.add_layer,
             self.handle_layer_error
         )
+
+        self.main_widget.show_progress(
+            f"Adding asset {asset_name} into QGIS"
+        )
+
+        log("Started adding asset into QGIS")
         QgsApplication.taskManager().addTask(layer_loader)
 
     def add_layer(self, layer):
@@ -128,6 +138,10 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         :type layer: QgsMapLayer
         """
         QgsProject.instance().addMapLayer(layer)
+        self.update_inputs(True)
+        self.main_widget.show_message(
+            "Sucessfully added asset into QGIS"
+        )
         log("Successfully added asset into QGIS")
 
     def handle_layer_error(self, message):
@@ -136,6 +150,10 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         :param message: The error message
         :type message: str
         """
+        self.update_inputs(True)
+        self.main_widget.show_message(
+            message
+        )
         log(message)
 
     def add_thumbnail(self):
@@ -312,4 +330,8 @@ class LayerLoader(QgsTask):
                 f"{self.layer_uri}, "
                 f"error {self.layer.dataProvider().error()}"
             )
-            self.error_handler("Problem loading layer into QGIS")
+            self.error_handler(
+                f"Problem adding layer into QGIS,"
+                f"{self.layer_uri},"
+                f"error {self.layer.dataProvider().error()}"
+            )
