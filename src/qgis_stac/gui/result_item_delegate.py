@@ -43,6 +43,7 @@ class ResultItemDelegate(QtWidgets.QStyledItemDelegate):
             item_widget = self.createEditor(self.parent, option, index)
             item_widget.setGeometry(option.rect)
             pixmap = item_widget.grab()
+            del item_widget
             painter.drawPixmap(option.rect.x(), option.rect.y(), pixmap)
         else:
             super().paint(painter, option, index)
