@@ -28,7 +28,7 @@ from  qgis.core import (
 )
 
 from ..resources import *
-from ..utils import log
+from ..utils import log, tr
 
 from ..api.models import AssetLayerType, AssetRoles
 
@@ -94,7 +94,6 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
                 self.thumbnail_url = asset.href
 
         self.assets_load_box.activated.connect(self.load_asset)
-        # self.assets_load_box.currentIndexChanged(self.load_asset)
 
     def update_inputs(self, enabled):
         self.assets_load_box.setEnabled(enabled)
@@ -107,6 +106,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         if self.assets_load_box.count() < 1 or index < 1:
             return
         assert_type = self.assets_load_box.itemData(index)['type']
+        layer_type = QgsMapLayer.RasterLayer
 
         if AssetLayerType.COG.value in assert_type:
             asset_href = f"{self.cog_string}" \
@@ -119,7 +119,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         layer_loader = LayerLoader(
             asset_href,
             asset_name,
-            QgsMapLayer.RasterLayer,
+            layer_type,
             self.add_layer,
             self.handle_layer_error
         )
@@ -128,7 +128,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             f"Adding asset {asset_name} into QGIS"
         )
 
-        log("Started adding asset into QGIS")
+        log(tr("Started adding asset into QGIS"))
         QgsApplication.taskManager().addTask(layer_loader)
 
     def add_layer(self, layer):
@@ -139,10 +139,11 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         """
         QgsProject.instance().addMapLayer(layer)
         self.update_inputs(True)
+        message = tr("Sucessfully added asset into QGIS")
         self.main_widget.show_message(
-            "Sucessfully added asset into QGIS"
+            message
         )
-        log("Successfully added asset into QGIS")
+        log(message)
 
     def handle_layer_error(self, message):
         """ Handles the error message from the layer loading task
@@ -226,7 +227,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             contents: QtCore.QByteArray = reply.readAll()
             handler(contents)
         else:
-            log("Problem fetching response from network")
+            log(tr("Problem fetching response from network"))
 
 
 class ThumbnailLoader(QgsTask):
@@ -260,7 +261,7 @@ class ThumbnailLoader(QgsTask):
             thumbnail_pixmap = QtGui.QPixmap.fromImage(self.thumbnail_image)
             self.label.setPixmap(thumbnail_pixmap)
         else:
-            log("Couldn't load thumbnail")
+            log(tr("Couldn't load thumbnail"))
 
 
 class LayerLoader(QgsTask):
@@ -286,7 +287,7 @@ class LayerLoader(QgsTask):
         """ Operates the main layers loading logic
         """
         log(
-            "Fetching layers in a background task."
+            tr("Fetching layers in a background task.")
         )
         if self.layer_type is QgsMapLayer.RasterLayer:
             self.layer = QgsRasterLayer(
