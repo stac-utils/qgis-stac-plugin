@@ -26,6 +26,8 @@ from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
 
 from ..utils import tr
 
+from .result_item_widget import ResultItemWidget
+
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/qgis_stac_widget.ui")
 )
@@ -389,13 +391,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                     )
                 )
             self.total_pages = pagination.total_pages
-
-            items_model = ItemsModel(items=results)
-            self.items_proxy_model.setSourceModel(items_model)
-
-            self.items_tree.setModel(self.items_proxy_model)
-            self.items_filter.textChanged.connect(self.items_filter_changed)
-            self.container.setCurrentIndex(1)
+            self.populate_test_page(results)
+            #
+            # items_model = ItemsModel(items=results)
+            # self.items_proxy_model.setSourceModel(items_model)
+            #
+            # self.items_tree.setModel(self.items_proxy_model)
+            # self.items_filter.textChanged.connect(self.items_filter_changed)
+            self.container.setCurrentIndex(2)
 
         else:
             raise NotImplementedError
@@ -411,6 +414,25 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.message_bar.clearWidgets()
         self.show_message(message, level=Qgis.Critical)
         self.search_completed.emit()
+
+    def populate_test_page(self, results):
+        scroll_container = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(1, 1, 1, 1)
+        layout.setSpacing(1)
+        for result in results:
+            search_result_widget = ResultItemWidget(
+                result,
+                main_widget=self,
+                parent=self
+            )
+            layout.addWidget(search_result_widget)
+            layout.setAlignment(search_result_widget, QtCore.Qt.AlignTop)
+        scroll_container.setLayout(layout)
+        self.scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setWidget(scroll_container)
 
     def filter_changed(self, filter_text):
         """
