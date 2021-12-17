@@ -31,6 +31,11 @@ class ResourcePagination:
     previous_page: str = None
 
 
+class Settings(enum.Enum):
+    """ Plugin settings names"""
+    DOWNLOAD_FOLDER = "download_folder"
+
+
 class AssetRoles(enum.Enum):
     """ STAC Item assets roles defined as outlined in
     https://github.com/radiantearth/stac-api-spec/blob/

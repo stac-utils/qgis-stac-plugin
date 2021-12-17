@@ -15,6 +15,8 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
+from qgis import processing
+
 from qgis.core import (
     Qgis,
     QgsApplication,
@@ -30,7 +32,13 @@ from qgis.core import (
 from ..resources import *
 from ..utils import log, tr
 
-from ..api.models import AssetLayerType, AssetRoles
+from ..api.models import (
+    AssetLayerType,
+    AssetRoles,
+    Settings,
+)
+
+from ..conf import settings_manager
 
 
 WidgetUi, _ = loadUiType(
@@ -95,6 +103,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
                 self.thumbnail_url = asset.href
 
         self.assets_load_box.activated.connect(self.load_asset)
+        self.assets_download_box.activated.connect(self.download_asset)
         # make sure the palette highlight colors are the same
         self.assets_load_box.setStyleSheet(
             'selection-background-color: rgb(32, 100, 189);'
@@ -114,6 +123,39 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.assets_load_box.setEnabled(enabled)
         self.assets_download_box.setEnabled(enabled)
         self.footprint_box.setEnabled(enabled)
+
+    def download_asset(self, index):
+        """ Download asset into directory defined in the plugin settings.
+
+        :param index: Index of the selected combo box item
+        :type index: int
+        """
+        if self.assets_download_box.count() < 1 or index < 1:
+            return
+        download_folder = settings_manager.get_value(
+            Settings.DOWNLOAD_FOLDER
+        )
+        url = self.assets_download_box.itemData(index)
+        output = os.path.join(
+            download_folder, self.assets_download_box.currentText()
+        ) if download_folder else None
+        params = {'URL': url, 'OUTPUT': output} \
+            if download_folder else \
+            {'URL': url}
+        try:
+            self.main_widget.show_message(
+                tr("Download for file {} to {} has started."
+                   "View Processing log for the download progress"
+                   ).format(
+                    self.assets_download_box.currentText(),
+                    download_folder
+                ),
+                level=Qgis.Info
+            )
+            processing.run("qgis:filedownloader", params)
+        except Exception as e:
+            self.main_widget.show_message("Error in downloading file")
+
 
     def load_asset(self, index):
         """ Loads asset into QGIS.

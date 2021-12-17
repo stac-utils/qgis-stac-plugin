@@ -17,11 +17,20 @@ from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 
 from ..conf import settings_manager
-from ..api.models import ItemSearch, ResourceType
+from ..api.models import (
+    ItemSearch,
+    ResourceType,
+    SearchFilters,
+    Settings,
+    SortField,
+)
 from ..api.client import Client
-from ..api.models import SearchFilters, SortField
 
-from ..utils import tr, log
+from ..utils import (
+    open_folder,
+    log,
+    tr,
+)
 
 from .result_item_widget import ResultItemWidget
 
@@ -114,6 +123,17 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.extentChanged.connect(self.save_filters)
 
         self.populate_sorting_field()
+
+        download_folder = settings_manager.get_value(
+                Settings.DOWNLOAD_FOLDER
+            )
+        self.download_folder_btn.setFilePath(
+            download_folder
+        ) if download_folder else None
+
+        self.download_folder_btn.fileChanged.connect(
+            self.save_download_folder)
+        self.open_folder_btn.clicked.connect(self.open_download_folder)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -511,6 +531,44 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.model.appendRow(item)
 
         self.proxy_model.setSourceModel(self.model)
+
+    def save_download_folder(self, folder):
+        """ Saves the passed folder into the plugin settings
+
+        :param folder: Folder intended to be saved
+        :type folder: str
+        """
+        if folder:
+            try:
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+
+                settings_manager.set_value(
+                    Settings.DOWNLOAD_FOLDER,
+                    str(folder)
+                )
+            except PermissionError:
+                self.show_message(
+                    tr("Unable to write to {} due to permissions. "
+                       "Choose a different folder".format(
+                        folder)
+                    ),
+                    level=Qgis.Critical
+                )
+        else:
+            self.show_message(
+                tr('Download folder has not been set'),
+                level=Qgis.Warning
+            )
+
+    def open_download_folder(self):
+        """ Opens the current download folder"""
+        result = open_folder(
+            self.download_folder_btn.filePath()
+        )
+
+        if not result[0]:
+            self.show_message(result[1], level=Qgis.Critical)
 
     def save_filters(self):
         """ Save search filters fetched from the corresponding UI inputs """

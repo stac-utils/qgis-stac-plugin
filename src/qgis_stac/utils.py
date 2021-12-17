@@ -2,6 +2,9 @@
 """
     Plugin utilities
 """
+import os
+import sys
+import subprocess
 import uuid
 import datetime
 
@@ -85,3 +88,34 @@ def config_defaults_catalogs():
                 settings_manager.set_current_connection(connection_id)
 
     settings_manager.set_value("default_catalogs_set", True)
+
+
+def open_folder(path):
+    """ Opens the folder located at the passed path
+
+    :param path: Folder path
+    :type path: str
+
+    :returns message: Message about whether the operation was
+    successful or not.
+    :rtype tuple
+    """
+    if not path:
+        return False, tr("Path is not set")
+
+    if not os.path.exists(path):
+        return False, tr('Path do not exist: {}').format(path)
+
+    if not os.access(path, mode=os.R_OK | os.W_OK):
+        return False, tr('No read or write permission on path: {}').format(path)
+
+    if sys.platform == 'darwin':
+        subprocess.check_call(['open', path])
+    elif sys.platform in ['linux', 'linux1', 'linux2']:
+        subprocess.check_call(['xdg-open', path])
+    elif sys.platform == 'win32':
+        subprocess.check_call(['explorer', path])
+    else:
+        raise NotImplementedError
+
+    return True, tr("Success")
