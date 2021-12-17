@@ -468,7 +468,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         labels = {
             SortField.ID: tr("Name"),
             SortField.COLLECTION: tr("Collection"),
-            # SortField.DATE: tr("Date")
         }
         for ordering_type, item_text in labels.items():
             self.sort_cmb.addItem(item_text, ordering_type)
