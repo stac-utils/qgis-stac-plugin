@@ -21,10 +21,7 @@ from ..api.models import ItemSearch, ResourceType
 from ..api.client import Client
 from ..api.models import SearchFilters, SortField
 
-from .result_item_delegate import ResultItemDelegate
-from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
-
-from ..utils import tr
+from ..utils import tr, log
 
 from .result_item_widget import ResultItemWidget
 
@@ -88,6 +85,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.message_bar = QgsMessageBar()
+        self.progress_bar = None
         self.prepare_message_bar()
 
         self.prepare_extent_box()
@@ -104,18 +102,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.filter_text.textChanged.connect(self.filter_changed)
 
-        # prepare sort and filter model for the searched items
-        self.items_tree.setIndentation(0)
-        self.items_tree.verticalScrollBar().setSingleStep(10)
-
-        self.items_delegate = ResultItemDelegate(
-            main_widget=self,
-            parent=self.items_tree
-        )
-        self.standard_model = QtGui.QStandardItemModel()
-        self.items_tree.setItemDelegate(self.items_delegate)
-        self.items_proxy_model = ItemsSortFilterProxyModel(SortField.ID)
-
         # initialize page
         self.page = 1
         self.total_pages = 0
@@ -128,7 +114,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.extentChanged.connect(self.save_filters)
 
         self.populate_sorting_field()
-        self.sort_cmb.activated.connect(self.sort_items)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -222,7 +207,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def search_items_api(self):
         self.current_progress_message = tr(
-            f"Searching items ..."
+            "Searching items..."
         )
         self.page = 1
         self.search_items()
@@ -230,14 +215,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     def previous_items(self):
         self.page -= 1
         self.current_progress_message = tr(
-            f"Retrieving data"
+            "Retrieving previous page..."
         )
         self.search_items()
 
     def next_items(self):
         self.page += 1
         self.current_progress_message = tr(
-            f"Retrieving data"
+            "Retrieving next page..."
         )
         self.search_items()
 
@@ -294,20 +279,41 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.message_bar.clearWidgets()
         self.message_bar.pushMessage(message, level=level)
 
-    def show_progress(self, message):
+    def show_progress(self, message, minimum=0, maximum=0):
         """ Shows the progress message on the main widget message bar
 
         :param message: Progress message
         :type message: str
+
+        :param minimum: Minimum value that can be set on the progress bar
+        :type minimum: int
+
+        :param maximum: Maximum value that can be set on the progress bar
+        :type maximum: int
         """
         self.message_bar.clearWidgets()
         message_bar_item = self.message_bar.createMessage(message)
-        progress_bar = QtWidgets.QProgressBar()
-        progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        progress_bar.setMinimum(0)
-        progress_bar.setMaximum(0)
-        message_bar_item.layout().addWidget(progress_bar)
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.progress_bar.setMinimum(minimum)
+        self.progress_bar.setMaximum(maximum)
+        message_bar_item.layout().addWidget(self.progress_bar)
         self.message_bar.pushWidget(message_bar_item, Qgis.Info)
+
+    def update_progress_bar(self, value):
+        """Sets the value of the progress bar
+
+        :param value: Value to be set on the progress bar
+        :type value: int
+        """
+        if self.progress_bar:
+            try:
+                self.progress_bar.setValue(value)
+            except RuntimeError:
+                log(
+                    tr("Error setting value to a progress bar"),
+                    notify=False
+                )
 
     def handle_search_start(self):
         """ Handles the logic to be executed when searching has started"""
@@ -369,6 +375,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         :param results: Search results
         :return: list
+
+        :param pagination: Pagination details
+        :type pagination: ResourcePagination
         """
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
@@ -391,14 +400,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                     )
                 )
             self.total_pages = pagination.total_pages
-            self.populate_test_page(results)
-            #
-            # items_model = ItemsModel(items=results)
-            # self.items_proxy_model.setSourceModel(items_model)
-            #
-            # self.items_tree.setModel(self.items_proxy_model)
-            # self.items_filter.textChanged.connect(self.items_filter_changed)
-            self.container.setCurrentIndex(2)
+            self.populate_results(results)
+            self.container.setCurrentIndex(1)
 
         else:
             raise NotImplementedError
@@ -415,7 +418,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.show_message(message, level=Qgis.Critical)
         self.search_completed.emit()
 
-    def populate_test_page(self, results):
+    def populate_results(self, results):
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)
@@ -457,12 +460,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param filter_text: Filter text
         :type: str
         """
-        # TODO update to user QtCore.QRegExp, QRegularExpression will be
-        # deprecated.
-        options = QtCore.QRegularExpression.NoPatternOption
-        options |= QtCore.QRegularExpression.CaseInsensitiveOption
-        regular_expression = QtCore.QRegularExpression(filter_text, options)
-        self.items_proxy_model.setFilterRegularExpression(regular_expression)
+        raise NotImplementedError
 
     def populate_sorting_field(self):
         """" Initializes sorting field combo box list items"""
@@ -485,14 +483,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param index: Current index of the sort fields list
         :type index: int
         """
-        sort_field = self.sort_cmb.itemData(index)
-        self.items_proxy_model.set_sort_field(sort_field)
-        order = QtCore.Qt.AscendingOrder \
-            if not self.reverse_order_box.isChecked() \
-            else QtCore.Qt.DescendingOrder
-        self.items_proxy_model.sort(index, order)
-        # Force refresh of the tree view items
-        self.items_tree.setModel(self.items_proxy_model)
+        raise NotImplementedError
 
     def get_selected_collections(self):
         """ Gets the currently selected collections ids from the collection

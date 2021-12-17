@@ -45,6 +45,7 @@ class AssetRoles(enum.Enum):
 class AssetLayerType(enum.Enum):
     """ Types of assets layers that can be added to QGIS"""
     COG = 'profile=cloud-optimized'
+    VECTOR = 'ogr'
 
 
 class SortField(enum.Enum):
@@ -244,6 +245,7 @@ class ItemSearch:
 
 @dataclasses.dataclass
 class SearchFilters:
+    """ Stores search filters inputs"""
     page: typing.Optional[int] = 1
     page_size: typing.Optional[int] = 10
     collections: typing.Optional[list] = None
