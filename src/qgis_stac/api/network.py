@@ -70,15 +70,7 @@ class ContentFetcherTask(QgsTask):
                 response = self.client.search(
                     **self.search_params.params()
                 )
-                pages = 1
-                items = 0
                 self.pagination = ResourcePagination()
-                # for i, page in enumerate(response.get_item_collections()):
-                #     pages = pages + i
-                #     items += len(page.items)
-                # self.pagination.total_pages = pages
-                # self.pagination.total_items = items
-                #
                 for i, collection in enumerate(response.get_item_collections()):
                     if self.search_params.page == (i + 1):
                         self.response = collection

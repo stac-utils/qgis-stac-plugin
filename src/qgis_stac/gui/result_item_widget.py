@@ -13,10 +13,10 @@ from qgis.PyQt import (
     QtWidgets,
     QtNetwork
 )
-
 from qgis.PyQt.uic import loadUiType
 
-from  qgis.core import (
+from qgis.core import (
+    Qgis,
     QgsApplication,
     QgsMapLayer,
     QgsNetworkContentFetcherTask,
@@ -28,7 +28,7 @@ from  qgis.core import (
 )
 
 from ..resources import *
-from ..utils import log
+from ..utils import log, tr
 
 from ..api.models import AssetLayerType, AssetRoles
 
@@ -60,9 +60,10 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.thumbnail_url = None
         self.cog_string = '/vsicurl/'
         self.main_widget = main_widget
+        self.layer_loader = None
         self.initialize_ui()
-        # if self.thumbnail_url:
-        #     self.add_thumbnail()
+        if self.thumbnail_url:
+            self.add_thumbnail()
 
     def initialize_ui(self):
         """ Populate UI inputs when loading the widget"""
@@ -94,14 +95,38 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
                 self.thumbnail_url = asset.href
 
         self.assets_load_box.activated.connect(self.load_asset)
-        # self.assets_load_box.currentIndexChanged(self.load_asset)
+        # make sure the palette highlight colors are the same
+        self.assets_load_box.setStyleSheet(
+            'selection-background-color: rgb(32, 100, 189);'
+            'selection-color: white;'
+        )
+        self.assets_download_box.setStyleSheet(
+            'selection-background-color: rgb(32, 100, 189);'
+            'selection-color: white;'
+        )
+
+    def update_inputs(self, enabled):
+        """ Updates the inputs widgets state in the main search item widget.
+
+        :param enabled: Whether to enable the inputs or disable them.
+        :type enabled: bool
+        """
+        self.assets_load_box.setEnabled(enabled)
+        self.assets_download_box.setEnabled(enabled)
+        self.footprint_box.setEnabled(enabled)
 
     def load_asset(self, index):
-        """ Loads asset into QGIS"""
+        """ Loads asset into QGIS.
+            Checks if the asset type is a loadable layer inside QGIS.
+
+        :param index: Index of the selected combo box item
+        :type index: int
+        """
 
         if self.assets_load_box.count() < 1 or index < 1:
             return
         assert_type = self.assets_load_box.itemData(index)['type']
+        layer_type = QgsMapLayer.RasterLayer
 
         if AssetLayerType.COG.value in assert_type:
             asset_href = f"{self.cog_string}" \
@@ -110,25 +135,65 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             asset_href = f"{self.assets_load_box.itemData(index)['href']}"
         asset_name = self.assets_load_box.itemText(index)
 
-        log("Started adding asset into QGIS")
-
-        layer_loader = LayerLoader(
+        self.update_inputs(False)
+        self.layer_loader = LayerLoader(
             asset_href,
             asset_name,
-            QgsMapLayer.RasterLayer,
-            self.add_layer,
-            self.handle_layer_error
+            layer_type
         )
-        QgsApplication.taskManager().addTask(layer_loader)
 
-    def add_layer(self, layer):
-        """ Adds layer into the current QGIS project
+        # Using signal approach to detect the results of the layer loader
+        # task as the callback function approach doesn't make the task
+        # to recall the assigned callbacks in the provided context.
+        self.layer_loader.taskCompleted.connect(self.add_layer)
+        self.layer_loader.progressChanged.connect(self.main_widget.update_progress_bar)
+        self.layer_loader.taskTerminated.connect(self.layer_loader_terminated)
 
-        :param layer: QGIS layer
-        :type layer: QgsMapLayer
+        QgsApplication.taskManager().addTask(self.layer_loader)
+
+        self.main_widget.show_progress(
+            f"Adding asset \"{asset_name}\" into QGIS",
+            minimum=0,
+            maximum=100,
+        )
+        self.main_widget.update_progress_bar(0)
+        log(tr("Started adding asset into QGIS"))
+
+    def add_layer(self):
+        """ Adds layer into the current QGIS project.
+            For the layer to be added successfully, the task for loading
+            layer need to exist and the corresponding layer need to be
+            available.
         """
-        QgsProject.instance().addMapLayer(layer)
-        log("Successfully added asset into QGIS")
+        if self.layer_loader and self.layer_loader.layer:
+            layer = self.layer_loader.layer
+            QgsProject.instance().addMapLayer(layer)
+
+            message = tr("Sucessfully added asset as a map layer")
+            level = Qgis.Info
+        elif self.layer_loader and self.layer_loader.error:
+            message = self.layer_loader.error
+            level = Qgis.Critical
+        else:
+            message = tr("Problem fetching asset and loading it, into QGIS")
+            level = Qgis.Critical
+
+        self.update_inputs(True)
+        log(message)
+        self.main_widget.show_message(
+            message,
+            level=level
+        )
+
+    def layer_loader_terminated(self):
+        """ Shows message to user when layer loading task has been terminated"""
+        message = tr("QGIS background task for loading assets was terminated.")
+        self.update_inputs(True)
+        log(message)
+        self.main_widget.show_message(
+            message,
+            level=Qgis.Critical
+        )
 
     def handle_layer_error(self, message):
         """ Handles the error message from the layer loading task
@@ -136,7 +201,11 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         :param message: The error message
         :type message: str
         """
+        self.update_inputs(True)
         log(message)
+        self.main_widget.show_message(
+            message
+        )
 
     def add_thumbnail(self):
         """ Downloads and loads the STAC Item thumbnail"""
@@ -208,7 +277,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             contents: QtCore.QByteArray = reply.readAll()
             handler(contents)
         else:
-            log("Problem fetching response from network")
+            log(tr("Problem fetching response from network"))
 
 
 class ThumbnailLoader(QgsTask):
@@ -242,7 +311,7 @@ class ThumbnailLoader(QgsTask):
             thumbnail_pixmap = QtGui.QPixmap.fromImage(self.thumbnail_image)
             self.label.setPixmap(thumbnail_pixmap)
         else:
-            log("Couldn't load thumbnail")
+            log(tr("Couldn't load thumbnail"))
 
 
 class LayerLoader(QgsTask):
@@ -251,24 +320,21 @@ class LayerLoader(QgsTask):
         self,
         layer_uri,
         layer_name,
-        layer_type,
-        handler,
-        error_handler
+        layer_type
     ):
 
         super().__init__()
         self.layer_uri = layer_uri
         self.layer_name = layer_name
         self.layer_type = layer_type
-        self.handler = handler
-        self.error_handler = error_handler
+        self.error = None
         self.layer = None
 
     def run(self):
         """ Operates the main layers loading logic
         """
         log(
-            "Fetching layers in a background task."
+            tr("Fetching layers in a background task.")
         )
         if self.layer_type is QgsMapLayer.RasterLayer:
             self.layer = QgsRasterLayer(
@@ -280,7 +346,7 @@ class LayerLoader(QgsTask):
             self.layer = QgsVectorLayer(
                 self.layer_uri,
                 self.layer_name,
-                "ogr"
+                AssetLayerType.VECTOR.value
             )
             return self.layer.isValid()
         else:
@@ -297,19 +363,21 @@ class LayerLoader(QgsTask):
         """
         if result and self.layer:
             log(
-                f"Successfully fetched layer with URI"
+                f"Fetched layer with URI"
                 f"{self.layer_uri} "
             )
             # Due to the way QGIS is handling layers sharing between tasks and
             # the main thread, sending the layer to the main thread
-            # without cloning it can lead to unpredicted crashes, hence we clone
-            # the layer before sharing it with the main thread.
-            layer = self.layer.clone()
-            self.handler(layer)
+            # without cloning it can lead to unpredicted crashes,
+            # hence we clone the layer before storing it, so it can
+            # be used in the main thread.
+            self.layer = self.layer.clone()
         else:
-            log(
+            self.error = tr(
                 f"Couldn't load layer "
-                f"{self.layer_uri}, "
+                f"{self.layer_uri},"
                 f"error {self.layer.dataProvider().error()}"
             )
-            self.error_handler("Problem loading layer into QGIS")
+            log(
+                self.error
+            )

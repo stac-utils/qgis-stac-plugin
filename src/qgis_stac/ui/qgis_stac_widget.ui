@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>866</width>
-    <height>892</height>
+    <width>940</width>
+    <height>897</height>
    </rect>
   </property>
   <property name="font">
@@ -554,32 +554,27 @@
         </layout>
        </item>
        <item>
+        <widget class="QScrollArea" name="scroll_area">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>898</width>
+            <height>737</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="result_items_la">
          <property name="text">
           <string/>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTreeView" name="items_tree">
-         <property name="editTriggers">
-          <set>QAbstractItemView::AllEditTriggers</set>
-         </property>
-         <property name="indentation">
-          <number>5</number>
-         </property>
-         <property name="sortingEnabled">
-          <bool>true</bool>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <property name="headerHidden">
-          <bool>true</bool>
-         </property>
-         <attribute name="headerVisible">
-          <bool>false</bool>
-         </attribute>
         </widget>
        </item>
        <item>
