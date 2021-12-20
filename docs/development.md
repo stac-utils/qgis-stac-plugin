@@ -1,5 +1,5 @@
 
-## Install Instructions
+## Install instructions
 
 * Fork the repository [https://github.com/stac-utils/qgis-stac-plugin](https://github.com/stac-utils/qgis-stac-plugin)
 * Clone the repository locally:
