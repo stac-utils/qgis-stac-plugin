@@ -10,7 +10,7 @@ In QGIS toolbars click on the STAC APIs Browser icon
 
 ![image](images/add-connection.png)
 
-## Search and add Item into QGIS
+## STAC Items search
 
 ### Using the search filters
 
