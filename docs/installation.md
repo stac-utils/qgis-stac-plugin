@@ -14,7 +14,7 @@ From the Install from ZIP page, select the zip file and click the Install button
 
 
 
-## From Custom plugin repository
+## Using custom plugin repository
 
 Select the **Settings** page, click Add button on the **Plugin Repositories** group box and use you custom url to create the new plugin repository.
 
