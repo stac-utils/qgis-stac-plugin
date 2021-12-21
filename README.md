@@ -6,11 +6,13 @@
 
 QGIS plugin for reading STAC APIs
 
+Site https://stac-utils.github.io/qgis-stac-plugin
+
 ### Installation
 
 During the development phase the plugin is available to install via 
 a dedicated plugin repository 
-https://raw.githubusercontent.com/stac-utils/qgis-stac-plugin/gh-pages/repository/plugins.xml
+https://stac-utils.github.io/qgis-stac-plugin/repository/plugins.xml
 
 Open the QGIS plugin manager, then select the **Settings** page, click **Add** 
 button on the **Plugin Repositories** group box and use the above url to create
