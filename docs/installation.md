@@ -8,6 +8,8 @@ Once in the plugin manager, search for STAC APIs. QGIS will provide a list of pl
 
 ## From ZIP
 
+Download QGIS STAC APIs Plugin ZIP file [here](https://github.com/stac-utils/qgis-stac-plugin/releases) select the latest release and download `qgis_stac.version.zip`
+
 From the Install from ZIP page, select the zip file and click the Install button to install plugin
 
 ![image](images/install-from-zip.png)

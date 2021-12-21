@@ -22,5 +22,5 @@ TO install the plugin into QGIS use the below command
 
     poetry run python admin.py install
 
-To reload the plugin on QGIS after making change use **Reload Plugin**
+To reload the plugin on QGIS after making change use **Reload Plugin** a QGIS plugin. Before using Reload Plugin, install it from **QGIS plugin manager**
 

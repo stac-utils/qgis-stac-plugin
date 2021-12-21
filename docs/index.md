@@ -1,7 +1,7 @@
 
-QGIS plugin for reading  [STAC APIs](http://stacspec.org/).
 
-![image](images/stac-plugin.png)
+QGIS STAC APIs Plugin is a QGIS plugin that allows the exploration of data from providers using the STAC API.
+
 
 ## Documentation
 
