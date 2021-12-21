@@ -5,6 +5,9 @@
 
 import os
 
+import json
+import tempfile
+
 from functools import partial
 
 from qgis.PyQt import (
@@ -114,6 +117,42 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             'selection-color: white;'
         )
 
+        self.footprint_box.setEnabled(self.item.geometry is not None)
+        self.footprint_box.clicked.connect(self.add_footprint)
+
+    def add_footprint(self):
+        """ Adds the item footprint inside QGIS as a map layer"""
+        layer_file = tempfile.NamedTemporaryFile(
+            mode="w+",
+            suffix='.geojson',
+            delete=False
+        )
+        layer_name = f"{self.item.id}_footprint"
+        json.dump(self.item.geometry, layer_file)
+
+        layer_file.flush()
+
+        layer = QgsVectorLayer(
+            layer_file.name,
+            layer_name,
+            AssetLayerType.VECTOR.value
+        )
+        if layer.isValid():
+            QgsProject.instance().addMapLayer(layer)
+            self.main_widget.show_message(
+                tr("Successfully loaded footprint layer."),
+                level=Qgis.Info
+            )
+
+        else:
+            self.main_widget.show_message(
+                tr(
+                    "Couldn't load footprint into QGIS,"
+                    " its layer is not valid."
+                ),
+                level=Qgis.Critical
+            )
+
     def update_inputs(self, enabled):
         """ Updates the inputs widgets state in the main search item widget.
 
@@ -155,7 +194,6 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             processing.run("qgis:filedownloader", params)
         except Exception as e:
             self.main_widget.show_message("Error in downloading file")
-
 
     def load_asset(self, index):
         """ Loads asset into QGIS.

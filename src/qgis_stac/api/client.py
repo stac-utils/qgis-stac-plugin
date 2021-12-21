@@ -60,6 +60,8 @@ class Client(BaseClient):
                 assets=assets
 
             )
+            if item.geometry:
+                item_result.geometry = item.geometry
             items.append(item_result)
 
         self.items_received.emit(items, pagination)
