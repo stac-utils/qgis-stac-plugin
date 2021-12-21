@@ -146,7 +146,7 @@
           <item>
            <widget class="QToolButton" name="footprint_box">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open resource in Browser&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Add item footprint as a layer</string>
             </property>
             <property name="text">
              <string>Add footprint</string>
@@ -155,6 +155,9 @@
           </item>
           <item>
            <widget class="QComboBox" name="assets_load_box">
+            <property name="toolTip">
+             <string>Add item assets as layers</string>
+            </property>
             <item>
              <property name="text">
               <string>Add assets as layers</string>
@@ -164,6 +167,9 @@
           </item>
           <item>
            <widget class="QComboBox" name="assets_download_box">
+            <property name="toolTip">
+             <string>Download item assets</string>
+            </property>
             <item>
              <property name="text">
               <string>Download assets</string>
@@ -195,7 +201,7 @@
            <enum>QFrame::StyledPanel</enum>
           </property>
           <property name="text">
-           <string>Thumbnail</string>
+           <string>No Thumbnail</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>

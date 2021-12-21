@@ -190,7 +190,7 @@ class Item:
     type: ResourceType = None
     stac_version: str = None
     stac_extensions: typing.List[str] = None
-    geometry: ResourceGeometry = None
+    geometry: typing.Optional[dict] = None
     bbox: typing.List[float] = None
     properties: ResourceProperties = None
     links: typing.List[ResourceLink] = None
