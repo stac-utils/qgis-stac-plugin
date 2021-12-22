@@ -575,7 +575,8 @@ class SettingsManager(QtCore.QObject):
             end_date = None
             spatial_extent = None
 
-            collections = self.get_collections(current_connection.id)
+            collections = self.get_collections(current_connection.id) \
+                if current_connection is not None else []
 
             if settings.value("start_date"):
                 start_date = QtCore.QDateTime.fromString(
