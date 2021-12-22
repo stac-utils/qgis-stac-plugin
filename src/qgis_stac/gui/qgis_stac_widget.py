@@ -479,8 +479,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             )
             layout.addWidget(search_result_widget)
             layout.setAlignment(search_result_widget, QtCore.Qt.AlignTop)
+        vertical_spacer = QtWidgets.QSpacerItem(
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        layout.addItem(vertical_spacer)
         scroll_container.setLayout(layout)
-        self.scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
