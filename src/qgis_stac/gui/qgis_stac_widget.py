@@ -395,6 +395,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
         self.extent_box.setOutputExtentFromCurrent()
         self.extent_box.setMapCanvas(map_canvas)
+        self.extent_box.setChecked(False)
 
     def display_results(self, results, pagination):
         """ Shows the found results into their respective view. Emits
