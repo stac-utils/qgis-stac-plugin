@@ -257,3 +257,5 @@ class SearchFilters:
     start_date: typing.Optional[QtCore.QDateTime] = None
     end_date: typing.Optional[QtCore.QDateTime] = None
     spatial_extent: typing.Optional[QgsRectangle] = None
+    date_filter: bool = False
+    spatial_extent_filter: bool = False

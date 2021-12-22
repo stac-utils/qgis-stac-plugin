@@ -64,9 +64,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
         )
-        self.update_connections_box()
-        self.update_connection_buttons()
-        self.connections_box.activated.connect(self.update_current_connection)
 
         self.search_btn.clicked.connect(
             self.search_items_api
@@ -109,10 +106,15 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.collections_tree.setModel(self.proxy_model)
 
         self.filter_text.textChanged.connect(self.filter_changed)
+
+        self.update_connections_box()
+        self.update_connection_buttons()
+        self.connections_box.activated.connect(self.update_current_connection)
 
         # initialize page
         self.page = 1
@@ -124,6 +126,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.start_dte.valueChanged.connect(self.save_filters)
         self.end_dte.valueChanged.connect(self.save_filters)
         self.extent_box.extentChanged.connect(self.save_filters)
+        self.date_filter_group.toggled.connect(self.save_filters)
+        self.extent_box.toggled.connect(self.save_filters)
 
         self.populate_sorting_field()
 
@@ -207,6 +211,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.api_client.items_received.connect(self.display_results)
             self.api_client.collections_received.connect(self.display_results)
             self.api_client.error_received.connect(self.display_search_error)
+
+            # Update the collections view to show the current connection
+            # collections
+            collections = settings_manager.get_collections(
+                current_connection.id
+            )
+            self.model.removeRows(0, self.model.rowCount())
+            self.load_collections(collections)
 
         self.search_btn.setEnabled(current_connection is not None)
 
@@ -395,6 +407,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
         self.extent_box.setOutputExtentFromCurrent()
         self.extent_box.setMapCanvas(map_canvas)
+        self.extent_box.setChecked(False)
 
     def display_results(self, results, pagination):
         """ Shows the found results into their respective view. Emits
@@ -409,11 +422,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         """
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
-            self.result_collections_la.setText(
-                tr("Found {} STAC collection(s)").format(
-                    len(results)
-                )
-            )
             self.current_collections = results
             self.load_collections(results)
             self.save_filters()
@@ -439,11 +447,21 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                     self.clear_search_results()
                     if self.page > 1:
                         self.page -= 1
-                    self.result_items_la.setText(
-                        tr(
-                            "No items were found"
+                    if self.date_filter_group.isChecked() \
+                            or self.extent_box.isChecked():
+                        self.result_items_la.setText(
+                            tr(
+                                "No items were found,"
+                                "try to expand the date filter or "
+                                "the spatial extent filter used."
+                            )
                         )
-                    )
+                    else:
+                        self.result_items_la.setText(
+                            tr(
+                                "No items were found"
+                            )
+                        )
                 self.next_btn.setEnabled(len(results) > 0)
                 self.prev_btn.setEnabled(self.page > 1)
             self.container.setCurrentIndex(1)
@@ -566,12 +584,18 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param collections: List of collections to be added
         :type collections: []
         """
+        self.result_collections_la.setText(
+            tr("{} STAC collection(s)").format(
+                len(collections)
+            )
+        )
         for result in collections:
             item = QtGui.QStandardItem(result.title)
             item.setData(result.id, 1)
             self.model.appendRow(item)
 
         self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.sort(QtCore.Qt.DisplayRole)
 
     def save_download_folder(self, folder):
         """ Saves the passed folder into the plugin settings
@@ -626,6 +650,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 if not self.end_dte.dateTime().isNull() else None
             ),
             spatial_extent=self.extent_box.outputExtent(),
+            date_filter=self.date_filter_group.isChecked(),
+            spatial_extent_filter=self.extent_box.isChecked(),
         )
         settings_manager.save_search_filters(filters)
 
@@ -658,3 +684,5 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 filters.spatial_extent,
                 QgsCoordinateReferenceSystem("EPSG:4326"),
             )
+        self.date_filter_group.setChecked(filters.date_filter)
+        self.extent_box.setChecked(filters.spatial_extent_filter)

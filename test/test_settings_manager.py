@@ -60,7 +60,8 @@ class SettingsManagerTest(unittest.TestCase):
             id=connection_id,
             name="test_connection",
             url="http:://test",
-            page_size=10
+            page_size=10,
+            collections=[],
         )
 
         self.assertIsNone(
@@ -97,7 +98,8 @@ class SettingsManagerTest(unittest.TestCase):
             id=second_connection_id,
             name="second_test_connection",
             url="http:://second_test",
-            page_size=10
+            page_size=10,
+            collections=[],
         )
         settings_manager.save_connection_settings(
             second_connection
