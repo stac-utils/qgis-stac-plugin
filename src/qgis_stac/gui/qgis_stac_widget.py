@@ -431,7 +431,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             if len(results) > 0:
                 self.result_items_la.setText(
                     tr(
-                        "Displaying page {} of results, with {} item(s)"
+                        "Displaying page {} of results, {} item(s)"
                     ).format(
                         self.page,
                         len(results)
