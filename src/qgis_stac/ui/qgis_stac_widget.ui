@@ -29,7 +29,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="search">
       <attribute name="title">
@@ -600,9 +600,9 @@
           <enum>QLayout::SetMinimumSize</enum>
          </property>
          <item>
-          <widget class="QPushButton" name="clear_results">
+          <widget class="QPushButton" name="clear_results_btn">
            <property name="toolTip">
-            <string>Remove current results</string>
+            <string>Clear the current results</string>
            </property>
            <property name="text">
             <string>Clear</string>

@@ -77,6 +77,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.prev_btn.clicked.connect(
             self.previous_items
         )
+        self.clear_results_btn.clicked.connect(
+            self.clear_search_results
+        )
 
         self.fetch_collections_btn.clicked.connect(
             self.search_collections
@@ -476,6 +479,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
+
+    def clear_search_results(self):
+        """ Clear current search results from the UI"""
+        self.scroll_area.setWidget(QtWidgets.QWidget())
+        self.result_items_la.clear()
 
     def filter_changed(self, filter_text):
         """
