@@ -445,11 +445,21 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                     self.clear_search_results()
                     if self.page > 1:
                         self.page -= 1
-                    self.result_items_la.setText(
-                        tr(
-                            "No items were found"
+                    if self.date_filter_group.isChecked() \
+                            or self.extent_box.isChecked():
+                        self.result_items_la.setText(
+                            tr(
+                                "No items were found,"
+                                "try to expand the date filter or "
+                                "the spatial extent filter used."
+                            )
                         )
-                    )
+                    else:
+                        self.result_items_la.setText(
+                            tr(
+                                "No items were found"
+                            )
+                        )
                 self.next_btn.setEnabled(len(results) > 0)
                 self.prev_btn.setEnabled(self.page > 1)
             self.container.setCurrentIndex(1)

@@ -201,7 +201,7 @@
            <enum>QFrame::StyledPanel</enum>
           </property>
           <property name="text">
-           <string>No Thumbnail</string>
+           <string>Thumbnail not available</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
