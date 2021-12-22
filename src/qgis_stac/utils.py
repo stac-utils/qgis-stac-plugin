@@ -79,6 +79,7 @@ def config_defaults_catalogs():
                 name=catalog['name'],
                 url=catalog['url'],
                 page_size=5,
+                collections=[],
                 created_date=datetime.datetime.now(),
                 auth_config=None,
             )
