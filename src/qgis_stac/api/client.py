@@ -31,7 +31,8 @@ class Client(BaseClient):
         """
         items = []
         properties = None
-        for item in items_response.items:
+        items_list = items_response.items if items_response else []
+        for item in items_list:
             try:
                 item_datetime = datetime.datetime.strptime(
                     item.properties.get("datetime"),

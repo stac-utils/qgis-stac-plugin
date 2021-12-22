@@ -410,40 +410,42 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
             self.result_collections_la.setText(
-                tr("Found {} STAC collection(s)").format(len(results))
+                tr("Found {} STAC collection(s)").format(
+                    len(results)
+                )
             )
             self.current_collections = results
             self.load_collections(results)
             self.save_filters()
 
         elif self.search_type == ResourceType.FEATURE:
-            if pagination.total_items != 0:
-                self.result_items_la.setText(
-                    tr(
-                        "Page {} out {} pages, "
-                        "total {} STAC item(s) found.").format(
-                        self.page,
-                        pagination.total_pages,
-                        pagination.total_items
-                    )
-                )
-            self.total_pages = pagination.total_pages
-            if len(results) > 0:
-                self.result_items_la.setText(
-                    tr(
-                        "Displaying page {} of results, {} item(s)"
-                    ).format(
-                        self.page,
-                        len(results)
-                    )
-                )
-                self.populate_results(results)
+
+            if pagination.total_pages > 0:
+                if self.page > 1:
+                    self.page -= 1
+                self.next_btn.setEnabled(False)
             else:
-                self.result_items_la.setText(
-                    tr(
-                        "No items were found"
+                if len(results) > 0:
+                    self.result_items_la.setText(
+                        tr(
+                            "Displaying page {} of results, {} item(s)"
+                        ).format(
+                            self.page,
+                            len(results)
+                        )
                     )
-                )
+                    self.populate_results(results)
+                else:
+                    self.clear_search_results()
+                    if self.page > 1:
+                        self.page -= 1
+                    self.result_items_la.setText(
+                        tr(
+                            "No items were found"
+                        )
+                    )
+                self.next_btn.setEnabled(len(results) > 0)
+                self.prev_btn.setEnabled(self.page > 1)
             self.container.setCurrentIndex(1)
 
         else:
