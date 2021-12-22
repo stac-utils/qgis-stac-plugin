@@ -106,6 +106,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.collections_tree.setModel(self.proxy_model)
 
@@ -419,11 +420,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         """
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
-            self.result_collections_la.setText(
-                tr("Found {} STAC collection(s)").format(
-                    len(results)
-                )
-            )
             self.current_collections = results
             self.load_collections(results)
             self.save_filters()
@@ -576,12 +572,18 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param collections: List of collections to be added
         :type collections: []
         """
+        self.result_collections_la.setText(
+            tr("{} STAC collection(s)").format(
+                len(collections)
+            )
+        )
         for result in collections:
             item = QtGui.QStandardItem(result.title)
             item.setData(result.id, 1)
             self.model.appendRow(item)
 
         self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.sort(QtCore.Qt.DisplayRole)
 
     def save_download_folder(self, folder):
         """ Saves the passed folder into the plugin settings

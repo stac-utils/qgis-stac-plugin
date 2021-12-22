@@ -160,7 +160,7 @@
                <string>Filter and search the fetched collections, using the title property.</string>
               </property>
               <property name="text">
-               <string>Search for collection</string>
+               <string>Filter collections</string>
               </property>
              </widget>
             </item>
