@@ -1,4 +1,3 @@
-
 import typing
 
 from qgis.PyQt import (
@@ -42,12 +41,12 @@ class ContentFetcherTask(QgsTask):
     pagination = None
 
     def __init__(
-        self,
-        url: str,
-        search_params: ItemSearch,
-        resource_type: ResourceType,
-        response_handler: typing.Callable = None,
-        error_handler: typing.Callable = None,
+            self,
+            url: str,
+            search_params: ItemSearch,
+            resource_type: ResourceType,
+            response_handler: typing.Callable = None,
+            error_handler: typing.Callable = None,
     ):
         super().__init__()
         self.url = url
@@ -71,9 +70,21 @@ class ContentFetcherTask(QgsTask):
                     **self.search_params.params()
                 )
                 self.pagination = ResourcePagination()
-                for i, collection in enumerate(response.get_item_collections()):
-                    if self.search_params.page == (i + 1):
-                        self.response = collection
+
+                count = 1
+                items_generator = response.get_item_collections()
+                prev_collection = None
+                while True:
+                    try:
+                        collection = next(items_generator)
+                        prev_collection = collection
+                        if self.search_params.page == count:
+                            self.response = collection
+                            break
+                        count += 1
+                    except StopIteration:
+                        self.pagination.total_pages = count
+                        self.response = prev_collection
                         break
 
             elif self.resource_type == \

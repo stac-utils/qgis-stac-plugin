@@ -241,7 +241,7 @@
           <string>Filter by date</string>
          </property>
          <property name="checkable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="checked">
           <bool>false</bool>
@@ -317,7 +317,7 @@
           <enum>Qt::LeftToRight</enum>
          </property>
          <property name="title">
-          <string>Extent (curent layer)</string>
+          <string>Extent (current: none)</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -326,6 +326,9 @@
           <bool>true</bool>
          </property>
          <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
           <bool>false</bool>
          </property>
          <property name="collapsed">
@@ -554,6 +557,30 @@
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="QLabel" name="result_items_la">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>37</width>
+             <height>17</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QScrollArea" name="scroll_area">
          <property name="widgetResizable">
           <bool>true</bool>
@@ -564,17 +591,10 @@
             <x>0</x>
             <y>0</y>
             <width>898</width>
-            <height>737</height>
+            <height>735</height>
            </rect>
           </property>
          </widget>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="result_items_la">
-         <property name="text">
-          <string/>
-         </property>
         </widget>
        </item>
        <item>
@@ -582,6 +602,16 @@
          <property name="sizeConstraint">
           <enum>QLayout::SetMinimumSize</enum>
          </property>
+         <item>
+          <widget class="QPushButton" name="clear_results_btn">
+           <property name="toolTip">
+            <string>Clear the current results</string>
+           </property>
+           <property name="text">
+            <string>Clear</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">

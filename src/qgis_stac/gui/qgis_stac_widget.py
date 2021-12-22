@@ -77,6 +77,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.prev_btn.clicked.connect(
             self.previous_items
         )
+        self.clear_results_btn.clicked.connect(
+            self.clear_search_results
+        )
 
         self.fetch_collections_btn.clicked.connect(
             self.search_collections
@@ -125,8 +128,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.populate_sorting_field()
 
         download_folder = settings_manager.get_value(
-                Settings.DOWNLOAD_FOLDER
-            )
+            Settings.DOWNLOAD_FOLDER
+        )
         self.download_folder_btn.setFilePath(
             download_folder
         ) if download_folder else None
@@ -253,14 +256,19 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         search operation.
         """
         self.search_type = ResourceType.FEATURE
+        use_start_date = self.date_filter_group.isChecked() and \
+                         not self.start_dte.dateTime().isNull()
+        use_end_date = self.date_filter_group.isChecked() and \
+                       not self.end_dte.dateTime().isNull()
         start_dte = self.start_dte.dateTime() \
-            if not self.start_dte.dateTime().isNull() else None
+            if use_start_date else None
         end_dte = self.end_dte.dateTime() \
-            if not self.end_dte.dateTime().isNull() else None
+            if use_end_date else None
 
         collections = self.get_selected_collections()
         page_size = settings_manager.get_current_connection().page_size
-        spatial_extent = self.extent_box.outputExtent()
+        spatial_extent = self.extent_box.outputExtent() \
+            if self.extent_box.isChecked() else None
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
@@ -402,25 +410,42 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         if self.search_type == ResourceType.COLLECTION:
             self.model.removeRows(0, self.model.rowCount())
             self.result_collections_la.setText(
-                tr("Found {} STAC collection(s)").format(len(results))
+                tr("Found {} STAC collection(s)").format(
+                    len(results)
+                )
             )
             self.current_collections = results
             self.load_collections(results)
             self.save_filters()
 
         elif self.search_type == ResourceType.FEATURE:
-            if pagination.total_items != 0:
-                self.result_items_la.setText(
-                    tr(
-                        "Page {} out {} pages, "
-                        "total {} STAC item(s) found.").format(
-                        self.page,
-                        pagination.total_pages,
-                        pagination.total_items
+
+            if pagination.total_pages > 0:
+                if self.page > 1:
+                    self.page -= 1
+                self.next_btn.setEnabled(False)
+            else:
+                if len(results) > 0:
+                    self.result_items_la.setText(
+                        tr(
+                            "Displaying page {} of results, {} item(s)"
+                        ).format(
+                            self.page,
+                            len(results)
+                        )
                     )
-                )
-            self.total_pages = pagination.total_pages
-            self.populate_results(results)
+                    self.populate_results(results)
+                else:
+                    self.clear_search_results()
+                    if self.page > 1:
+                        self.page -= 1
+                    self.result_items_la.setText(
+                        tr(
+                            "No items were found"
+                        )
+                    )
+                self.next_btn.setEnabled(len(results) > 0)
+                self.prev_btn.setEnabled(self.page > 1)
             self.container.setCurrentIndex(1)
 
         else:
@@ -439,6 +464,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_completed.emit()
 
     def populate_results(self, results):
+        """ Add the found results into the widget scroll area
+
+        :param results: List of items results
+        :type results: list
+        """
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)
@@ -451,11 +481,22 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             )
             layout.addWidget(search_result_widget)
             layout.setAlignment(search_result_widget, QtCore.Qt.AlignTop)
+        vertical_spacer = QtWidgets.QSpacerItem(
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding
+        )
+        layout.addItem(vertical_spacer)
         scroll_container.setLayout(layout)
-        self.scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
+
+    def clear_search_results(self):
+        """ Clear current search results from the UI"""
+        self.scroll_area.setWidget(QtWidgets.QWidget())
+        self.result_items_la.clear()
 
     def filter_changed(self, filter_text):
         """
