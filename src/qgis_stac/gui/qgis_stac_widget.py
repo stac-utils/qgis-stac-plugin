@@ -64,9 +64,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
         )
-        self.update_connections_box()
-        self.update_connection_buttons()
-        self.connections_box.activated.connect(self.update_current_connection)
 
         self.search_btn.clicked.connect(
             self.search_items_api
@@ -113,6 +110,10 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.collections_tree.setModel(self.proxy_model)
 
         self.filter_text.textChanged.connect(self.filter_changed)
+
+        self.update_connections_box()
+        self.update_connection_buttons()
+        self.connections_box.activated.connect(self.update_current_connection)
 
         # initialize page
         self.page = 1
@@ -207,6 +208,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.api_client.items_received.connect(self.display_results)
             self.api_client.collections_received.connect(self.display_results)
             self.api_client.error_received.connect(self.display_search_error)
+
+            # Update the collections view to show the current connection
+            # collections
+            collections = settings_manager.get_collections(
+                current_connection.id
+            )
+            self.model.removeRows(0, self.model.rowCount())
+            self.load_collections(collections)
 
         self.search_btn.setEnabled(current_connection is not None)
 

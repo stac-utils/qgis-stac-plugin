@@ -45,6 +45,7 @@ class ConnectionSettings:
     name: str
     url: str
     page_size: int
+    collections: list
     created_date: datetime.datetime = datetime.datetime.now()
     auth_config: typing.Optional[str] = None
 
@@ -71,9 +72,13 @@ class ConnectionSettings:
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
             auth_cfg = settings.value("auth_config").strip()
+            collections = settings_manager.get_collections(
+                uuid.UUID(identifier)
+            )
 
         except AttributeError:
             created_date = datetime.datetime.now()
+            collections = []
             auth_cfg = None
 
         return cls(
@@ -81,6 +86,7 @@ class ConnectionSettings:
             name=settings.value("name"),
             url=settings.value("url"),
             page_size=int(settings.value("page_size", defaultValue=10)),
+            collections=collections,
             created_date=created_date,
             auth_config=auth_cfg,
         )
@@ -126,6 +132,7 @@ class SettingsManager(QtCore.QObject):
     BASE_GROUP_NAME: str = "qgis_stac"
     CONNECTION_GROUP_NAME: str = "connections"
     SELECTED_CONNECTION_KEY: str = "selected_connection"
+    COLLECTION_GROUP_NAME: str = "collections"
 
     settings = QgsSettings()
 
@@ -394,50 +401,84 @@ class SettingsManager(QtCore.QObject):
                f"{self.CONNECTION_GROUP_NAME}/" \
                f"{str(identifier)}"
 
-    def save_collection(self, collection_settings):
+    def _get_collection_settings_base(
+            self,
+            connection_identifier,
+            identifier
+    ):
+        """Gets the collection settings base url.
+
+        :param connection_identifier: Connection settings identifier
+        :type connection_identifier: uuid.UUID
+
+        :param identifier: Collection settings identifier
+        :type identifier: uuid.UUID
+        """
+        return f"{self.BASE_GROUP_NAME}/" \
+               f"{self.CONNECTION_GROUP_NAME}/" \
+               f"{str(connection_identifier)}/" \
+               f"{self.COLLECTION_GROUP_NAME}/" \
+               f"{str(identifier)}"
+
+    def save_collection(self, connection, collection_settings):
         """ Save the passed colection settings into the plugin settings
+
+        :param connection: Connection settings
+        :type connection:  CollectionSettings
 
         :param collection_settings: Collection settings
         :type collection_settings:  CollectionSettings
         """
-        settings_key = f"" \
-                       f"{self.BASE_GROUP_NAME}" \
-                       f"/search_filters/collections/" \
-                       f"{collection_settings.collection_id}"
+        settings_key = self._get_collection_settings_base(
+            connection.id,
+            collection_settings.collection_id
+        )
 
         with qgis_settings(settings_key) as settings:
             settings.setValue("title", collection_settings.title)
             settings.setValue("id", collection_settings.id)
 
-    def get_collection(self, identifier):
+    def get_collection(self, identifier, connection):
         """ Retrieves the collection with the identifier
 
         :param identifier: Collection identifier
         :type identifier: str
+
+        :param connection: Connection that the collection belongs to.
+        :type connection: str
         """
 
-        settings_key = f"" \
-                       f"{self.BASE_GROUP_NAME}" \
-                       f"/search_filters/collections/" \
-                       f"{identifier}"
+        settings_key = self._get_collection_settings_base(
+            connection.id,
+            identifier
+        )
         with qgis_settings(settings_key) as settings:
             collection_settings = CollectionSettings.from_qgs_settings(
                 str(identifier), settings
             )
         return collection_settings
 
-    def get_all_collections(self):
-        """ Gets all the available collections settings"""
+    def get_collections(self, connection_identifier):
+        """ Gets all the available collections settings in the
+        provided connection
+
+        :param connection_identifier: Connection identifier from which
+        to get all the available collections
+        :type connection_identifier: uuid.UUID
+        """
         result = []
         with qgis_settings(
                 f"{self.BASE_GROUP_NAME}/"
-                f"search_filters/collections") \
+                f"{self.CONNECTION_GROUP_NAME}/"
+                f"{str(connection_identifier)}/"
+                f"{self.COLLECTION_GROUP_NAME}"
+        ) \
                 as settings:
             for collection_id in settings.childGroups():
-                collection_settings_key = f"" \
-                                          f"{self.BASE_GROUP_NAME}/" \
-                                          f"search_filters/collections/" \
-                                          f"{collection_id}"
+                collection_settings_key = self._get_collection_settings_base(
+                    connection_identifier,
+                    collection_id
+                )
                 with qgis_settings(collection_settings_key) \
                         as collection_settings:
                     result.append(
@@ -447,12 +488,20 @@ class SettingsManager(QtCore.QObject):
                     )
         return result
 
-    def delete_all_collections(self):
-        """Deletes all the plugin connections collections settings.
+    def delete_all_collections(self, connection):
+        """Deletes all the plugin connections collections settings,
+        in the connection.
+
+        :param connection: Connection from which to delete all the
+        available collections
+        :type connection: ConnectionSettings
         """
         with qgis_settings(
-                f"{self.BASE_GROUP_NAME}"
-                f"/search_filters/collections") \
+                f"{self.BASE_GROUP_NAME}/" \
+                f"{self.CONNECTION_GROUP_NAME}/" \
+                f"{str(connection.id)}/"\
+                f"{self.COLLECTION_GROUP_NAME}"
+        ) \
                 as settings:
             for collection_name in settings.childGroups():
                 settings.remove(collection_name)
@@ -500,18 +549,23 @@ class SettingsManager(QtCore.QObject):
                     "spatial_extent_west",
                     filters.spatial_extent.xMinimum()
                 )
+        current_connection = self.get_current_connection()
         if filters.collections:
-            self.delete_all_collections()
+            self.delete_all_collections(current_connection)
         for collection in filters.collections:
             collection = CollectionSettings(
                 collection_id=uuid.uuid4(),
                 id=collection.id,
                 title=collection.title
             )
-            self.save_collection(collection)
+            self.save_collection(
+                current_connection,
+                collection
+            )
 
     def get_search_filters(self):
         """ Retrieve the store fitlers settings"""
+        current_connection = self.get_current_connection()
         with qgis_settings(
             f"{self.BASE_GROUP_NAME}/search_filters"
         ) as settings:
@@ -519,7 +573,7 @@ class SettingsManager(QtCore.QObject):
             end_date = None
             spatial_extent = None
 
-            collections = self.get_all_collections()
+            collections = self.get_collections(current_connection.id)
 
             if settings.value("start_date"):
                 start_date = QtCore.QDateTime.fromString(
