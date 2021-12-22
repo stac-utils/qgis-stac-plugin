@@ -420,7 +420,22 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                     )
                 )
             self.total_pages = pagination.total_pages
-            self.populate_results(results)
+            if len(results) > 0:
+                self.result_items_la.setText(
+                    tr(
+                        "Displaying page {} of results, with {} item(s)"
+                    ).format(
+                        self.page,
+                        len(results)
+                    )
+                )
+                self.populate_results(results)
+            else:
+                self.result_items_la.setText(
+                    tr(
+                        "No items were found"
+                    )
+                )
             self.container.setCurrentIndex(1)
 
         else:
@@ -439,6 +454,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_completed.emit()
 
     def populate_results(self, results):
+        """ Add the found results into the widget scroll area
+
+        :param results: List of items results
+        :type results: list
+        """
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)
