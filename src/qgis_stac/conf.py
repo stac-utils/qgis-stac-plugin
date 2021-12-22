@@ -549,6 +549,8 @@ class SettingsManager(QtCore.QObject):
                     "spatial_extent_west",
                     filters.spatial_extent.xMinimum()
                 )
+            settings.setValue("date_filter", filters.date_filter)
+            settings.setValue("extent_filter", filters.spatial_extent_filter)
         current_connection = self.get_current_connection()
         if filters.collections:
             self.delete_all_collections(current_connection)
@@ -590,12 +592,16 @@ class SettingsManager(QtCore.QObject):
                     float(settings.value("spatial_extent_west")),
                     float(settings.value("spatial_extent_north")),
                 )
+            date_filter = settings.value("date_filter", False, type=bool)
+            extent_filter = settings.value("extent_filter", False, type=bool)
 
             return SearchFilters(
                 collections=collections,
                 start_date=start_date,
                 end_date=end_date,
                 spatial_extent=spatial_extent,
+                date_filter=date_filter,
+                spatial_extent_filter=extent_filter,
             )
 
 

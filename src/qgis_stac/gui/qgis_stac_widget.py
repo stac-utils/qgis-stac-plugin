@@ -126,6 +126,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.start_dte.valueChanged.connect(self.save_filters)
         self.end_dte.valueChanged.connect(self.save_filters)
         self.extent_box.extentChanged.connect(self.save_filters)
+        self.date_filter_group.toggled.connect(self.save_filters)
+        self.extent_box.toggled.connect(self.save_filters)
 
         self.populate_sorting_field()
 
@@ -648,6 +650,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 if not self.end_dte.dateTime().isNull() else None
             ),
             spatial_extent=self.extent_box.outputExtent(),
+            date_filter=self.date_filter_group.isChecked(),
+            spatial_extent_filter=self.extent_box.isChecked(),
         )
         settings_manager.save_search_filters(filters)
 
@@ -680,3 +684,5 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 filters.spatial_extent,
                 QgsCoordinateReferenceSystem("EPSG:4326"),
             )
+        self.date_filter_group.setChecked(filters.date_filter)
+        self.extent_box.setChecked(filters.spatial_extent_filter)
