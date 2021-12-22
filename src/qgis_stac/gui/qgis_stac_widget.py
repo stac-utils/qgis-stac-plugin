@@ -128,8 +128,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.populate_sorting_field()
 
         download_folder = settings_manager.get_value(
-                Settings.DOWNLOAD_FOLDER
-            )
+            Settings.DOWNLOAD_FOLDER
+        )
         self.download_folder_btn.setFilePath(
             download_folder
         ) if download_folder else None
@@ -256,14 +256,19 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         search operation.
         """
         self.search_type = ResourceType.FEATURE
+        use_start_date = self.date_filter_group.isChecked() and \
+                         not self.start_dte.dateTime().isNull()
+        use_end_date = self.date_filter_group.isChecked() and \
+                       not self.end_dte.dateTime().isNull()
         start_dte = self.start_dte.dateTime() \
-            if not self.start_dte.dateTime().isNull() else None
+            if use_start_date else None
         end_dte = self.end_dte.dateTime() \
-            if not self.end_dte.dateTime().isNull() else None
+            if use_end_date else None
 
         collections = self.get_selected_collections()
         page_size = settings_manager.get_current_connection().page_size
-        spatial_extent = self.extent_box.outputExtent()
+        spatial_extent = self.extent_box.outputExtent() \
+            if self.extent_box.isChecked() else None
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
