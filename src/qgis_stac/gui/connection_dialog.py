@@ -50,7 +50,6 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         if connection:
             self.load_connection_settings(connection)
 
-
     def load_connection_settings(self, connection_settings: ConnectionSettings):
         """ Sets this dialog inputs values as defined in the passed connection settings.
 
