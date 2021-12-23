@@ -10,6 +10,9 @@ from ..conf import (
     settings_manager
 )
 
+from ..api.models import ApiCapability
+from ..utils import tr
+
 DialogUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/connection_dialog.ui")
 )
@@ -39,8 +42,14 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         for signal in ok_signals:
             signal.connect(self.update_ok_buttons)
 
+        if self.capabilities.count() == 0:
+            self.capabilities.addItem(tr(""))
+            for capability in ApiCapability:
+                self.capabilities.addItem(capability.value)
+
         if connection:
             self.load_connection_settings(connection)
+
 
     def load_connection_settings(self, connection_settings: ConnectionSettings):
         """ Sets this dialog inputs values as defined in the passed connection settings.
@@ -52,6 +61,10 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.url_edit.setText(connection_settings.url)
         self.auth_config.setConfigId(connection_settings.auth_config)
         self.page_size.setValue(connection_settings.page_size)
+        capability_index = self.capabilities.findText(
+            connection_settings.capability.value
+        ) if connection_settings.capability else 0
+        self.capabilities.setCurrentIndex(capability_index)
 
     def accept(self):
         """ Handles logic for adding new connections"""
@@ -59,11 +72,17 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         if self.connection is not None:
            connection_id = self.connection.id
 
+        capability = None
+        if self.capabilities.currentText() != "":
+            capability = ApiCapability(self.capabilities.currentText())
+
         connection_settings = ConnectionSettings(
             id=connection_id,
             name=self.name_edit.text().strip(),
             url=self.url_edit.text().strip(),
             page_size=self.page_size.value(),
+            collections=[],
+            capability=capability,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )

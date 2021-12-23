@@ -31,9 +31,8 @@ class ResourcePagination:
     previous_page: str = None
 
 
-class Settings(enum.Enum):
-    """ Plugin settings names"""
-    DOWNLOAD_FOLDER = "download_folder"
+class ApiCapability(enum.Enum):
+    SUPPORT_SAS_TOKEN = "Support SAS Token"
 
 
 class AssetRoles(enum.Enum):
@@ -51,6 +50,11 @@ class AssetLayerType(enum.Enum):
     """ Types of assets layers that can be added to QGIS"""
     COG = 'profile=cloud-optimized'
     VECTOR = 'ogr'
+
+
+class Settings(enum.Enum):
+    """ Plugin settings names"""
+    DOWNLOAD_FOLDER = "download_folder"
 
 
 class SortField(enum.Enum):

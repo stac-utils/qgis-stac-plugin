@@ -9,6 +9,7 @@ from qgis.PyQt import (
 from qgis.core import QgsApplication
 
 from .models import (
+    ApiCapability,
     Collection,
     Item,
     ItemSearch,
@@ -30,6 +31,7 @@ class BaseClient(QtCore.QObject):
     auth_config: str
     url: str
     content_task: ContentFetcherTask
+    capability: ApiCapability
 
     collections_received = QtCore.pyqtSignal(
         list,
@@ -49,12 +51,14 @@ class BaseClient(QtCore.QObject):
             url: str,
             *args,
             auth_config: typing.Optional[str] = None,
+            capability=None,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.auth_config = auth_config or ""
         self.url = url.rstrip("/")
         self.content_task = None
+        self.capability = capability
 
     @classmethod
     def from_connection_settings(
@@ -73,6 +77,7 @@ class BaseClient(QtCore.QObject):
         return cls(
             url=connection_settings.url,
             auth_config=connection_settings.auth_config,
+            capability=connection_settings.capability
         )
 
     def get_items(

@@ -15,7 +15,10 @@ from qgis.PyQt import (
 )
 from qgis.core import QgsRectangle, QgsSettings
 
-from .api.models import SearchFilters
+from .api.models import (
+    ApiCapability,
+    SearchFilters
+)
 
 
 @contextlib.contextmanager
@@ -46,6 +49,7 @@ class ConnectionSettings:
     url: str
     page_size: int
     collections: list
+    capability: ApiCapability
     created_date: datetime.datetime = datetime.datetime.now()
     auth_config: typing.Optional[str] = None
 
@@ -66,20 +70,24 @@ class ConnectionSettings:
         :returns: Connection settings object
         :rtype: ConnectionSettings
         """
+        collections = []
+        auth_cfg = None
+        capability = None
         try:
-            created_date = datetime.datetime.strptime(
-                settings.value("created_date"),
-                "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
+
             auth_cfg = settings.value("auth_config").strip()
             collections = settings_manager.get_collections(
                 uuid.UUID(identifier)
             )
-
+            capability_value = settings.value("capability", defaultValue=None)
+            capability = ApiCapability(capability_value) \
+                if capability_value else None
+            created_date = datetime.datetime.strptime(
+                settings.value("created_date"),
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
         except AttributeError:
             created_date = datetime.datetime.now()
-            collections = []
-            auth_cfg = None
 
         return cls(
             id=uuid.UUID(identifier),
@@ -87,6 +95,7 @@ class ConnectionSettings:
             url=settings.value("url"),
             page_size=int(settings.value("page_size", defaultValue=10)),
             collections=collections,
+            capability=capability,
             created_date=created_date,
             auth_config=auth_cfg,
         )
@@ -292,10 +301,13 @@ class SettingsManager(QtCore.QObject):
         )
         created_date = connection_settings.created_date.\
             strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        capability = connection_settings.capability.value \
+            if connection_settings.capability else None
         with qgis_settings(settings_key) as settings:
             settings.setValue("name", connection_settings.name)
             settings.setValue("url", connection_settings.url)
             settings.setValue("page_size", connection_settings.page_size)
+            settings.setValue("capability", capability)
             settings.setValue("created_date", created_date)
             settings.setValue("auth_config", connection_settings.auth_config)
         self.connections_settings_updated.emit()

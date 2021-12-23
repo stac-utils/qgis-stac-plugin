@@ -56,11 +56,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.edit_connection_btn.clicked.connect(self.edit_connection)
         self.remove_connection_btn.clicked.connect(self.remove_connection)
 
-        current_connection = settings_manager.get_current_connection()
-        self.api_client = Client.from_connection_settings(
-            current_connection
-        ) if current_connection else None
-
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
         )
@@ -85,6 +80,16 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         settings_manager.connections_settings_updated.connect(
             self.update_connections_box
         )
+
+        current_connection = settings_manager.get_current_connection()
+        self.api_client = Client.from_connection_settings(
+            current_connection
+        ) if current_connection else None
+
+        if self.api_client:
+            self.api_client.items_received.connect(self.display_results)
+            self.api_client.collections_received.connect(self.display_results)
+            self.api_client.error_received.connect(self.display_search_error)
 
         self.search_type = ResourceType.FEATURE
         self.current_progress_message = tr("Searching...")
