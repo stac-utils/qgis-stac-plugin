@@ -74,8 +74,6 @@ class ConnectionSettings:
         auth_cfg = None
         capability = None
         try:
-
-            auth_cfg = settings.value("auth_config").strip()
             collections = settings_manager.get_collections(
                 uuid.UUID(identifier)
             )
@@ -86,6 +84,7 @@ class ConnectionSettings:
                 settings.value("created_date"),
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
+            auth_cfg = settings.value("auth_config").strip()
         except AttributeError:
             created_date = datetime.datetime.now()
 

@@ -10,6 +10,8 @@ import datetime
 
 from qgis.PyQt import QtCore
 from qgis.core import Qgis, QgsMessageLog
+
+from .api.models import ApiCapability
 from .conf import (
     ConnectionSettings,
     settings_manager
@@ -71,6 +73,9 @@ def config_defaults_catalogs():
 
     for catalog in CATALOGS:
         connection_id = uuid.UUID(catalog['id'])
+
+        capability = ApiCapability(catalog["capability"]) \
+            if catalog["capability"] else None
         if not settings_manager.is_connection(
                 connection_id
         ):
@@ -80,6 +85,7 @@ def config_defaults_catalogs():
                 url=catalog['url'],
                 page_size=5,
                 collections=[],
+                capability=capability,
                 created_date=datetime.datetime.now(),
                 auth_config=None,
             )
