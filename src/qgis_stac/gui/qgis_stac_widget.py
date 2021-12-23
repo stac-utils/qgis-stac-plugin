@@ -86,6 +86,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             current_connection
         ) if current_connection else None
 
+        if self.api_client:
+            self.api_client.items_received.connect(self.display_results)
+            self.api_client.collections_received.connect(self.display_results)
+            self.api_client.error_received.connect(self.display_search_error)
+
         self.search_type = ResourceType.FEATURE
         self.current_progress_message = tr("Searching...")
 

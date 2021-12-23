@@ -3,6 +3,7 @@ import typing
 
 from .base import BaseClient
 from .models import (
+    ApiCapability,
     Collection,
     Item,
     ResourceAsset,
@@ -11,7 +12,7 @@ from .models import (
 )
 
 from ..utils import log
-from ..lib.pystac import ItemCollection
+from ..lib.planetary_computer import sas
 
 
 class Client(BaseClient):
@@ -33,6 +34,8 @@ class Client(BaseClient):
         properties = None
         items_list = items_response.items if items_response else []
         for item in items_list:
+            if self.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+                item = sas.sign(item)
             try:
                 item_datetime = datetime.datetime.strptime(
                     item.properties.get("datetime"),
