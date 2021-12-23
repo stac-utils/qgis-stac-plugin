@@ -80,16 +80,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         settings_manager.connections_settings_updated.connect(
             self.update_connections_box
         )
+        settings_manager.connections_settings_updated.connect(
+            self.update_api_client
+        )
 
-        current_connection = settings_manager.get_current_connection()
-        self.api_client = Client.from_connection_settings(
-            current_connection
-        ) if current_connection else None
-
-        if self.api_client:
-            self.api_client.items_received.connect(self.display_results)
-            self.api_client.collections_received.connect(self.display_results)
-            self.api_client.error_received.connect(self.display_search_error)
+        self.update_api_client()
 
         self.search_type = ResourceType.FEATURE
         self.current_progress_message = tr("Searching...")
@@ -210,13 +205,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             find_connection_by_name(current_text)
         settings_manager.set_current_connection(current_connection.id)
         if current_connection:
-            self.api_client = Client.from_connection_settings(
-                current_connection
-            )
-            self.api_client.items_received.connect(self.display_results)
-            self.api_client.collections_received.connect(self.display_results)
-            self.api_client.error_received.connect(self.display_search_error)
-
+            self.update_api_client()
             # Update the collections view to show the current connection
             # collections
             collections = settings_manager.get_collections(
@@ -226,6 +215,21 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             self.load_collections(collections)
 
         self.search_btn.setEnabled(current_connection is not None)
+
+    def update_api_client(self):
+        """
+        Updates the api client for the current active connection
+
+        """
+        current_connection = settings_manager.get_current_connection()
+        if current_connection:
+            self.api_client = Client.from_connection_settings(
+                current_connection
+            )
+            if self.api_client:
+                self.api_client.items_received.connect(self.display_results)
+                self.api_client.collections_received.connect(self.display_results)
+                self.api_client.error_received.connect(self.display_search_error)
 
     def update_connections_box(self):
         """ Updates connections list displayed on the connection
