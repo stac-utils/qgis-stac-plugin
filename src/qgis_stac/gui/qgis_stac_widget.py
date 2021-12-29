@@ -26,6 +26,8 @@ from ..api.models import (
 )
 from ..api.client import Client
 
+from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
+
 from ..utils import (
     open_folder,
     log,
@@ -141,6 +143,15 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.download_folder_btn.fileChanged.connect(
             self.save_download_folder)
         self.open_folder_btn.clicked.connect(self.open_download_folder)
+
+        # setup model for filtering and sorting item results
+
+        self.item_model = ItemsModel()
+        self.items_proxy_model = ItemsSortFilterProxyModel()
+        self.items_proxy_model.setSourceModel(self.item_model)
+        self.items_proxy_model.setDynamicSortFilter(True)
+        self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.items_proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -496,6 +507,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param results: List of items results
         :type results: list
         """
+
+        self.items_results = results
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)
