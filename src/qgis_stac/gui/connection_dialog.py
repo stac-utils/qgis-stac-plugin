@@ -116,6 +116,8 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         # pagination
         self.load_conformances(conformance_results)
         self.conformance = conformance_results
+        connection = self.get_connection()
+        settings_manager.delete_all_conformance(connection)
 
         self.show_message(
             tr("{} conformance class(es) was found").format(
@@ -212,11 +214,12 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         """ Get the connection instance using the current API
         details from this connection dialog.
         """
-        connection_id = uuid.uuid4()
         if self.connection is not None:
             return self.connection
 
+        connection_id = uuid.uuid4()
         capability = None
+
         if self.capabilities.currentText() != "":
             capability = ApiCapability(self.capabilities.currentText())
 

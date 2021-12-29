@@ -631,6 +631,24 @@ class SettingsManager(QtCore.QObject):
             settings.setValue("name", conformance_settings.name)
             settings.setValue("uri", conformance_settings.uri)
 
+    def delete_all_conformance(self, connection):
+        """Deletes all the connection conformance settings,
+        in the connection.
+
+        :param connection: Connection from which to delete all the
+        available conformance
+        :type connection: ConnectionSettings
+        """
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/" \
+                f"{self.CONNECTION_GROUP_NAME}/" \
+                f"{str(connection.id)}/"\
+                f"{self.CONFORMANCE_GROUP_NAME}"
+        ) \
+                as settings:
+            for conformance_name in settings.childGroups():
+                settings.remove(conformance_name)
+
     def save_search_filters(
         self,
         filters
