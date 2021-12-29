@@ -1,8 +1,6 @@
+import re
 import typing
-
-from qgis.PyQt import (
-    QtCore,
-)
+import uuid
 
 from qgis.core import (
     QgsApplication,
@@ -10,16 +8,18 @@ from qgis.core import (
 )
 
 from .models import (
-    Collection,
     ItemSearch,
     ResourcePagination,
     ResourceType,
 )
 
-from pystac_client import Client
-from pystac_client.exceptions import APIError
+from ..lib.pystac_client import Client
+from ..lib.pystac_client.conformance import ConformanceClasses
+from ..lib.pystac_client.exceptions import APIError
 
-from ..utils import log
+from ..conf import ConformanceSettings
+
+from ..utils import log, tr
 
 
 class ContentFetcherTask(QgsTask):
@@ -69,27 +69,20 @@ class ContentFetcherTask(QgsTask):
                 response = self.client.search(
                     **self.search_params.params()
                 )
-                self.pagination = ResourcePagination()
-
-                count = 1
-                items_generator = response.get_item_collections()
-                prev_collection = None
-                while True:
-                    try:
-                        collection = next(items_generator)
-                        prev_collection = collection
-                        if self.search_params.page == count:
-                            self.response = collection
-                            break
-                        count += 1
-                    except StopIteration:
-                        self.pagination.total_pages = count
-                        self.response = prev_collection
-                        break
+                self.prepare_items_results(response)
 
             elif self.resource_type == \
                     ResourceType.COLLECTION:
                 self.response = self.client.get_collections()
+            elif self.resource_type == ResourceType.CONFORMANCE:
+                if self.client._stac_io and \
+                        self.client._stac_io._conformance:
+                    self.response = self.prepare_conformance_results(
+                        self.client._stac_io._conformance
+                    )
+                else:
+                    self.error = tr("No conformance available")
+                self.pagination = ResourcePagination()
             else:
                 raise NotImplementedError
         except APIError as err:
@@ -97,6 +90,51 @@ class ContentFetcherTask(QgsTask):
             self.error = str(err)
 
         return self.response is not None
+
+    def prepare_items_results(self, response):
+        """ Prepares the search items results
+
+        :param response: Fetched response from the pystac-client library
+        :type response: pystac_client.ItemSearch
+        """
+        self.pagination = ResourcePagination()
+        count = 1
+        items_generator = response.get_item_collections()
+        prev_collection = None
+        while True:
+            try:
+                collection = next(items_generator)
+                prev_collection = collection
+                if self.search_params.page == count:
+                    self.response = collection
+                    break
+                count += 1
+            except StopIteration:
+                self.pagination.total_pages = count
+                self.response = prev_collection
+                break
+
+    def prepare_conformance_results(self, conformance):
+        """ Prepares the fetched conformance classes
+
+        :param conformance: Fetched list of the conformance classes  API
+        :type conformance: list
+
+        :returns: Conformance classes settings instance list
+        :rtype: list
+        """
+        conformance_classes = []
+        for uri in conformance:
+            parts = uri.split('/')
+            name = parts[len(parts) - 1]
+            conformance_settings = ConformanceSettings(
+                id=uuid.uuid4(),
+                name=name,
+                uri=uri,
+            )
+            conformance_classes.append(conformance_settings)
+
+        return conformance_classes
 
     def finished(self, result: bool):
         """
@@ -109,6 +147,6 @@ class ContentFetcherTask(QgsTask):
         if result:
             self.response_handler(self.response, self.pagination)
         else:
-            message = f"Problem in fetching content for {self.url!r}," \
-                      f"Error {self.error}"
+            message = tr("Problem in fetching content for {}."
+                         "Error details, {}").format(self.url, self.error)
             self.error_handler(message)

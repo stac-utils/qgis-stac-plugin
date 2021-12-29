@@ -80,6 +80,7 @@ class ResourceType(enum.Enum):
     COLLECTION = "Collection"
     FEATURE = "Feature"
     CATALOG = "Catalog"
+    CONFORMANCE = "Conformance"
 
 
 @dataclasses.dataclass

@@ -33,6 +33,11 @@ class BaseClient(QtCore.QObject):
     content_task: ContentFetcherTask
     capability: ApiCapability
 
+    conformance_received = QtCore.pyqtSignal(
+        list,
+        ResourcePagination
+    )
+
     collections_received = QtCore.pyqtSignal(
         list,
         ResourcePagination
@@ -117,15 +122,40 @@ class BaseClient(QtCore.QObject):
 
         QgsApplication.taskManager().addTask(self.content_task)
 
+    def get_conformance(
+        self
+    ):
+        """Fetches the available conformance classes in the STAC API defined in this
+        base client.
+        """
+        self.content_task = ContentFetcherTask(
+            url=self.url,
+            search_params=None,
+            resource_type=ResourceType.CONFORMANCE,
+            response_handler=self.handle_conformance,
+            error_handler=self.handle_error,
+        )
+
+        QgsApplication.taskManager().addTask(self.content_task)
+
+    def handle_conformance(
+            self,
+            conformance,
+            pagination
+    ):
+        raise NotImplementedError
+
     def handle_collections(
             self,
-            collections
+            collections,
+            pagination
     ):
         raise NotImplementedError
 
     def handle_items(
             self,
-            items
+            items,
+            pagination
     ):
         raise NotImplementedError
 

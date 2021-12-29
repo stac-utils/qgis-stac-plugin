@@ -49,6 +49,7 @@ class ConnectionSettings:
     url: str
     page_size: int
     collections: list
+    conformances: list
     capability: ApiCapability
     created_date: datetime.datetime = datetime.datetime.now()
     auth_config: typing.Optional[str] = None
@@ -71,10 +72,14 @@ class ConnectionSettings:
         :rtype: ConnectionSettings
         """
         collections = []
+        conformances = []
         auth_cfg = None
         capability = None
         try:
             collections = settings_manager.get_collections(
+                uuid.UUID(identifier)
+            )
+            conformances = settings_manager.get_conformances(
                 uuid.UUID(identifier)
             )
             capability_value = settings.value("capability", defaultValue=None)
@@ -94,6 +99,7 @@ class ConnectionSettings:
             url=settings.value("url"),
             page_size=int(settings.value("page_size", defaultValue=10)),
             collections=collections,
+            conformances=conformances,
             capability=capability,
             created_date=created_date,
             auth_config=auth_cfg,
@@ -133,6 +139,39 @@ class CollectionSettings:
         )
 
 
+@dataclasses.dataclass
+class ConformanceSettings:
+    """Plugin STAC API conformance setting
+    """
+
+    id: uuid.UUID
+    name: str
+    uri: str
+
+    @classmethod
+    def from_qgs_settings(
+            cls,
+            identifier: str,
+            settings: QgsSettings):
+        """Reads QGIS settings and parses them into a conformance
+        settings instance with the respective settings values as properties.
+
+        :param identifier: Conformance identifier
+        :type identifier: str
+
+        :param settings: QGIS settings.
+        :type settings: QgsSettings
+
+        :returns: Conformance settings object
+        :rtype: ConformanceSettings
+        """
+        return cls(
+            id=uuid.UUID(identifier),
+            name=settings.value("name"),
+            uri=settings.value("uri")
+        )
+
+
 class SettingsManager(QtCore.QObject):
     """Manages saving/loading settings for the plugin in QgsSettings.
     """
@@ -141,6 +180,7 @@ class SettingsManager(QtCore.QObject):
     CONNECTION_GROUP_NAME: str = "connections"
     SELECTED_CONNECTION_KEY: str = "selected_connection"
     COLLECTION_GROUP_NAME: str = "collections"
+    CONFORMANCE_GROUP_NAME: str = "conformance"
 
     settings = QgsSettings()
 
@@ -302,6 +342,12 @@ class SettingsManager(QtCore.QObject):
             strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         capability = connection_settings.capability.value \
             if connection_settings.capability else None
+        if connection_settings.conformances:
+            for conformance in connection_settings.conformances:
+                self.save_conformance(
+                    connection_settings,
+                    conformance
+                )
         with qgis_settings(settings_key) as settings:
             settings.setValue("name", connection_settings.name)
             settings.setValue("url", connection_settings.url)
@@ -431,6 +477,25 @@ class SettingsManager(QtCore.QObject):
                f"{self.COLLECTION_GROUP_NAME}/" \
                f"{str(identifier)}"
 
+    def _get_conformance_settings_base(
+            self,
+            connection_identifier,
+            identifier
+    ):
+        """Gets the conformance settings base url.
+
+        :param connection_identifier: Connection settings identifier
+        :type connection_identifier: uuid.UUID
+
+        :param identifier: Conformance settings identifier
+        :type identifier: uuid.UUID
+        """
+        return f"{self.BASE_GROUP_NAME}/" \
+               f"{self.CONNECTION_GROUP_NAME}/" \
+               f"{str(connection_identifier)}/" \
+               f"{self.CONFORMANCE_GROUP_NAME}/" \
+               f"{str(identifier)}"
+
     def save_collection(self, connection, collection_settings):
         """ Save the passed colection settings into the plugin settings
 
@@ -516,6 +581,73 @@ class SettingsManager(QtCore.QObject):
                 as settings:
             for collection_name in settings.childGroups():
                 settings.remove(collection_name)
+
+    def get_conformances(self, connection_identifier):
+        """ Gets all the available conformances settings in the
+        provided connection
+
+        :param connection_identifier: Connection identifier from which
+        to get all the available collections
+        :type connection_identifier: uuid.UUID
+        """
+        result = []
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/"
+                f"{self.CONNECTION_GROUP_NAME}/"
+                f"{str(connection_identifier)}/"
+                f"{self.CONFORMANCE_GROUP_NAME}"
+        ) \
+                as settings:
+            for conformance_id in settings.childGroups():
+                conformance_settings_key = self._get_conformance_settings_base(
+                    connection_identifier,
+                    conformance_id
+                )
+                with qgis_settings(conformance_settings_key) \
+                        as conformance_settings:
+                    result.append(
+                        ConformanceSettings.from_qgs_settings(
+                            conformance_id,
+                            conformance_settings
+                        )
+                    )
+        return result
+
+    def save_conformance(self, connection, conformance_settings):
+        """ Save the passed conformance settings into the plugin settings
+
+        :param connection: Connection settings
+        :type connection:  CollectionSettings
+
+        :param conformance_settings: Conformance settings
+        :type conformance_settings:  ConformanceSettings
+        """
+        settings_key = self._get_conformance_settings_base(
+            connection.id,
+            conformance_settings.id
+        )
+
+        with qgis_settings(settings_key) as settings:
+            settings.setValue("name", conformance_settings.name)
+            settings.setValue("uri", conformance_settings.uri)
+
+    def delete_all_conformance(self, connection):
+        """Deletes all the connection conformance settings,
+        in the connection.
+
+        :param connection: Connection from which to delete all the
+        available conformance
+        :type connection: ConnectionSettings
+        """
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/" \
+                f"{self.CONNECTION_GROUP_NAME}/" \
+                f"{str(connection.id)}/"\
+                f"{self.CONFORMANCE_GROUP_NAME}"
+        ) \
+                as settings:
+            for conformance_name in settings.childGroups():
+                settings.remove(conformance_name)
 
     def save_search_filters(
         self,

@@ -1,16 +1,27 @@
-
 import os
 import uuid
 import datetime
+import re
 
-from qgis.PyQt import QtWidgets
+from functools import partial
+
+from qgis.PyQt import QtCore, QtGui, QtWidgets
+
+from qgis.core import Qgis
+from qgis.gui import QgsMessageBar
+
 from qgis.PyQt.uic import loadUiType
+
+
+from ..lib.pystac_client.client import Client as STACClient
 from ..conf import (
+    ConformanceSettings,
     ConnectionSettings,
     settings_manager
 )
 
-from ..api.models import ApiCapability
+from ..api.models import ApiCapability, ResourceType
+from ..api.client import Client
 from ..utils import tr
 
 DialogUi, _ = loadUiType(
@@ -47,8 +58,184 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             for capability in ApiCapability:
                 self.capabilities.addItem(capability.value)
 
+        # prepare model for the conformance tree view
+        self.model = QtGui.QStandardItemModel()
+        self.model.setHorizontalHeaderLabels(
+            [
+                tr("Conformance type"),
+                tr("Conformance URI")
+            ]
+        )
+        self.proxy_model = QtCore.QSortFilterProxyModel()
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.conformances_tree.setModel(self.proxy_model)
+        self.get_conformances_btn.clicked.connect(self.fetch_conformances)
+
         if connection:
             self.load_connection_settings(connection)
+            self.conformance = connection.conformances
+        else:
+            self.conformance = []
+
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.message_bar = QgsMessageBar()
+        self.progress_bar = QtWidgets.QProgressBar()
+
+        self.prepare_message_bar()
+
+    def fetch_conformances(self):
+        """ Fetches the conformances available on the current
+            STAC API connection.
+        """
+        connection = self.get_connection()
+
+        if connection is not None:
+            api_client = Client.from_connection_settings(connection)
+            api_client.conformance_received.connect(self.display_conformances)
+            api_client.error_received.connect(self.show_message)
+            self.show_progress(
+                tr("Getting API conformance classes..."),
+                progress_bar=False
+            )
+            api_client.get_conformance()
+
+    def display_conformances(self, conformance_results, pagination):
+        """ Displays the found conformance classes in the dialog conformance view
+
+        :param conformance_results: List of the fetched conformance classes uris
+        :type conformance_results: list
+
+        :param pagination: Information about pagination
+        :type pagination: ResourcePagination
+        """
+        # TODO make use of pagination or change function signature to not accept
+        # pagination
+        self.load_conformances(conformance_results)
+        self.conformance = conformance_results
+        connection = self.get_connection()
+        settings_manager.delete_all_conformance(connection)
+
+        self.show_message(
+            tr("{} conformance class(es) was found").format(
+                len(self.conformance)
+            ),
+            Qgis.Info
+        )
+
+    def load_conformances(self, conformances):
+        """ Loads the passed list of conformances into the Connection conformances
+        view
+
+        :param conformances: List of conformances settings
+        :type conformances: list
+        """
+        self.model.removeRows(0, self.model.rowCount())
+        for conformance in conformances:
+            item_name = QtGui.QStandardItem(
+                conformance.name.upper()
+            )
+            item_uri = QtGui.QStandardItem(
+                conformance.uri
+            )
+            self.model.appendRow([item_name, item_uri])
+
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.sort(QtCore.Qt.DisplayRole)
+
+    def prepare_message_bar(self):
+        """ Initializes the widget message bar settings"""
+        self.message_bar.setSizePolicy(
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Fixed
+        )
+        self.grid_layout.addWidget(
+            self.connection_box,
+            0, 0, 1, 1
+        )
+        self.grid_layout.addWidget(
+            self.message_bar,
+            0, 0, 1, 1,
+            alignment=QtCore.Qt.AlignTop
+        )
+        self.layout().insertLayout(0, self.grid_layout)
+
+    def show_message(
+            self,
+            message,
+            level=Qgis.Warning
+    ):
+        """ Shows message on the main widget message bar
+
+        :param message: Message text
+        :type message: str
+
+        :param level: Message level type
+        :type level: Qgis.MessageLevel
+        """
+        self.message_bar.clearWidgets()
+        self.message_bar.pushMessage(message, level=level)
+
+    def show_progress(
+            self,
+            message,
+            minimum=0,
+            maximum=0,
+            progress_bar=True):
+        """ Shows the progress message on the main widget message bar
+
+        :param message: Progress message
+        :type message: str
+
+        :param minimum: Minimum value that can be set on the progress bar
+        :type minimum: int
+
+        :param maximum: Maximum value that can be set on the progress bar
+        :type maximum: int
+
+        :param progress_bar: Whether to show progress bar status
+        :type progress_bar: bool
+        """
+        self.message_bar.clearWidgets()
+        message_bar_item = self.message_bar.createMessage(message)
+        self.progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        if progress_bar:
+            self.progress_bar.setMinimum(minimum)
+            self.progress_bar.setMaximum(maximum)
+        else:
+            self.progress_bar.setMaximum(0)
+        message_bar_item.layout().addWidget(self.progress_bar)
+        self.message_bar.pushWidget(message_bar_item, Qgis.Info)
+
+    def get_connection(self):
+        """ Get the connection instance using the current API
+        details from this connection dialog.
+        """
+        if self.connection is not None:
+            return self.connection
+
+        connection_id = uuid.uuid4()
+        capability = None
+
+        if self.capabilities.currentText() != "":
+            capability = ApiCapability(self.capabilities.currentText())
+
+        connection_settings = ConnectionSettings(
+            id=connection_id,
+            name=self.name_edit.text().strip(),
+            url=self.url_edit.text().strip(),
+            page_size=self.page_size.value(),
+            collections=[],
+            capability=capability,
+            conformances=self.conformance,
+            created_date=datetime.datetime.now(),
+            auth_config=self.auth_config.configId(),
+        )
+
+        return connection_settings
 
     def load_connection_settings(self, connection_settings: ConnectionSettings):
         """ Sets this dialog inputs values as defined in the passed connection settings.
@@ -64,12 +251,14 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             connection_settings.capability.value
         ) if connection_settings.capability else 0
         self.capabilities.setCurrentIndex(capability_index)
+        if connection_settings.conformances:
+            self.load_conformances(connection_settings.conformances)
 
     def accept(self):
         """ Handles logic for adding new connections"""
         connection_id = uuid.uuid4()
         if self.connection is not None:
-           connection_id = self.connection.id
+            connection_id = self.connection.id
 
         capability = None
         if self.capabilities.currentText() != "":
@@ -82,6 +271,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             page_size=self.page_size.value(),
             collections=[],
             capability=capability,
+            conformances=self.conformance,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )
@@ -107,3 +297,4 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
                         self.url_edit.text() != ""
         self.buttonBox.button(
             QtWidgets.QDialogButtonBox.Ok).setEnabled(enabled_state)
+        self.get_conformances_btn.setEnabled(enabled_state)

@@ -29,6 +29,9 @@ class Client(BaseClient):
 
         :param items_response: Search results items
         :type items_response: List[models.Items]
+
+        :param pagination: Item results pagination details
+        :type pagination: ResourcePagination
         """
         items = []
         properties = None
@@ -45,7 +48,9 @@ class Client(BaseClient):
                     resource_datetime=item_datetime
                 )
             except (TypeError, ValueError) as e:
-                log(f"Error in passing item properties datetime, {str(e)}")
+                log(
+                    f"Error in passing item properties datetime, {str(e)}"
+                )
                 pass
             assets = []
             for key, asset in item.assets.items():
@@ -79,6 +84,9 @@ class Client(BaseClient):
 
         :param items_response: Search results items
         :type items_response: List[models.Items]
+
+        :param pagination: Item collections results pagination details
+        :type pagination: ResourcePagination
         """
         self.item_collections_received.emit(
             items_response.get_item_collections(),
@@ -94,6 +102,9 @@ class Client(BaseClient):
 
         :param collections_response: Search results collections
         :type collections_response: List[models.Collection]
+
+        :param pagination: Collection results pagination details
+        :type pagination: ResourcePagination
         """
         collections = []
         for collection in collections_response:
@@ -108,6 +119,21 @@ class Client(BaseClient):
         pagination = ResourcePagination()
 
         self.collections_received.emit(collections, pagination)
+
+    def handle_conformance(
+            self,
+            conformance,
+            pagination
+    ):
+        """Emits the fetched conformance classes from the API.
+
+        :param conformance: Conformance classes
+        :type conformance: list
+
+        :param pagination: Conformance classes pagination details.
+        :type pagination: ResourcePagination
+        """
+        self.conformance_received.emit(conformance, pagination)
 
     def handle_error(
             self,

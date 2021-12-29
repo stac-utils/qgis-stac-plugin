@@ -85,6 +85,7 @@ def config_defaults_catalogs():
                 url=catalog['url'],
                 page_size=5,
                 collections=[],
+                conformances=[],
                 capability=capability,
                 created_date=datetime.datetime.now(),
                 auth_config=None,

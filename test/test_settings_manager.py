@@ -62,6 +62,7 @@ class SettingsManagerTest(unittest.TestCase):
             url="http:://test",
             page_size=10,
             collections=[],
+            conformances=[],
             capability=None
         )
 
@@ -101,6 +102,7 @@ class SettingsManagerTest(unittest.TestCase):
             url="http:://second_test",
             page_size=10,
             collections=[],
+            conformances=[],
             capability=None
         )
         settings_manager.save_connection_settings(
