@@ -106,7 +106,7 @@
            <item>
             <widget class="QPushButton" name="get_conformances_btn">
              <property name="toolTip">
-              <string>Get all collections provided by the current STAC API connection</string>
+              <string>Get this STAC API conformances, as specified in the API root page. </string>
              </property>
              <property name="text">
               <string>Get conformance classes</string>

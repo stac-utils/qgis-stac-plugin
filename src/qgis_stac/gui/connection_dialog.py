@@ -13,6 +13,7 @@ from qgis.PyQt.uic import loadUiType
 from ..lib.pystac_client.conformance import ConformanceClasses
 from ..lib.pystac_client.client import Client as STACClient
 from ..conf import (
+    ConformanceSettings,
     ConnectionSettings,
     settings_manager
 )
@@ -55,14 +56,6 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             for capability in ApiCapability:
                 self.capabilities.addItem(capability.value)
 
-        if connection:
-            self.load_connection_settings(connection)
-
-        self.grid_layout = QtWidgets.QGridLayout()
-        self.message_bar = QgsMessageBar()
-
-        self.prepare_message_bar()
-
         # prepare model for the conformance tree view
         self.model = QtGui.QStandardItemModel()
         self.model.setHorizontalHeaderLabels(
@@ -78,46 +71,93 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.conformances_tree.setModel(self.proxy_model)
-        self.get_conformances_btn.clicked.connect(self.search_conformances)
+        self.get_conformances_btn.clicked.connect(self.fetch_conformances)
 
-    def search_conformances(self):
-        """ Searches for the conformances available on the current
+        if connection:
+            self.load_connection_settings(connection)
+            self.conformances = connection.conformances
+        else:
+            self.conformances = []
+
+        self.grid_layout = QtWidgets.QGridLayout()
+        self.message_bar = QgsMessageBar()
+        self.progress_bar = QtWidgets.QProgressBar()
+
+        self.prepare_message_bar()
+
+    def fetch_conformances(self):
+        """ Fetches the conformances available on the current
             STAC API connection.
         """
 
         connection = self.get_connection()
-        conformances = []
-        self.model.removeRows(0, self.model.rowCount())
+
         if connection is not None:
             api_client = Client.from_connection_settings(connection)
             client = STACClient.open(api_client.url)
-            if client._stac_io._conformance is None:
+            if client._stac_io._conformance == None or \
+                    client._stac_io._conformance == []:
                 self.show_message(
                     tr("No conformance class was found"),
                     Qgis.Info
                 )
                 return
+            self.model.removeRows(0, self.model.rowCount())
+            self.conformances = []
+            self.show_progress(
+                tr("Getting API conformance classes..."),
+                progress_bar=False
+            )
             for uri in client._stac_io._conformance:
                 for conformance in ConformanceClasses:
                     if conformance == ConformanceClasses.stac_prefix:
                         continue
                     pattern = re.compile(conformance.value)
                     if re.match(pattern, uri):
-                        conformances.append(conformance)
+
                         item_name = QtGui.QStandardItem(
                             conformance.name
                         )
-                        item_value = QtGui.QStandardItem(
+                        item_uri = QtGui.QStandardItem(
                             uri
                         )
-                        self.model.appendRow([item_name, item_value])
+                        conformance_settings = ConformanceSettings(
+                            id=uuid.uuid4(),
+                            name=conformance.name,
+                            uri=uri,
+                        )
+                        self.conformances.append(conformance_settings)
+                        self.model.appendRow([item_name, item_uri])
 
             self.proxy_model.setSourceModel(self.model)
             self.proxy_model.sort(QtCore.Qt.DisplayRole)
+
             self.show_message(
-                tr("{} conformance class(es) was found").format(len(conformances)),
+                tr("{} conformance class(es) was found").format(
+                    len(self.conformances)
+                ),
                 Qgis.Info
             )
+
+    def load_conformances(self, conformances):
+        """ Loads the passed list of conformances into the Connection conformances
+        view
+
+        :param conformances: List of conformances settings
+        :type conformances: list
+        """
+        self.model.removeRows(0, self.model.rowCount())
+        for conformance in conformances:
+            item_name = QtGui.QStandardItem(
+                conformance.name
+            )
+            item_uri = QtGui.QStandardItem(
+                conformance.uri
+            )
+            self.model.appendRow([item_name, item_uri])
+
+        self.proxy_model.setSourceModel(self.model)
+        self.proxy_model.sort(QtCore.Qt.DisplayRole)
 
     def prepare_message_bar(self):
         """ Initializes the widget message bar settings"""
@@ -152,7 +192,41 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.message_bar.clearWidgets()
         self.message_bar.pushMessage(message, level=level)
 
+    def show_progress(
+            self,
+            message,
+            minimum=0,
+            maximum=0,
+            progress_bar=True):
+        """ Shows the progress message on the main widget message bar
+
+        :param message: Progress message
+        :type message: str
+
+        :param minimum: Minimum value that can be set on the progress bar
+        :type minimum: int
+
+        :param maximum: Maximum value that can be set on the progress bar
+        :type maximum: int
+
+        :param progress_bar: Whether to show progress bar status
+        :type progress_bar: bool
+        """
+        self.message_bar.clearWidgets()
+        message_bar_item = self.message_bar.createMessage(message)
+        self.progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        if progress_bar:
+            self.progress_bar.setMinimum(minimum)
+            self.progress_bar.setMaximum(maximum)
+        else:
+            self.progress_bar.setMaximum(0)
+        message_bar_item.layout().addWidget(self.progress_bar)
+        self.message_bar.pushWidget(message_bar_item, Qgis.Info)
+
     def get_connection(self):
+        """ Get the connection instance using the current API
+        details from this connection dialog.
+        """
         connection_id = uuid.uuid4()
         if self.connection is not None:
             return self.connection
@@ -168,6 +242,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             page_size=self.page_size.value(),
             collections=[],
             capability=capability,
+            conformances=self.conformances,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )
@@ -188,6 +263,8 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             connection_settings.capability.value
         ) if connection_settings.capability else 0
         self.capabilities.setCurrentIndex(capability_index)
+        if connection_settings.conformances:
+            self.load_conformances(connection_settings.conformances)
 
     def accept(self):
         """ Handles logic for adding new connections"""
@@ -206,6 +283,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             page_size=self.page_size.value(),
             collections=[],
             capability=capability,
+            conformances=self.conformances,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )
