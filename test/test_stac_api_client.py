@@ -16,13 +16,13 @@ class STACApiClientTest(unittest.TestCase):
     def setUp(self):
         self.server = MockSTACApiServer()
         self.server.start()
+        self.api_client = Client(self.server.url)
         self.response = None
 
     def test_items_search(self):
-        api_client = Client(self.server.url)
-        spy = QSignalSpy(api_client.items_received)
-        api_client.items_received.connect(self.app_response)
-        api_client.get_items(ItemSearch(collections=['simple-collection']))
+        spy = QSignalSpy(self.api_client.items_received)
+        self.api_client.items_received.connect(self.app_response)
+        self.api_client.get_items(ItemSearch(collections=['simple-collection']))
         result = spy.wait(timeout=1000)
 
         self.assertTrue(result)
@@ -54,10 +54,9 @@ class STACApiClientTest(unittest.TestCase):
     #     self.assertEqual(collections[0].title, "Simple Example Collection")
 
     def test_conformance_fetch(self):
-        api_client = Client(self.server.url)
-        spy = QSignalSpy(api_client.conformance_received)
-        api_client.conformance_received.connect(self.app_response)
-        api_client.get_conformance()
+        spy = QSignalSpy(self.api_client.conformance_received)
+        self.api_client.conformance_received.connect(self.app_response)
+        self.api_client.get_conformance()
         result = spy.wait(timeout=1000)
 
         self.assertTrue(result)
