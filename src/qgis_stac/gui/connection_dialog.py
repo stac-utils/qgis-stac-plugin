@@ -3,6 +3,8 @@ import uuid
 import datetime
 import re
 
+from functools import partial
+
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 
 from qgis.core import Qgis
@@ -10,7 +12,7 @@ from qgis.gui import QgsMessageBar
 
 from qgis.PyQt.uic import loadUiType
 
-from ..lib.pystac_client.conformance import ConformanceClasses
+
 from ..lib.pystac_client.client import Client as STACClient
 from ..conf import (
     ConformanceSettings,
@@ -75,9 +77,9 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
 
         if connection:
             self.load_connection_settings(connection)
-            self.conformances = connection.conformances
+            self.conformance = connection.conformances
         else:
-            self.conformances = []
+            self.conformance = []
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.message_bar = QgsMessageBar()
@@ -89,55 +91,38 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         """ Fetches the conformances available on the current
             STAC API connection.
         """
-
         connection = self.get_connection()
 
         if connection is not None:
             api_client = Client.from_connection_settings(connection)
-            client = STACClient.open(api_client.url)
-            if client._stac_io._conformance == None or \
-                    client._stac_io._conformance == []:
-                self.show_message(
-                    tr("No conformance class was found"),
-                    Qgis.Info
-                )
-                return
-            self.model.removeRows(0, self.model.rowCount())
-            self.conformances = []
+            api_client.conformance_received.connect(self.display_conformances)
+            api_client.error_received.connect(self.show_message)
             self.show_progress(
                 tr("Getting API conformance classes..."),
                 progress_bar=False
             )
-            for uri in client._stac_io._conformance:
-                for conformance in ConformanceClasses:
-                    if conformance == ConformanceClasses.stac_prefix:
-                        continue
-                    pattern = re.compile(conformance.value)
-                    if re.match(pattern, uri):
+            api_client.get_conformance()
 
-                        item_name = QtGui.QStandardItem(
-                            conformance.name
-                        )
-                        item_uri = QtGui.QStandardItem(
-                            uri
-                        )
-                        conformance_settings = ConformanceSettings(
-                            id=uuid.uuid4(),
-                            name=conformance.name,
-                            uri=uri,
-                        )
-                        self.conformances.append(conformance_settings)
-                        self.model.appendRow([item_name, item_uri])
+    def display_conformances(self, conformance_results, pagination):
+        """ Displays the found conformance classes in the dialog conformance view
 
-            self.proxy_model.setSourceModel(self.model)
-            self.proxy_model.sort(QtCore.Qt.DisplayRole)
+        :param conformance_results: List of the fetched conformance classes uris
+        :type conformance_results: list
 
-            self.show_message(
-                tr("{} conformance class(es) was found").format(
-                    len(self.conformances)
-                ),
-                Qgis.Info
-            )
+        :param pagination: Information about pagination
+        :type pagination: ResourcePagination
+        """
+        # TODO make use of pagination or change function signature to not accept
+        # pagination
+        self.load_conformances(conformance_results)
+        self.conformance = conformance_results
+
+        self.show_message(
+            tr("{} conformance class(es) was found").format(
+                len(self.conformance)
+            ),
+            Qgis.Info
+        )
 
     def load_conformances(self, conformances):
         """ Loads the passed list of conformances into the Connection conformances
@@ -149,7 +134,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.model.removeRows(0, self.model.rowCount())
         for conformance in conformances:
             item_name = QtGui.QStandardItem(
-                conformance.name
+                conformance.name.upper()
             )
             item_uri = QtGui.QStandardItem(
                 conformance.uri
@@ -242,7 +227,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             page_size=self.page_size.value(),
             collections=[],
             capability=capability,
-            conformances=self.conformances,
+            conformances=self.conformance,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )
@@ -283,7 +268,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             page_size=self.page_size.value(),
             collections=[],
             capability=capability,
-            conformances=self.conformances,
+            conformances=self.conformance,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
         )

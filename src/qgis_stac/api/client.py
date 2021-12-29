@@ -45,7 +45,9 @@ class Client(BaseClient):
                     resource_datetime=item_datetime
                 )
             except (TypeError, ValueError) as e:
-                log(f"Error in passing item properties datetime, {str(e)}")
+                log(
+                    f"Error in passing item properties datetime, {str(e)}"
+                )
                 pass
             assets = []
             for key, asset in item.assets.items():
@@ -108,6 +110,13 @@ class Client(BaseClient):
         pagination = ResourcePagination()
 
         self.collections_received.emit(collections, pagination)
+
+    def handle_conformance(
+            self,
+            conformance,
+            pagination
+    ):
+        self.conformance_received.emit(conformance, pagination)
 
     def handle_error(
             self,
