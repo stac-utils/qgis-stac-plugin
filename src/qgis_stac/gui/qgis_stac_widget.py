@@ -146,12 +146,17 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         # setup model for filtering and sorting item results
 
-        self.item_model = ItemsModel()
-        self.items_proxy_model = ItemsSortFilterProxyModel()
+        self.item_model = ItemsModel([])
+        self.items_proxy_model = ItemsSortFilterProxyModel(
+            SortField.ID
+        )
         self.items_proxy_model.setSourceModel(self.item_model)
         self.items_proxy_model.setDynamicSortFilter(True)
         self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.items_proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.sort_cmb.activated.connect(self.sort_items)
+        self.items_filter.textChanged.connect(self.items_filter_changed)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -462,6 +467,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                             len(results)
                         )
                     )
+                    self.item_model = ItemsModel(results)
+                    self.items_proxy_model.setSourceModel(self.item_model)
                     self.populate_results(results)
                 else:
                     self.clear_search_results()
@@ -561,7 +568,19 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param filter_text: Filter text
         :type: str
         """
-        raise NotImplementedError
+        # TODO update to user QtCore.QRegExp, QRegularExpression will be
+        # deprecated.
+        options = QtCore.QRegularExpression.NoPatternOption
+        options |= QtCore.QRegularExpression.CaseInsensitiveOption
+        regular_expression = QtCore.QRegularExpression(filter_text, options)
+        self.items_proxy_model.setFilterRegularExpression(regular_expression)
+
+        filtered_data = []
+        for index in range(0, self.items_proxy_model.rowCount()):
+            model_index = self.items_proxy_model.index(index, 0)
+            filtered_data.append(self.items_proxy_model.data(model_index))
+
+        self.populate_results(filtered_data)
 
     def populate_sorting_field(self):
         """" Initializes sorting field combo box list items"""
@@ -583,7 +602,19 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param index: Current index of the sort fields list
         :type index: int
         """
-        raise NotImplementedError
+        sort_field = self.sort_cmb.itemData(index)
+        self.items_proxy_model.set_sort_field(sort_field)
+        order = QtCore.Qt.AscendingOrder \
+            if not self.reverse_order_box.isChecked() \
+            else QtCore.Qt.DescendingOrder
+        self.items_proxy_model.sort(index, order)
+
+        sorted_data = []
+        for index in range(0, self.items_proxy_model.rowCount()):
+            model_index = self.items_proxy_model.index(index, 0)
+            sorted_data.append(self.items_proxy_model.data(model_index))
+
+        self.populate_results(sorted_data)
 
     def get_selected_collections(self):
         """ Gets the currently selected collections ids from the collection
