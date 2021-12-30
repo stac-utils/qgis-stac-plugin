@@ -106,19 +106,12 @@ class Client(BaseClient):
         :param pagination: Collection results pagination details
         :type pagination: ResourcePagination
         """
-        collections = []
-        for collection in collections_response:
-            collection_result = Collection(
-                id=collection.id,
-                title=collection.title
-            )
-            collections.append(collection_result)
 
         # TODO query filter pagination results from the
         # response
         pagination = ResourcePagination()
 
-        self.collections_received.emit(collections, pagination)
+        self.collections_received.emit(collections_response, pagination)
 
     def handle_conformance(
             self,
