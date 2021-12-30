@@ -323,7 +323,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             STAC API connection.
         """
         self.search_type = ResourceType.COLLECTION
-        self.current_progress_message = tr("Searching for collections...")
+        self.current_progress_message = tr("Fetching collections...")
 
         self.api_client.get_collections()
         self.search_started.emit()

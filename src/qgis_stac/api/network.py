@@ -8,6 +8,7 @@ from qgis.core import (
 )
 
 from .models import (
+    Collection,
     ItemSearch,
     ResourcePagination,
     ResourceType,
@@ -69,11 +70,17 @@ class ContentFetcherTask(QgsTask):
                 response = self.client.search(
                     **self.search_params.params()
                 )
-                self.prepare_items_results(response)
+                self.response = self.prepare_items_results(
+                    response
+                )
 
             elif self.resource_type == \
                     ResourceType.COLLECTION:
-                self.response = self.client.get_collections()
+                response = self.client.get_collections()
+                self.response = self.prepare_collections_results(
+                    response
+                )
+
             elif self.resource_type == ResourceType.CONFORMANCE:
                 if self.client._stac_io and \
                         self.client._stac_io._conformance:
@@ -91,28 +98,54 @@ class ContentFetcherTask(QgsTask):
 
         return self.response is not None
 
+    def prepare_collections_results(
+            self,
+            collections_response
+    ):
+        """ Prepares the collections results
+
+        :param collections_response: Collection generator
+        :type collections_response: pystac_client.CollectionClient
+
+        :returns: List of collections
+        :rtype: list
+        """
+        collections = []
+        for collection in collections_response:
+            collection_result = Collection(
+                id=collection.id,
+                title=collection.title
+            )
+            collections.append(collection_result)
+        return collections
+
     def prepare_items_results(self, response):
         """ Prepares the search items results
 
         :param response: Fetched response from the pystac-client library
         :type response: pystac_client.ItemSearch
+
+        :returns: Collection of items in a list
+        :rtype: list
         """
         self.pagination = ResourcePagination()
         count = 1
         items_generator = response.get_item_collections()
         prev_collection = None
+        items_collection = None
         while True:
             try:
                 collection = next(items_generator)
                 prev_collection = collection
                 if self.search_params.page == count:
-                    self.response = collection
+                    items_collection = collection
                     break
                 count += 1
             except StopIteration:
                 self.pagination.total_pages = count
-                self.response = prev_collection
+                items_collection = prev_collection
                 break
+        return items_collection
 
     def prepare_conformance_results(self, conformance):
         """ Prepares the fetched conformance classes
