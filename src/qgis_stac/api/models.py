@@ -59,7 +59,7 @@ class FilterLang(enum.Enum):
     """
     CQL_TEXT = 'CQL_TEXT'
     CQL_JSON = 'CQL_JSON'
-    QUERY = 'STAC_QUERY'
+    STAC_QUERY = 'STAC_QUERY'
 
 
 class Settings(enum.Enum):
@@ -254,13 +254,14 @@ class ItemSearch:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                            f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
-        if self.filter_lang == FilterLang.CQL_JSON:
-            filter_text = json.loads(self.filter_text)
-        elif self.filter_lang == FilterLang.QUERY:
-            query_text = json.loads(self.filter_text)
-        else:
-            filter_text = None
-            query_text = None
+        filter_text = None
+        query_text = None
+        text = json.loads(self.filter_text) if self.filter_text else None
+
+        filter_text = text \
+            if self.filter_lang == FilterLang.CQL_JSON else None
+        query_text = text \
+            if self.filter_lang == FilterLang.STAC_QUERY else None
 
         parameters = {
             "ids": self.ids,

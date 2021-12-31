@@ -173,7 +173,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         labels = {
             FilterLang.CQL_JSON: tr("CQL_JSON"),
-            FilterLang.QUERY: tr("STAC_QUERY"),
+            FilterLang.STAC_QUERY: tr("STAC_QUERY"),
         }
         for lang_type, item_text in labels.items():
             self.filter_lang_cmb.addItem(item_text, lang_type)
@@ -196,7 +196,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         filter_lang = self.filter_lang_cmb.itemData(index)
 
         if filter_lang == FilterLang.CQL_JSON or \
-                filter_lang == FilterLang.QUERY:
+                filter_lang == FilterLang.STAC_QUERY:
             self.highlighter = JsonHighlighter(self.filter_edit.document())
             self.filter_edit.cursorPositionChanged.connect(
                 self.highlighter.rehighlight)
