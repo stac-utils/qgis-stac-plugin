@@ -138,7 +138,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.extent_box.toggled.connect(self.save_filters)
         self.filter_lang_cmb.activated.connect(self.save_filters)
         self.filter_edit.textChanged.connect(self.save_filters)
-        self.filter_edit.cursorPositionChanged.connect(self.save_filters)
 
         self.populate_sorting_field()
 
@@ -173,18 +172,20 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         """ Prepares the advanced filter group box inputs"""
 
         labels = {
-            FilterLang.CQL_TEXT: tr("CQL_TEXT"),
             FilterLang.CQL_JSON: tr("CQL_JSON"),
+            FilterLang.QUERY: tr("STAC_QUERY"),
         }
         for lang_type, item_text in labels.items():
             self.filter_lang_cmb.addItem(item_text, lang_type)
+
+        self.filter_lang_cmb.currentIndexChanged.connect(
+            self.filter_lang_changed
+        )
         self.filter_lang_cmb.setCurrentIndex(
             self.filter_lang_cmb.findData(
-                FilterLang.CQL_TEXT,
+                FilterLang.CQL_JSON,
                 role=QtCore.Qt.UserRole)
         )
-
-        self.filter_lang_cmb.activated.connect(self.filter_lang_changed)
 
     def filter_lang_changed(self, index):
         """ Handles logic when the filter language has been changed
@@ -194,12 +195,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         """
         filter_lang = self.filter_lang_cmb.itemData(index)
 
-        if filter_lang == FilterLang.CQL_JSON:
+        if filter_lang == FilterLang.CQL_JSON or \
+                filter_lang == FilterLang.QUERY:
             self.highlighter = JsonHighlighter(self.filter_edit.document())
             self.filter_edit.cursorPositionChanged.connect(
                 self.highlighter.rehighlight)
         elif filter_lang == FilterLang.CQL_TEXT:
             self.filter_edit.cursorPositionChanged.disconnect()
+            self.highlighter.setDocument(None)
         else:
             raise NotImplementedError
 
@@ -804,3 +807,4 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 role=QtCore.Qt.UserRole
             )
         )
+        self.filter_edit.setPlainText(filters.filter_text)
