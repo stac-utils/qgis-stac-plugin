@@ -337,69 +337,69 @@
         </widget>
        </item>
        <item>
-        <widget class="QgsCollapsibleGroupBox" name="metadata_group">
+        <widget class="QgsCollapsibleGroupBox" name="advanced_box">
          <property name="title">
-          <string>Metadata</string>
+          <string>Advanced filter</string>
          </property>
          <property name="checkable">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="checked">
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>License</string>
-            </property>
-           </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="toolTip">
+               <string>Filter and search the fetched collections, using the title property.</string>
+              </property>
+              <property name="text">
+               <string>Filter language</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QComboBox" name="filter_lang_cmb">
+              <property name="minimumSize">
+               <size>
+                <width>250</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="minimumContentsLength">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEdit"/>
-          </item>
-          <item row="1" column="0">
+          <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Platform</string>
+             <string>Filter</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEdit_2"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Instrument</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="lineEdit_3"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Mission</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="lineEdit_4"/>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>GSD</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="lineEdit_5"/>
+          <item>
+           <widget class="QTextEdit" name="filter_edit"/>
           </item>
          </layout>
         </widget>

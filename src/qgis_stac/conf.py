@@ -17,7 +17,8 @@ from qgis.core import QgsRectangle, QgsSettings
 
 from .api.models import (
     ApiCapability,
-    SearchFilters
+    FilterLang,
+    SearchFilters,
 )
 
 
@@ -694,6 +695,9 @@ class SettingsManager(QtCore.QObject):
                 )
             settings.setValue("date_filter", filters.date_filter)
             settings.setValue("extent_filter", filters.spatial_extent_filter)
+            settings.setValue("advanced_filter", filters.advanced_filter)
+            settings.setValue("filter_lang", filters.filter_lang.name)
+            settings.setValue("filter_text", filters.filter_text)
         current_connection = self.get_current_connection()
         if filters.collections:
             self.delete_all_collections(current_connection)
@@ -739,6 +743,12 @@ class SettingsManager(QtCore.QObject):
             date_filter = settings.value("date_filter", False, type=bool)
             extent_filter = settings.value("extent_filter", False, type=bool)
 
+            advanced_filter = settings.value("advanced_filter", False, type=bool)
+
+            filter_lang = FilterLang(settings.value("filter_lang", None)) \
+                if settings.value("filter_lang", None) else None
+            filter_text = settings.value("filter_text")
+
             return SearchFilters(
                 collections=collections,
                 start_date=start_date,
@@ -746,6 +756,9 @@ class SettingsManager(QtCore.QObject):
                 spatial_extent=spatial_extent,
                 date_filter=date_filter,
                 spatial_extent_filter=extent_filter,
+                advanced_filter=advanced_filter,
+                filter_text=filter_text,
+                filter_lang=filter_lang,
             )
 
 
