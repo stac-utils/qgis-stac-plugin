@@ -19,6 +19,7 @@ from ..gui.connection_dialog import ConnectionDialog
 from ..conf import settings_manager
 from ..api.models import (
     ItemSearch,
+    FilterLang,
     ResourceType,
     SearchFilters,
     Settings,
@@ -27,6 +28,7 @@ from ..api.models import (
 from ..api.client import Client
 
 from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
+from .json_highlighter import JsonHighlighter
 
 from ..utils import (
     open_folder,
@@ -123,13 +125,19 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.total_pages = 0
 
         self.current_collections = []
-        self.get_filters()
 
+        self.highlighter = None
+        self.prepare_filter_box()
+
+        # actions that trigger saving filters to the plugin settings
         self.start_dte.valueChanged.connect(self.save_filters)
         self.end_dte.valueChanged.connect(self.save_filters)
         self.extent_box.extentChanged.connect(self.save_filters)
         self.date_filter_group.toggled.connect(self.save_filters)
+        self.advanced_box.toggled.connect(self.save_filters)
         self.extent_box.toggled.connect(self.save_filters)
+        self.filter_lang_cmb.activated.connect(self.save_filters)
+        self.filter_edit.textChanged.connect(self.save_filters)
 
         self.populate_sorting_field()
 
@@ -157,6 +165,46 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.sort_cmb.activated.connect(self.sort_items)
         self.items_filter.textChanged.connect(self.items_filter_changed)
+
+        self.get_filters()
+
+    def prepare_filter_box(self):
+        """ Prepares the advanced filter group box inputs"""
+
+        labels = {
+            FilterLang.CQL_JSON: tr("CQL_JSON"),
+            FilterLang.STAC_QUERY: tr("STAC_QUERY"),
+        }
+        for lang_type, item_text in labels.items():
+            self.filter_lang_cmb.addItem(item_text, lang_type)
+
+        self.filter_lang_cmb.currentIndexChanged.connect(
+            self.filter_lang_changed
+        )
+        self.filter_lang_cmb.setCurrentIndex(
+            self.filter_lang_cmb.findData(
+                FilterLang.CQL_JSON,
+                role=QtCore.Qt.UserRole)
+        )
+
+    def filter_lang_changed(self, index):
+        """ Handles logic when the filter language has been changed
+
+        :param index: Index of the current selected filter language
+        :type index: int
+        """
+        filter_lang = self.filter_lang_cmb.itemData(index)
+
+        if filter_lang == FilterLang.CQL_JSON or \
+                filter_lang == FilterLang.STAC_QUERY:
+            self.highlighter = JsonHighlighter(self.filter_edit.document())
+            self.filter_edit.cursorPositionChanged.connect(
+                self.highlighter.rehighlight)
+        elif filter_lang == FilterLang.CQL_TEXT:
+            self.filter_edit.cursorPositionChanged.disconnect()
+            self.highlighter.setDocument(None)
+        else:
+            raise NotImplementedError
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -306,6 +354,12 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         page_size = settings_manager.get_current_connection().page_size
         spatial_extent = self.extent_box.outputExtent() \
             if self.extent_box.isChecked() else None
+
+        filter_text = self.filter_edit.toPlainText() \
+            if self.advanced_box.isChecked() else None
+        filter_lang = self.filter_lang_cmb.itemData(
+            self.filter_lang_cmb.currentIndex()
+        ) if self.advanced_box.isChecked() else None
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
@@ -314,6 +368,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 start_datetime=start_dte,
                 end_datetime=end_dte,
                 spatial_extent=spatial_extent,
+                filter_text=filter_text,
+                filter_lang=filter_lang,
             )
         )
         self.search_started.emit()
@@ -400,7 +456,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.collections_group.setEnabled(enabled)
         self.date_filter_group.setEnabled(enabled)
         self.extent_box.setEnabled(enabled)
-        self.metadata_group.setEnabled(enabled)
+        self.advanced_box.setEnabled(enabled)
         self.search_btn.setEnabled(enabled)
 
     def prepare_message_bar(self):
@@ -690,7 +746,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
     def save_filters(self):
         """ Save search filters fetched from the corresponding UI inputs """
-
+        filter_lang = self.filter_lang_cmb.itemData(
+            self.filter_lang_cmb.currentIndex()
+        )
         filters = SearchFilters(
             collections=self.current_collections,
             start_date=(
@@ -705,6 +763,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             spatial_extent=self.extent_box.outputExtent(),
             date_filter=self.date_filter_group.isChecked(),
             spatial_extent_filter=self.extent_box.isChecked(),
+            advanced_filter=self.advanced_box.isChecked(),
+            filter_lang=filter_lang,
+            filter_text=self.filter_edit.toPlainText(),
         )
         settings_manager.save_search_filters(filters)
 
@@ -739,3 +800,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             )
         self.date_filter_group.setChecked(filters.date_filter)
         self.extent_box.setChecked(filters.spatial_extent_filter)
+        self.advanced_box.setChecked(filters.advanced_filter)
+        self.filter_lang_cmb.setCurrentIndex(
+            self.filter_lang_cmb.findData(
+                filters.filter_lang,
+                role=QtCore.Qt.UserRole
+            )
+        )
+        self.filter_edit.setPlainText(filters.filter_text)

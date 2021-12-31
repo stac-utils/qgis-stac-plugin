@@ -11,6 +11,7 @@ import datetime
 import enum
 import typing
 import dataclasses
+import json
 from uuid import UUID
 
 from qgis.PyQt import (
@@ -50,6 +51,15 @@ class AssetLayerType(enum.Enum):
     """ Types of assets layers that can be added to QGIS"""
     COG = 'profile=cloud-optimized'
     VECTOR = 'ogr'
+
+
+class FilterLang(enum.Enum):
+    """ Filter languages that can be used to filter items during
+    STAC API item search
+    """
+    CQL_TEXT = 'CQL_TEXT'
+    CQL_JSON = 'CQL_JSON'
+    STAC_QUERY = 'STAC_QUERY'
 
 
 class Settings(enum.Enum):
@@ -214,6 +224,8 @@ class ItemSearch:
     spatial_extent: typing.Optional[QgsRectangle] = None
     start_datetime: typing.Optional[QtCore.QDateTime] = None
     end_datetime: typing.Optional[QtCore.QDateTime] = None
+    filter_text: str = None
+    filter_lang: FilterLang = FilterLang.CQL_TEXT
 
     def params(self):
         """ Converts the class members into a dictionary that
@@ -242,12 +254,23 @@ class ItemSearch:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                            f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
+        filter_text = None
+        query_text = None
+        text = json.loads(self.filter_text) if self.filter_text else None
+
+        filter_text = text \
+            if self.filter_lang == FilterLang.CQL_JSON else None
+        query_text = text \
+            if self.filter_lang == FilterLang.STAC_QUERY else None
+
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
             "limit": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
+            "filter": filter_text,
+            "query": query_text,
         }
 
         return parameters
@@ -264,3 +287,6 @@ class SearchFilters:
     spatial_extent: typing.Optional[QgsRectangle] = None
     date_filter: bool = False
     spatial_extent_filter: bool = False
+    advanced_filter: bool = False
+    filter_lang: FilterLang = FilterLang.CQL_TEXT
+    filter_text: str = None
