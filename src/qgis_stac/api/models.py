@@ -254,14 +254,13 @@ class ItemSearch:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                            f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
-        filter_text = None
-        query_text = None
         if self.filter_lang == FilterLang.CQL_JSON:
             filter_text = json.loads(self.filter_text)
         elif self.filter_lang == FilterLang.QUERY:
             query_text = json.loads(self.filter_text)
         else:
-            raise NotImplementedError
+            filter_text = None
+            query_text = None
 
         parameters = {
             "ids": self.ids,
