@@ -12,15 +12,12 @@ from qgis.gui import QgsMessageBar
 
 from qgis.PyQt.uic import loadUiType
 
-
-from ..lib.pystac_client.client import Client as STACClient
 from ..conf import (
-    ConformanceSettings,
     ConnectionSettings,
     settings_manager
 )
 
-from ..api.models import ApiCapability, ResourceType
+from ..api.models import ApiCapability, ItemSearch
 from ..api.client import Client
 from ..utils import tr
 
@@ -80,6 +77,8 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             self.conformance = connection.conformances
         else:
             self.conformance = []
+
+        self.test_btn.clicked.connect(self.test_connection)
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.message_bar = QgsMessageBar()
@@ -201,6 +200,10 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         """
         self.message_bar.clearWidgets()
         message_bar_item = self.message_bar.createMessage(message)
+        try:
+            self.progress_bar.isEnabled()
+        except RuntimeError as er:
+            self.progress_bar = QtWidgets.QProgressBar()
         self.progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         if progress_bar:
             self.progress_bar.setMinimum(minimum)
@@ -215,6 +218,8 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         details from this connection dialog.
         """
         if self.connection is not None:
+            if self.connection.url != self.url_edit.text().strip():
+                self.connection.url = self.url_edit.text().strip()
             return self.connection
 
         connection_id = uuid.uuid4()
@@ -298,3 +303,66 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.buttonBox.button(
             QtWidgets.QDialogButtonBox.Ok).setEnabled(enabled_state)
         self.get_conformances_btn.setEnabled(enabled_state)
+        self.test_btn.setEnabled(enabled_state)
+
+    def update_connection_inputs(self, enabled):
+        """ Sets the connection inputs state using
+        the provided enabled status
+
+        :param enabled: Whether to enable the inputs
+        :type enabled: bool
+        """
+        self.connection_box.setEnabled(enabled)
+
+    def test_connection(self):
+        """ Test the current set connection if it is a valid
+        STAC API connection
+        """
+        connection = self.get_connection()
+        if connection is not None:
+            self.update_connection_inputs(False)
+            api_client = Client.from_connection_settings(connection)
+            connection_test_success = partial(
+                self.connection_test,
+                True
+            )
+            connection_test_fail = partial(
+                self.connection_test,
+                False
+            )
+
+            api_client.items_received.connect(connection_test_success)
+            api_client.error_received.connect(connection_test_fail)
+            self.show_progress(
+                tr("Testing connection..."),
+                progress_bar=False
+            )
+            api_client.get_items(
+                ItemSearch(
+                    page_size=1
+                )
+            )
+
+    def connection_test(
+            self,
+            success,
+            payload,
+    ):
+        """ Relays information to user about the connection test results
+        and updates the UI to enable connection inputs.
+
+        :param success: If the connection test was successful
+        :type success: bool
+
+        :param payload: The returned payload after the test operation
+        :type payload: list
+        """
+        if success:
+            self.show_message(
+                tr("Connection is a valid STAC API"),
+                level=Qgis.Info)
+        else:
+            self.show_message(
+                tr("Connection is not a valid STAC API"),
+                level=Qgis.Info)
+        self.update_connection_inputs(True)

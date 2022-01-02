@@ -87,7 +87,7 @@ class BaseClient(QtCore.QObject):
 
     def get_items(
         self,
-        item_search: typing.Optional[ItemSearch]
+        item_search: typing.Optional[ItemSearch] = None
     ):
         """Searches for items in the STAC API defined in this
         base client.

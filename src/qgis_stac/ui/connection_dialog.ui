@@ -23,7 +23,7 @@
       <item row="0" column="2">
        <widget class="QLineEdit" name="name_edit">
         <property name="toolTip">
-         <string>URL of the connection, {x}, {y}, and {z} will be replaced with actual values. Use {-y} for inverted y axis.</string>
+         <string>Name of the STAC API connection.</string>
         </property>
         <property name="text">
          <string/>
@@ -43,7 +43,7 @@
       <item row="1" column="2">
        <widget class="QLineEdit" name="url_edit">
         <property name="toolTip">
-         <string>URL of the connection, {x}, {y}, and {z} will be replaced with actual values. Use {-y} for inverted y axis.</string>
+         <string>URL of the connection.</string>
         </property>
         <property name="text">
          <string/>
