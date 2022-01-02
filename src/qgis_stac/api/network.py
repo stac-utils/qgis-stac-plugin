@@ -1,8 +1,9 @@
 import typing
 import uuid
-import datetime
 
 from dateutil import parser
+
+from json.decoder import JSONDecodeError
 
 from qgis.core import (
     QgsApplication,
@@ -12,6 +13,7 @@ from qgis.core import (
 from .models import (
     ApiCapability,
     Collection,
+    Constants,
     Item,
     ItemSearch,
     ResourceAsset,
@@ -73,13 +75,16 @@ class ContentFetcherTask(QgsTask):
         :returns: Whether the task completed successfully
         :rtype: bool
         """
-        self.client = Client.open(self.url)
         try:
+            self.client = Client.open(self.url)
             if self.resource_type == \
                     ResourceType.FEATURE:
-                response = self.client.search(
-                    **self.search_params.params()
-                )
+                if self.search_params:
+                    response = self.client.search(
+                        **self.search_params.params()
+                    )
+                else:
+                    response = self.client.search()
                 self.response = self.prepare_items_results(
                     response
                 )
@@ -102,7 +107,7 @@ class ContentFetcherTask(QgsTask):
                 self.pagination = ResourcePagination()
             else:
                 raise NotImplementedError
-        except APIError as err:
+        except (APIError, JSONDecodeError) as err:
             log(str(err))
             self.error = str(err)
 
@@ -143,11 +148,13 @@ class ContentFetcherTask(QgsTask):
         items_generator = response.get_item_collections()
         prev_collection = None
         items_collection = None
+        page = self.search_params.page \
+            if self.search_params else Constants.PAGE_SIZE
         while True:
             try:
                 collection = next(items_generator)
                 prev_collection = collection
-                if self.search_params.page == count:
+                if page == count:
                     items_collection = collection
                     break
                 count += 1

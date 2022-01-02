@@ -55,6 +55,11 @@ class AssetLayerType(enum.Enum):
     VECTOR = 'ogr'
 
 
+class Constants(enum.Enum):
+    """ Default plugin constants"""
+    PAGE_SIZE = 10
+
+
 class FilterLang(enum.Enum):
     """ Filter languages that can be used to filter items during
     STAC API item search
