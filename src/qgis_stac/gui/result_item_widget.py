@@ -7,6 +7,7 @@ import os
 
 import json
 import tempfile
+import datetime
 
 from functools import partial
 
@@ -70,6 +71,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.collection_name.setText(item.collection)
         self.thumbnail_url = None
         self.cog_string = '/vsicurl/'
+        self.date_format = "%Y-%m-%dT%H:%M:%S"
         self.main_widget = main_widget
         self.layer_loader = None
         self.initialize_ui()
@@ -79,9 +81,14 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
     def initialize_ui(self):
         """ Populate UI inputs when loading the widget"""
 
+        datetime_str = datetime.datetime.strftime(
+            self.item.properties.resource_datetime,
+            self.date_format
+        ) if self.item.properties else ""
+
         self.created_date.setText(
-            str(self.item.properties.resource_datetime)
-        ) if self.item.properties else None
+            datetime_str
+        )
 
         layer_types = [
             "image/tiff; "
