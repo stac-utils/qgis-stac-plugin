@@ -364,5 +364,5 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         else:
             self.show_message(
                 tr("Connection is not a valid STAC API"),
-                level=Qgis.Info)
+                level=Qgis.Critical)
         self.update_connection_inputs(True)
