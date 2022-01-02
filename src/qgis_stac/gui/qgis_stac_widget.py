@@ -178,33 +178,15 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         for lang_type, item_text in labels.items():
             self.filter_lang_cmb.addItem(item_text, lang_type)
 
-        self.filter_lang_cmb.currentIndexChanged.connect(
-            self.filter_lang_changed
-        )
         self.filter_lang_cmb.setCurrentIndex(
             self.filter_lang_cmb.findData(
                 FilterLang.CQL_JSON,
                 role=QtCore.Qt.UserRole)
         )
 
-    def filter_lang_changed(self, index):
-        """ Handles logic when the filter language has been changed
-
-        :param index: Index of the current selected filter language
-        :type index: int
-        """
-        filter_lang = self.filter_lang_cmb.itemData(index)
-
-        if filter_lang == FilterLang.CQL_JSON or \
-                filter_lang == FilterLang.STAC_QUERY:
-            self.highlighter = JsonHighlighter(self.filter_edit.document())
-            self.filter_edit.cursorPositionChanged.connect(
-                self.highlighter.rehighlight)
-        elif filter_lang == FilterLang.CQL_TEXT:
-            self.filter_edit.cursorPositionChanged.disconnect()
-            self.highlighter.setDocument(None)
-        else:
-            raise NotImplementedError
+        self.highlighter = JsonHighlighter(self.filter_edit.document())
+        self.filter_edit.cursorPositionChanged.connect(
+            self.highlighter.rehighlight)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -806,5 +788,5 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 filters.filter_lang,
                 role=QtCore.Qt.UserRole
             )
-        )
+        ) if filters.filter_lang else None
         self.filter_edit.setPlainText(filters.filter_text)
