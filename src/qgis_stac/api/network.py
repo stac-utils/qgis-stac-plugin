@@ -1,6 +1,8 @@
-import re
 import typing
 import uuid
+import datetime
+
+from dateutil import parser
 
 from qgis.core import (
     QgsApplication,
@@ -8,14 +10,19 @@ from qgis.core import (
 )
 
 from .models import (
+    ApiCapability,
     Collection,
+    Item,
     ItemSearch,
+    ResourceAsset,
     ResourcePagination,
+    ResourceProperties,
     ResourceType,
 )
 
+from ..lib import planetary_computer as pc
+
 from ..lib.pystac_client import Client
-from ..lib.pystac_client.conformance import ConformanceClasses
 from ..lib.pystac_client.exceptions import APIError
 
 from ..conf import ConformanceSettings
@@ -33,6 +40,7 @@ class ContentFetcherTask(QgsTask):
     url: str
     search_params: ItemSearch
     resource_type: ResourceType
+    api_capability: ApiCapability
     response_handler: typing.Callable
     error_handler: typing.Callable
 
@@ -46,6 +54,7 @@ class ContentFetcherTask(QgsTask):
             url: str,
             search_params: ItemSearch,
             resource_type: ResourceType,
+            api_capability: ApiCapability = None,
             response_handler: typing.Callable = None,
             error_handler: typing.Callable = None,
     ):
@@ -53,6 +62,7 @@ class ContentFetcherTask(QgsTask):
         self.url = url
         self.search_params = search_params
         self.resource_type = resource_type
+        self.api_capability = api_capability
         self.response_handler = response_handler
         self.error_handler = error_handler
 
@@ -145,7 +155,60 @@ class ContentFetcherTask(QgsTask):
                 self.pagination.total_pages = count
                 items_collection = prev_collection
                 break
-        return items_collection
+        items = self.get_items_list(items_collection)
+        return items
+
+    def get_items_list(self, items_collection):
+        """ Gets and prepares the items list from the
+        pystac-client Collection generator
+
+        :param items_collection: The STAC item collection generator
+        :type items_collection: pystac_client.CollectionClient
+
+        :returns: List of items
+        :rtype: models.Item
+        """
+        items = []
+        properties = None
+        items_list = items_collection.items if items_collection else []
+        for item in items_list:
+            # For APIs that support usage of SAS token we sign the whole item
+            # so that the item assets can be accessed.
+            if self.api_capability == ApiCapability.SUPPORT_SAS_TOKEN:
+                item = pc.sign(item)
+            try:
+                item_datetime = parser.parse(
+                    item.properties.get("datetime"),
+                )
+                properties = ResourceProperties(
+                    resource_datetime=item_datetime
+                )
+            except Exception as e:
+                log(
+                    f"Error in parsing item properties datetime"
+                )
+            assets = []
+            for key, asset in item.assets.items():
+                item_asset = ResourceAsset(
+                    href=asset.href,
+                    title=asset.title,
+                    description=asset.description,
+                    type=asset.media_type,
+                    roles=asset.roles or []
+                )
+                assets.append(item_asset)
+            item_result = Item(
+                id=item.id,
+                properties=properties,
+                collection=item.collection_id,
+                assets=assets
+
+            )
+            if item.geometry:
+                item_result.geometry = item.geometry
+            items.append(item_result)
+
+        return items
 
     def prepare_conformance_results(self, conformance):
         """ Prepares the fetched conformance classes
