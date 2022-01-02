@@ -20,6 +20,8 @@ from qgis.PyQt import (
 
 from qgis.core import QgsRectangle
 
+from ..lib.pystac.item import Item as STACObject
+
 
 @dataclasses.dataclass
 class ResourcePagination:
@@ -211,6 +213,7 @@ class Item:
     links: typing.List[ResourceLink] = None
     assets: typing.Dict[str, ResourceAsset] = None
     collection: str = None
+    stac_object: STACObject = None
 
 
 @dataclasses.dataclass

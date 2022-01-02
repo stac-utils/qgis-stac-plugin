@@ -201,7 +201,8 @@ class ContentFetcherTask(QgsTask):
                 id=item.id,
                 properties=properties,
                 collection=item.collection_id,
-                assets=assets
+                assets=assets,
+                stac_object=item,
 
             )
             if item.geometry:
