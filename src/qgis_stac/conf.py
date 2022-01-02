@@ -696,7 +696,8 @@ class SettingsManager(QtCore.QObject):
             settings.setValue("date_filter", filters.date_filter)
             settings.setValue("extent_filter", filters.spatial_extent_filter)
             settings.setValue("advanced_filter", filters.advanced_filter)
-            settings.setValue("filter_lang", filters.filter_lang.name)
+            settings.setValue("filter_lang", filters.filter_lang.name) \
+                if filters.filter_lang else None
             settings.setValue("filter_text", filters.filter_text)
         current_connection = self.get_current_connection()
         if filters.collections:
