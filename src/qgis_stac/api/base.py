@@ -100,6 +100,7 @@ class BaseClient(QtCore.QObject):
             url=self.url,
             search_params=item_search,
             resource_type=ResourceType.FEATURE,
+            api_capability=self.capability,
             response_handler=self.handle_items,
             error_handler=self.handle_error,
         )

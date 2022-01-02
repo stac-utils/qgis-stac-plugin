@@ -1,18 +1,9 @@
-import datetime
-import typing
+
 
 from .base import BaseClient
 from .models import (
-    ApiCapability,
-    Collection,
-    Item,
-    ResourceAsset,
     ResourcePagination,
-    ResourceProperties,
 )
-
-from ..utils import log
-from ..lib.planetary_computer import sas
 
 
 class Client(BaseClient):
@@ -33,47 +24,7 @@ class Client(BaseClient):
         :param pagination: Item results pagination details
         :type pagination: ResourcePagination
         """
-        items = []
-        properties = None
-        items_list = items_response.items if items_response else []
-        for item in items_list:
-            if self.capability == ApiCapability.SUPPORT_SAS_TOKEN:
-                item = sas.sign(item)
-            try:
-                item_datetime = datetime.datetime.strptime(
-                    item.properties.get("datetime"),
-                    "%Y-%m-%dT%H:%M:%SZ"
-                )
-                properties = ResourceProperties(
-                    resource_datetime=item_datetime
-                )
-            except (TypeError, ValueError) as e:
-                log(
-                    f"Error in passing item properties datetime, {str(e)}"
-                )
-                pass
-            assets = []
-            for key, asset in item.assets.items():
-                item_asset = ResourceAsset(
-                    href=asset.href,
-                    title=asset.title,
-                    description=asset.description,
-                    type=asset.media_type,
-                    roles=asset.roles or []
-                )
-                assets.append(item_asset)
-            item_result = Item(
-                id=item.id,
-                properties=properties,
-                collection=item.collection_id,
-                assets=assets
-
-            )
-            if item.geometry:
-                item_result.geometry = item.geometry
-            items.append(item_result)
-
-        self.items_received.emit(items, pagination)
+        self.items_received.emit(items_response, pagination)
 
     def handle_item_collections(
             self,
