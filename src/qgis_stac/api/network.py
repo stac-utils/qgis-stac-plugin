@@ -189,9 +189,10 @@ class ContentFetcherTask(QgsTask):
                 )
             assets = []
             for key, asset in item.assets.items():
+                title = asset.title if asset.title else key
                 item_asset = ResourceAsset(
                     href=asset.href,
-                    title=asset.title,
+                    title=title,
                     description=asset.description,
                     type=asset.media_type,
                     roles=asset.roles or []
