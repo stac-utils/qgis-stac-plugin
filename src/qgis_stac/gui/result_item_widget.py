@@ -124,7 +124,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             'selection-color: white;'
         )
 
-        self.footprint_box.setEnabled(self.item.geometry is not None)
+        self.footprint_box.setEnabled(self.item.stac_object is not None)
         self.footprint_box.clicked.connect(self.add_footprint)
 
     def add_footprint(self):
@@ -135,7 +135,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             delete=False
         )
         layer_name = f"{self.item.id}_footprint"
-        json.dump(self.item.geometry, layer_file)
+        json.dump(self.item.stac_object.to_dict(), layer_file)
 
         layer_file.flush()
 

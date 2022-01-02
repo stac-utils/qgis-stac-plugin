@@ -1,5 +1,3 @@
-
-
 from .base import BaseClient
 from .models import (
     ResourcePagination,
