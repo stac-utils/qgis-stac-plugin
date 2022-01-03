@@ -14,6 +14,7 @@ Poetry is a python dependencies management tool see [https://python-poetry.org/d
 
      poetry update --lock
 
+     poetry install --no-dev
 
 ## Install the plugin into QGIS
 
