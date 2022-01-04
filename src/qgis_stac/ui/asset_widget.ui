@@ -53,17 +53,17 @@
      <item row="0" column="1">
       <widget class="QPushButton" name="load_btn">
        <property name="toolTip">
-        <string>Load the asset as a layer</string>
+        <string>Load asset as a layer</string>
        </property>
        <property name="text">
-        <string>Load asset as layer</string>
+        <string>Add asset as layer</string>
        </property>
       </widget>
      </item>
      <item row="0" column="2">
       <widget class="QPushButton" name="download_btn">
        <property name="toolTip">
-        <string>Download the asset to filesystem</string>
+        <string>Download asset to the filesystem</string>
        </property>
        <property name="text">
         <string>Download asset</string>

@@ -87,7 +87,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """ Loads the dialog list of assets into the assets
         scroll view
         """
-        self.title.setText(tr("Item has {} assets").format(len(self.assets)))
+        self.title.setText(tr("{} asset(s) available").format(len(self.assets)))
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)

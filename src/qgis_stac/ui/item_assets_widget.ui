@@ -16,6 +16,9 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="title">
+     <property name="styleSheet">
+      <string notr="true">font: 16pt;</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -32,7 +35,7 @@
         <x>0</x>
         <y>0</y>
         <width>899</width>
-        <height>255</height>
+        <height>248</height>
        </rect>
       </property>
      </widget>
