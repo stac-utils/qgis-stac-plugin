@@ -28,7 +28,7 @@ Searching STAC Item can be filtered by:
 
 ![image](images/filters.png)
 
-### Add item onto QGIS
+### Adding item footprint and assets into QGIS
 
 Result STAC Item can be added as raster and also vector ( the footprint) into QGIS.
 
