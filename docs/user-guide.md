@@ -37,7 +37,7 @@ After filtering, click on **Search**
 
 ![image](images/results.png)
 
-#### As vector
+#### Item footprint
 
 
 Also, click on **Add footprint** to add the footprint of an item into QGIS canvas.
