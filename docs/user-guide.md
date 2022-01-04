@@ -45,7 +45,7 @@ Click the **Add footprint** button to add the footprint of an item into QGIS can
 ![image](images/footprint.png)
 
 
-#### As raster
+#### Item assets
 
 
 To add raster into QGIS canvas, select **Adding assets**
