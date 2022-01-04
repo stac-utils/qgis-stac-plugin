@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+    Assets dialog, shows all the available assets.
+"""
+
 import os
-from functools import partial
 
 from qgis import processing
 
@@ -19,7 +23,6 @@ from ..resources import *
 
 from ..api.models import (
     AssetLayerType,
-    AssetRoles,
     Settings,
 )
 
@@ -31,7 +34,6 @@ from qgis.gui import QgsMessageBar
 from qgis.PyQt.uic import loadUiType
 
 from ..conf import (
-    ConnectionSettings,
     settings_manager
 )
 
@@ -50,31 +52,21 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
     def __init__(
             self,
             assets,
-            main_widget,
-            connection=None
+            main_widget
     ):
         """ Constructor
 
         :param assets: List of item assets
         :type assets: list
 
-        :param connection: Connection settings
-        :type connection: ConnectionSettings
+        :param main_widget: Plugin main widget
+        :type main_widget: QWidget
         """
         super().__init__()
         self.setupUi(self)
-        self.connection = connection
         self.assets = assets
         self.main_widget = main_widget
         self.cog_string = '/vsicurl/'
-
-        # prepare model for the assets tree view
-        self.model = QtGui.QStandardItemModel()
-        self.proxy_model = QtCore.QSortFilterProxyModel()
-        self.proxy_model.setSourceModel(self.model)
-        self.proxy_model.setDynamicSortFilter(True)
-        self.proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.message_bar = QgsMessageBar()
@@ -84,8 +76,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.prepare_assets()
 
     def prepare_assets(self):
-        """ Loads the dialog list of assets into the assets
-        scroll view
+        """ Loads the dialog with the list of assets.
         """
         self.title.setText(tr("{} asset(s) available").format(len(self.assets)))
         scroll_container = QtWidgets.QWidget()
@@ -120,8 +111,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
     def download_asset(self, asset):
         """ Download asset into directory defined in the plugin settings.
 
-        :param index: Index of the selected combo box item
-        :type index: int
+        :param asset: Item asset
+        :type asset: models.ResourceAsset
         """
         download_folder = settings_manager.get_value(
             Settings.DOWNLOAD_FOLDER
@@ -151,8 +142,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """ Loads asset into QGIS.
             Checks if the asset type is a loadable layer inside QGIS.
 
-        :param index: Index of the selected combo box item
-        :type index: int
+        :param asset: Item asset
+        :type asset: models.ResourceAsset
         """
 
         assert_type = asset.type
@@ -236,74 +227,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.main_widget.show_message(
             message
         )
-
-    def prepare_message_bar(self):
-        """ Initializes the widget message bar settings"""
-        self.message_bar.setSizePolicy(
-            QtWidgets.QSizePolicy.Minimum,
-            QtWidgets.QSizePolicy.Fixed
-        )
-        self.grid_layout.addWidget(
-            self.title,
-            0, 0, 1, 1
-        )
-        self.grid_layout.addWidget(
-            self.message_bar,
-            0, 0, 1, 1,
-            alignment=QtCore.Qt.AlignTop
-        )
-        self.layout().insertLayout(0, self.grid_layout)
-
-    def show_message(
-            self,
-            message,
-            level=Qgis.Warning
-    ):
-        """ Shows message on the main widget message bar
-
-        :param message: Message text
-        :type message: str
-
-        :param level: Message level type
-        :type level: Qgis.MessageLevel
-        """
-        self.message_bar.clearWidgets()
-        self.message_bar.pushMessage(message, level=level)
-
-    def show_progress(
-            self,
-            message,
-            minimum=0,
-            maximum=0,
-            progress_bar=True):
-        """ Shows the progress message on the main widget message bar
-
-        :param message: Progress message
-        :type message: str
-
-        :param minimum: Minimum value that can be set on the progress bar
-        :type minimum: int
-
-        :param maximum: Maximum value that can be set on the progress bar
-        :type maximum: int
-
-        :param progress_bar: Whether to show progress bar status
-        :type progress_bar: bool
-        """
-        self.message_bar.clearWidgets()
-        message_bar_item = self.message_bar.createMessage(message)
-        try:
-            self.progress_bar.isEnabled()
-        except RuntimeError as er:
-            self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        if progress_bar:
-            self.progress_bar.setMinimum(minimum)
-            self.progress_bar.setMaximum(maximum)
-        else:
-            self.progress_bar.setMaximum(0)
-        message_bar_item.layout().addWidget(self.progress_bar)
-        self.message_bar.pushWidget(message_bar_item, Qgis.Info)
 
 
 class LayerLoader(QgsTask):

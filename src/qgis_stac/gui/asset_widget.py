@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    Result item widget, used as a template for each search result item.
+    Asset item widget, used as a template for each item asset.
 """
 
 import os
-
-import json
-import tempfile
-import datetime
 
 from functools import partial
 
@@ -19,7 +15,7 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
-from ..utils import log, tr
+from ..utils import tr
 
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/asset_widget.ui")
