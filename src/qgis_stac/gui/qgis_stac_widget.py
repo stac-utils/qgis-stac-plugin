@@ -43,7 +43,7 @@ WidgetUi, _ = loadUiType(
 )
 
 
-class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
+class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
     """ Main plugin widget that contains tabs for search, results and settings
     functionalities"""
 
@@ -435,6 +435,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param enabled: Whether to enable the inputs
         :type enabled: bool
         """
+        self.connections_group.setEnabled(enabled)
         self.collections_group.setEnabled(enabled)
         self.date_filter_group.setEnabled(enabled)
         self.extent_box.setEnabled(enabled)

@@ -154,28 +154,24 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="assets_load_box">
-            <property name="toolTip">
-             <string>Add item assets as layers</string>
+           <widget class="QPushButton" name="view_assets_btn">
+            <property name="text">
+             <string>View assets</string>
             </property>
-            <item>
-             <property name="text">
-              <string>Add assets as layers</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="assets_download_box">
-            <property name="toolTip">
-             <string>Download item assets</string>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <item>
-             <property name="text">
-              <string>Download assets</string>
-             </property>
-            </item>
-           </widget>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
