@@ -40,7 +40,7 @@ After filtering, click on **Search**
 #### Item footprint
 
 
-Also, click on **Add footprint** to add the footprint of an item into QGIS canvas.
+Click the **Add footprint** button to add the footprint of an item into QGIS canvas.
 
 ![image](images/footprint.png)
 
