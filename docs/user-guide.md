@@ -48,7 +48,8 @@ Click the **Add footprint** button to add the footprint of an item into QGIS can
 #### Item assets
 
 
-To add raster into QGIS canvas, select **Adding assets**
+The plugin currently support loading assets as [COGs](https://github.com/cogeotiff/cog-spec/blob/master/spec.md) layers in QGIS.
+To add raster into QGIS canvas,   select the asset from the list provided by the **Add assets as layers* combo box.
 
 ![image](images/raster.png)
 
