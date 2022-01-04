@@ -68,11 +68,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.main_widget = main_widget
         self.cog_string = '/vsicurl/'
 
-        self.grid_layout = QtWidgets.QGridLayout()
-        self.message_bar = QgsMessageBar()
-        self.progress_bar = QtWidgets.QProgressBar()
-
-        self.prepare_message_bar()
         self.prepare_assets()
 
     def prepare_assets(self):
