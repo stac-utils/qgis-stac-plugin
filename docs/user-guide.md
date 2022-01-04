@@ -28,9 +28,33 @@ Searching STAC Item can be filtered by:
 
 ![image](images/filters.png)
 
-### Add item as raster onto QGIS
+### Adding item footprint and assets into QGIS
 
-Result STAC Item can be added as raster and also vector ( the footprint) into QGIS
+
+The plugin enables to loading STAC Item assets and footprints in QGIS as map layers.
+
+
+After filtering, click on **Search**
+
+![image](images/results.png)
+
+#### Item footprint
+
+
+Click the **Add footprint** button to add the footprint of an item into QGIS canvas.
+
+![image](images/footprint.png)
+
+
+#### Item assets
+
+
+The plugin currently support loading assets as [COGs](https://github.com/cogeotiff/cog-spec/blob/master/spec.md) layers in QGIS.
+To add raster into QGIS canvas,   select the asset from the list provided by the **Add assets as layers** combo box.
+
+![image](images/raster.png)
+
+
 
 Link: [https://stacspec.org/](https://stacspec.org/)
 
