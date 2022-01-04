@@ -435,6 +435,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         :param enabled: Whether to enable the inputs
         :type enabled: bool
         """
+        self.connections_group.setEnabled(enabled)
         self.collections_group.setEnabled(enabled)
         self.date_filter_group.setEnabled(enabled)
         self.extent_box.setEnabled(enabled)

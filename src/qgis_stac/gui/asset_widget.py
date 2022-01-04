@@ -64,5 +64,5 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         if self.asset.type not in layer_types:
             self.load_btn.setToolTip(
-                tr("Asset cannot be loaded as layer in QGIS")
+                tr("Asset cannot be loaded as a map layer in QGIS")
             )

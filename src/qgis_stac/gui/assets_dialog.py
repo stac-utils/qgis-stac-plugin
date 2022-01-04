@@ -29,7 +29,6 @@ from ..api.models import (
 from qgis.PyQt import QtCore, QtGui, QtWidgets
 
 from qgis.core import Qgis
-from qgis.gui import QgsMessageBar
 
 from qgis.PyQt.uic import loadUiType
 
