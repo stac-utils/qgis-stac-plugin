@@ -30,7 +30,8 @@ Searching STAC Item can be filtered by:
 
 ### Adding item footprint and assets into QGIS
 
-Result STAC Item can be added as raster and also vector ( the footprint) into QGIS.
+
+The plugin enables to loading STAC Item assets and footprints in QGIS as map layers.
 
 
 After filtering, click on **Search**
