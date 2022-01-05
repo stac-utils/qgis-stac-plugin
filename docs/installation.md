@@ -1,8 +1,8 @@
-Open the QGIS plugin manager
+
 
 ## From QGIS repository
 
-Once in the plugin manager, search for STAC APIs. QGIS will provide a list of plugins that have a similar name. If you click on the plugin, you will get its information. Select it, and **Install Plugin**.
+Open the QGIS plugin manager, search for STAC APIs. QGIS will provide a list of plugins that have a similar name. If you click on the plugin, you will get its information. Select it, and **Install Plugin**.
 
 ![image](images/install-from-repository.png)
 
@@ -22,8 +22,10 @@ From the **Install from ZIP** page in the QGIS plugin manager, select the zip fi
 
 ## Using custom plugin repository
 
-Select the **Settings** page, click Add button on the **Plugin Repositories** group box and 
-use the plugin custom repository found here https://stac-utils.github.io/qgis-stac-plugin/repository/plugins.xml
+Select the **Settings** page from the QGIS plugin manager,
+click Add button on the **Plugin Repositories** group box and
+use the plugin custom repository found here
+https://stac-utils.github.io/qgis-stac-plugin/repository/plugins.xml
  to create a new plugin repository.
 
 ![image](images/add-repository.png)
