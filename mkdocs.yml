@@ -15,6 +15,7 @@ nav:
   - About: "about.md"
 
 plugins:
+  - search
   - git-revision-date-localized
 
 extra_css:
@@ -22,8 +23,16 @@ extra_css:
 
 theme:
   name: material
+  custom_dir: docs
   palette:
-    scheme: stac
+  - scheme: stac
+    toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+  - scheme: slate
+    toggle:
+          icon: material/toggle-switch
+          name: Switch to light mode
     accent: cyan
   logo: assets/logo.png
   favicon: assets/favicon.png
