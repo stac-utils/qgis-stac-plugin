@@ -32,6 +32,14 @@ For more information about other ways to install the plugin visit the [installat
 The source code is open source and available in a GitHub repository found here
 [https://github.com/stac-utils/qgis-stac-plugin](https://github.com/stac-utils/qgis-stac-plugin)
 
+## Help
+
+- Any issue found when using the plugin or questions about the plugin
+can be reported in the plugin GitHub repository issues page 
+[https://github.com/stac-utils/qgis-stac-plugin/issues](https://github.com/stac-utils/qgis-stac-plugin/issues).
+- Support is also available, contact us [info@kartoza.com](mailto:info@kartoza.com)
+
+
 ## License 
 
 The plugin is published under the terms of the 
