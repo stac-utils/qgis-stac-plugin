@@ -1,9 +1,9 @@
-site_name: QGIS STAC APIs Plugin
+site_name: QGIS STAC API Browser
 
 repo_url: https://github.com/stac-utils/qgis-stac-plugin
 repo_name: GitHub
 
-site_description: QGIS STAC APIs plugin
+site_description: QGIS STAC API Browser
 
 site_author: Kartoza
 
@@ -14,5 +14,17 @@ nav:
   - Development: "development.md"
   - About: "about.md"
 
+extra_css:
+  - stylesheets/extra.css
+
 theme:
-  name: lumen
+  name: material
+  palette:
+    scheme: stac
+    accent: cyan
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
