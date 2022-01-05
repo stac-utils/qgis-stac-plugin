@@ -1,4 +1,4 @@
-name: Build github pages documentation
+name: Build documentation
 on: workflow_dispatch
 
 jobs:
