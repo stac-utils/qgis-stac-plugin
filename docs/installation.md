@@ -1,6 +1,6 @@
 # Installation
-The following sections explains how plugin users can install the plugin in the QGIS application, the
-installation guide for plugin development purposes are covered here [development page](./development).
+The following sections explains how plugin users can install the plugin into the QGIS application, the
+installation guide for plugin development purposes is covered here [development page](./development).
 
 ## From QGIS plugin repository
 The plugin will be available in the QGIS official plugins repository
@@ -17,7 +17,7 @@ _Plugin entry in the QGIS plugin manager_
 
 ## From a ZIP file
 
-Download the plugin ZIP file from [https://github.com/stac-utils/qgis-stac-plugin/releases](https://github.com/stac-utils/qgis-stac-plugin/releases), select the required
+Get the plugin ZIP file from [https://github.com/stac-utils/qgis-stac-plugin/releases](https://github.com/stac-utils/qgis-stac-plugin/releases), select the required
 release ZIP file and download it.
 
 From the **Install from ZIP** page in the QGIS plugin manager, select the downloaded ZIP file and click the 
@@ -29,8 +29,8 @@ _Install from ZIP file page_
 
 ## Using custom plugin repository
 
-The plugin has a custom plugin repository which is similar to the official QGIS plugin repository,
-but the custom plugin repository contains only the **STAC API Browser** plugin.
+The plugin has a custom plugin repository which has similar usage as the official QGIS plugin repository,
+although the custom plugin repository contains only the **STAC API Browser** plugin versions.
 
 Users can add the custom plugin repository inside the QGIS plugin manager, and use it to download and 
 install the latest plugin versions, including versions that might not be available on the QGIS official 
