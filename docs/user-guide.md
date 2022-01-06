@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 ## Launch QGIS STAC APIs Plugin
 
 In QGIS toolbars click on the STAC APIs Browser icon
