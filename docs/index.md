@@ -4,7 +4,7 @@ STAC API Browser is a QGIS plugin that allows the exploration of geospatial data
 the STAC API specification
 [https://github.com/radiantearth/stac-api-spec](https://github.com/radiantearth/stac-api-spec).
 
-STAC API Browser provides a simple approach in searching and using STAC API services in QGIS.
+STAC API Browser provides a simple and user-friendly approach in searching and using STAC API resources in QGIS.
 It offers a comfortable way to browse the STAC API items and ability to add the 
 STAC API assets as map layers into the QGIS application.
 
@@ -12,6 +12,7 @@ The plugin was built through a joint effort between [Kartoza](https://kartoza.co
 [Microsoft](https://planetarycomputer.microsoft.com/).
 
 ![image](images/search_result_stac_api_plugin.png)
+
 _Example search results, showing available items on a STAC API service_.
 
 

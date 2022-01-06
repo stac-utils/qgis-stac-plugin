@@ -18,6 +18,9 @@ plugins:
   - search
   - git-revision-date-localized
 
+markdown_extensions:
+  - meta:
+
 extra_css:
   - stylesheets/extra.css
 

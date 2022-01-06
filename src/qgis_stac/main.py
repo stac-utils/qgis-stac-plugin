@@ -43,10 +43,10 @@ class QgisStac:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u"&QGIS STAC API Plugin")
+        self.menu = self.tr(u"&STAC API Browser Plugin")
         self.pluginIsActive = False
         self.main_widget = QgisStacWidget()
-        self.toolbar = self.iface.addToolBar("STAC API Browser")
+        self.toolbar = self.iface.addToolBar("Open STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
 
         # Add default catalogs, first check if they have already
@@ -158,7 +158,7 @@ class QgisStac:
         icon_path = ":/plugins/qgis_stac/icon.png"
         self.add_action(
             icon_path,
-            text=self.tr(u"STAC APIs Browser"),
+            text=self.tr(u"Open STAC API Browser"),
             callback=self.run,
             parent=self.iface.mainWindow(),
         )
@@ -170,7 +170,7 @@ class QgisStac:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginMenu(self.tr(u"&QGIS STAC API Plugin"), action)
+            self.iface.removePluginMenu(self.tr(u"&STAC API Browser Plugin"), action)
             self.iface.removeToolBarIcon(action)
 
     def run(self):

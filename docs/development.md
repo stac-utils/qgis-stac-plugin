@@ -1,4 +1,8 @@
-
+---
+hide:
+  - navigation
+---
+  
 ## Install instructions
 
 * Fork the repository [https://github.com/stac-utils/qgis-stac-plugin](https://github.com/stac-utils/qgis-stac-plugin)
@@ -14,13 +18,10 @@ Poetry is a python dependencies management tool see [https://python-poetry.org/d
 
      poetry update --lock
 
-     poetry install --no-dev
+     poetry install
 
 ## Install the plugin into QGIS
 
-TO install the plugin into QGIS use the below command
+Use the below command to install the plugin into QGIS 
 
     poetry run python admin.py install
-
-To reload the plugin on QGIS after making change use **Reload Plugin** a QGIS plugin. Before using Reload Plugin, install it from **QGIS plugin manager**
-
