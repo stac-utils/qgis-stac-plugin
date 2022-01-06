@@ -1,8 +1,4 @@
----
-hide:
-  - navigation
----
-  
+ 
 # Installation
 The following sections explains how plugin users can install the plugin into the QGIS application, the
 installation guide for plugin development purposes is covered here [development page](./development).
