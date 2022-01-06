@@ -16,11 +16,11 @@ jobs:
       - name: Install poetry
         uses: Gr1N/setup-poetry@v4
 
-      - name: Install pluginadmin dependencies
+      - name: Install plugin dependencies
         run: poetry install
 
       - name: Generate plugin repo XML
-        run: poetry run python pluginadmin.py --verbose generate-plugin-repo-xml
+        run: poetry run python admin.py --verbose generate-plugin-repo-xml
 
       - name: Update the documentation
         run: poetry run mkdocs gh-deploy --force
