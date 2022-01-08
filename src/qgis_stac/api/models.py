@@ -66,6 +66,7 @@ class FilterLang(enum.Enum):
     """
     CQL_TEXT = 'CQL_TEXT'
     CQL_JSON = 'CQL_JSON'
+    CQL2_JSON = 'CQL2_JSON'
     STAC_QUERY = 'STAC_QUERY'
 
 
