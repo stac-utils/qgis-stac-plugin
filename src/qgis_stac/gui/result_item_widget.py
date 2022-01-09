@@ -98,11 +98,20 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.footprint_box.setEnabled(self.item.stac_object is not None)
         self.footprint_box.clicked.connect(self.add_footprint)
 
+    def update_inputs(self, enabled):
+        """ Updates the inputs widgets state in the main search item widget.
+        :param enabled: Whether to enable the inputs or disable them.
+        :type enabled: bool
+        """
+        self.view_assets_btn.setEnabled(enabled)
+        self.footprint_box.setEnabled(enabled)
+
     def open_assets_dialog(self):
         """  Opens the assets dialog
         """
         assets_dialog = AssetsDialog(
             self.item.assets,
+            parent=self,
             main_widget=self.main_widget
         )
         assets_dialog.exec_()

@@ -51,6 +51,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
     def __init__(
             self,
             assets,
+            parent,
             main_widget
     ):
         """ Constructor
@@ -58,12 +59,16 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :param assets: List of item assets
         :type assets: list
 
+        :param parent Parent widget
+        :type parent: QWidget
+
         :param main_widget: Plugin main widget
         :type main_widget: QWidget
         """
         super().__init__()
         self.setupUi(self)
         self.assets = assets
+        self.parent = parent
         self.main_widget = main_widget
         self.cog_string = '/vsicurl/'
 
@@ -101,6 +106,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :type enabled: bool
         """
         self.scroll_area.setEnabled(enabled)
+        self.parent.update_inputs(enabled)
 
     def download_asset(self, asset):
         """ Download asset into directory defined in the plugin settings.
