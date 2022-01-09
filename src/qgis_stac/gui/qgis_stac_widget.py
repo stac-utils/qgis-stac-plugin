@@ -120,6 +120,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.update_connection_buttons()
         self.connections_box.activated.connect(self.update_current_connection)
 
+        self.search_error_message = None
+
         # initialize page
         self.page = 1
         self.total_pages = 0
@@ -173,6 +175,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         labels = {
             FilterLang.CQL_JSON: tr("CQL_JSON"),
+            FilterLang.CQL2_JSON: tr("CQL2_JSON"),
             FilterLang.STAC_QUERY: tr("STAC_QUERY"),
         }
         for lang_type, item_text in labels.items():
@@ -427,6 +430,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
     def handle_search_end(self):
         """ Handles the logic to be executed when searching has ended"""
         self.message_bar.clearWidgets()
+        if self.search_error_message:
+            self.show_message(self.search_error_message, Qgis.Critical)
+            self.search_error_message = None
         self.update_search_inputs(enabled=True)
 
     def update_search_inputs(self, enabled):
@@ -538,13 +544,16 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
     def display_search_error(self, message):
         """
-        Show the search error message.
+        Shows the search error message.
+        Sets the search error message and
+        emits search_completed signal that alerts the search end handler to
+        display the search error message.
 
         :param message: search error message.
         :type message: str
         """
         self.message_bar.clearWidgets()
-        self.show_message(message, level=Qgis.Critical)
+        self.search_error_message = message
         self.search_completed.emit()
 
     def populate_results(self, results):
@@ -681,8 +690,10 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 len(collections)
             )
         )
+
         for result in collections:
-            item = QtGui.QStandardItem(result.title)
+            title = result.title if result.title else tr("No Title")
+            item = QtGui.QStandardItem(title)
             item.setData(result.id, 1)
             self.model.appendRow(item)
 

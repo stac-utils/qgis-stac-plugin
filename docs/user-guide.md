@@ -11,7 +11,7 @@ STAC API services that adhere and conform to the standard STAC specification and
 to be used in order to fully utilize the usage of the available plugin features.
 
 ## Features
-The plugin features can be categorized in two parts, search of STAC resource and access of STAC assets.
+The plugin features can be categorized in two parts, search of STAC resources and access of STAC assets.
 
 ### Search of STAC resources 
 The STAC API specification allows search for core catalog API capabilities and search for STAC item object.
@@ -19,7 +19,7 @@ The plugin support item search and provides filters that can be used along with 
 
 The corresponding STAC API service used when searching needs to ensure that it has implemented the `/search` 
 API endpoint accordingly to the specification,
-see [https://github.com/radiantearth/stac-api-spec/tree/master/item-search](https://github.com/radiantearth/stac-api-spec/tree/master/item-search)
+see [https://github.com/radiantearth/stac-api-spec/tree/master/item-search](https://github.com/radiantearth/stac-api-spec/tree/master/item-search).
 
 The plugin contains the following filters that can be used when searching for STAC items objects.
 
@@ -27,7 +27,7 @@ The plugin contains the following filters that can be used when searching for ST
 - **Spatial extent filter** - users can provide a bounding box from which the results should be filtered against
 - **Advanced Filter** - this enables usage of STAC API filter languages to provide advanced queries for the search
  for more information 
-see [https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter](https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter)
+see [https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter](https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter).
 
 ### Accessing STAC assets 
 Each STAC Item object contains a number of assets and a footprint which a GeoJSON geometry that defines the full
@@ -70,8 +70,7 @@ _Screenshot showing how to use QGIS web menu to open the plugin_
 
 ### Adding a STAC API connection
 
-The STAC API Browser provides by default some predefined connections for the 
-STAC API services, when installed for the first time.
+The STAC API Browser provides by default some predefined STAC API service connections when installed for the first time.
 
 To add a new STAC API service connection, click the **New** connection button, add the required details 
 and click ok to save the connection.
@@ -83,12 +82,17 @@ _Connection dialog with a Microsoft Planetary Computer STAC API details_
 The connection dialog contains a **API Capabilities** field which can be used to set the connection to use
 a `SAS Token` [signing mechanism](https://planetarycomputer.microsoft.com/docs/concepts/sas/).
 
+The **Advanced** group contain a list of the conformances type that the STAC API adhere to, when creating
+new connections the list is empty, users can click the **Get conformance classes** button to fetch the conformance
+classes. The above image shows the [Planetary Computer STAC API](https://planetarycomputer.microsoft.com/api/stac/v1)
+with a list of conformances classes that have already been fetched.
+
 ### STAC API Items search
 
 #### Using the search filters
-All the search filters can be used only when their corresponding group boxes has been checked.
+All the search filters can be used only when their corresponding group boxes have been checked.
 
-For the **Advanced filter** group the available filter languages are based on the supported STAC API filter
+For the **Advanced filter** group, the available filter languages are based on the supported STAC API filter
 languages, when **STAC_QUERY** is used then filter input will be treated as a [STAC QUERY](https://github.com/radiantearth/stac-api-spec/tree/master/fragments/query).
 If **CQL_JSON** is selected then filter will used as a [CQL_FILTER](https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter).
 
@@ -109,7 +113,7 @@ The plugin enables to loading STAC Item assets and footprints in QGIS as map lay
 After searching is complete and items footprint and assets can be viewed and added inside QGIS.
 
 
-#### Adding and Downloading item assets
+#### Adding and downloading item assets
 
 The plugin currently support loading assets as [COGs](https://github.com/cogeotiff/cog-spec/blob/master/spec.md) layers in QGIS.
 To add the assets into QGIS canvas, click the **View assets** button from the required result item.
@@ -120,8 +124,7 @@ To add the assets into QGIS canvas, click the **View assets** button from the re
 _Image showing the button used for viewing the STAC item assets_
 
 Assets dialog will be opened, from the assets list click **Add assets as layers** button to add the item into QGIS
-as a COG layer.
-To download the asset click the **Download asset** button.
+as a COG layer, to download the asset click the **Download asset** button.
 
 ![image](images/assets_dialog.png)
 

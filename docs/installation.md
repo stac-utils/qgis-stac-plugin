@@ -4,14 +4,14 @@ The following sections explains how plugin users can install the plugin into the
 installation guide for plugin development purposes is covered here [development page](./development).
 
 ## From QGIS plugin repository
-The plugin will be available in the QGIS official plugins repository
+The plugin will be available in the QGIS official plugins repository.
 
-To install the plugin, follow the below steps
+To install the plugin, follow the below steps.
 
 - Launch QGIS application and open plugin manager.
-- Search **STAC API Browser** in the **All** page of the manager
+- Search for **STAC API Browser** in the **All** page of the manager.
 - Click on the **STAC API Browser** result item and page with plugin information will show up.
-- Click the install button with label **Install Plugin** from the plugin page.
+- Click the **Install Plugin** button at the bottom of the dialog to install the plugin.
 
 ![image](images/install-from-repository.png)
 _Plugin entry in the QGIS plugin manager_
@@ -30,12 +30,19 @@ _Install from ZIP file page_
 
 ## Using custom plugin repository
 
-The plugin has a custom plugin repository which has similar usage as the official QGIS plugin repository,
-although the custom plugin repository contains only the **STAC API Browser** plugin versions.
+The plugin is also available via a custom plugin repository that can be used to install 
+the **STAC API Browser** plugin versions that might not be on the official QGIS plugin repository.
 
 Users can add the custom plugin repository inside the QGIS plugin manager, and use it to download and 
-install the latest plugin versions, including versions that might not be available on the QGIS official 
-plugin repository.
+install the latest plugin versions. 
+
+The plugin versions available through the custom repository will be 
+flagged experimental. This is because the custom repository might contain plugin versions that have not been approved yet 
+for official use.
+
+When updating the plugin manager users should enable installation of experimental 
+plugin in the **Settings** page of the plugin manager, in order to make sure the plugin manager
+fetches the experimental plugins from the custom repository.
 
 To add the custom repository and install the plugin from it. 
 
@@ -48,9 +55,4 @@ use the plugin custom repository found here
 ![image](images/add-repository.png)
 _Adding another QGIS plugin repository_
 
-After adding the repository make sure to enable installation of experimental plugin
-before searching for the plugin as shown in the first section and installing it.
-
-This is because the custom repository might contain plugin versions that have not been approved yet 
-for official use.
 

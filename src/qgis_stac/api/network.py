@@ -24,8 +24,8 @@ from .models import (
 
 from ..lib import planetary_computer as pc
 
-from ..lib.pystac_client import Client
-from ..lib.pystac_client.exceptions import APIError
+from pystac_client import Client
+from pystac_client.exceptions import APIError
 
 from ..conf import ConformanceSettings
 

@@ -66,6 +66,7 @@ class FilterLang(enum.Enum):
     """
     CQL_TEXT = 'CQL_TEXT'
     CQL_JSON = 'CQL_JSON'
+    CQL2_JSON = 'CQL2_JSON'
     STAC_QUERY = 'STAC_QUERY'
 
 
@@ -233,7 +234,7 @@ class ItemSearch:
     start_datetime: typing.Optional[QtCore.QDateTime] = None
     end_datetime: typing.Optional[QtCore.QDateTime] = None
     filter_text: str = None
-    filter_lang: FilterLang = FilterLang.CQL_TEXT
+    filter_lang: FilterLang = FilterLang.CQL_JSON
 
     def params(self):
         """ Converts the class members into a dictionary that
@@ -262,8 +263,6 @@ class ItemSearch:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                            f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
-        filter_text = None
-        query_text = None
         text = json.loads(self.filter_text) if self.filter_text else None
 
         filter_text = text \
