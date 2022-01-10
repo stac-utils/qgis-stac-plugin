@@ -8,7 +8,7 @@ import subprocess
 import uuid
 import datetime
 
-from qgis.PyQt import QtCore
+from qgis.PyQt import QtCore, QtGui
 from qgis.core import Qgis, QgsMessageLog
 
 from .api.models import ApiCapability
@@ -17,7 +17,7 @@ from .conf import (
     settings_manager
 )
 
-from .definitions.catalog import CATALOGS
+from .definitions.catalog import CATALOGS, SITE
 
 
 def tr(message):
@@ -127,3 +127,10 @@ def open_folder(path):
         raise NotImplementedError
 
     return True, tr("Success")
+
+
+def open_documentation():
+    """ Opens documentation website in the default browser"""
+    QtGui.QDesktopServices.openUrl(
+        QtCore.QUrl(SITE)
+    )
