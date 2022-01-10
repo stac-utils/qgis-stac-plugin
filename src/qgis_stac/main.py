@@ -22,7 +22,7 @@ from .resources import *
 
 from .gui.qgis_stac_widget import QgisStacWidget
 from .conf import settings_manager
-from .utils import config_defaults_catalogs
+from .utils import config_defaults_catalogs, open_documentation
 
 
 class QgisStac:
@@ -161,6 +161,14 @@ class QgisStac:
             text=self.tr(u"Open STAC API Browser"),
             callback=self.run,
             parent=self.iface.mainWindow(),
+        )
+
+        self.add_action(
+            None,
+            text=self.tr(u"Documentation"),
+            callback=open_documentation,
+            parent=self.iface.mainWindow(),
+            add_to_toolbar=False,
         )
 
     def onClosePlugin(self):

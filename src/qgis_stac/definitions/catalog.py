@@ -42,3 +42,5 @@ CATALOGS = [
         "capability": None,
     }
 ]
+
+SITE = "https://stac-utils.github.io/qgis-stac-plugin/"
