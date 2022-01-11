@@ -13,12 +13,15 @@ nav:
   - User Guide: "user-guide.md"
   - Development: "development.md"
   - About: "about.md"
+  - Changelog: "changelog.md"
 
 plugins:
   - search
   - git-revision-date-localized
 
 markdown_extensions:
+  - pymdownx.snippets:
+      base_path: .
   - meta:
 
 extra_css:

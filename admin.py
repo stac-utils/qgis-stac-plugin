@@ -384,10 +384,6 @@ def _get_metadata() -> typing.Dict:
     email = raw_author_list[-1].replace(">", "")
     metadata = conf["tool"]["qgis-plugin"]["metadata"].copy()
 
-    path = LOCAL_ROOT_DIR / "CHANGELOG.md"
-    with path.open() as fh:
-        changelog_file = fh.read()
-
     metadata.update(
         {
             "author": author,
@@ -395,42 +391,24 @@ def _get_metadata() -> typing.Dict:
             "description": poetry_conf["description"],
             "version": poetry_conf["version"],
             "tags": ", ".join(metadata.get("tags", [])),
-            "changelog": _parse_changelog(
-                changelog_file, poetry_conf["version"]
-            ),
+            "changelog": _changelog(),
         }
     )
     return metadata
 
 
-def _parse_changelog(changelog: str, version: str) -> str:
-    """ Parses the text changelog into a format that can be
-        used inside the metadata.txt plugin file.
+def _changelog() -> str:
+    """ Reads the changelog content from a config file.
 
-    :param changelog: Plugin changelog
-    :type changelog: str
-
-    :param version: Plugin version
-    :type version: str
-
-    :return changelog: Formatted plugin changelog
-    :type changelog: str
+    :returns: Plugin changelog
+    :type: str
     """
-    usable_fragment = changelog.partition(
-        f"[{version}]")[-1].partition("[draft]")[
-        0
-    ]
-    if usable_fragment != "":
-        no_square_brackets = re.sub(
-            r"(\[(\d+.\d+.\d+)\])",
-            "\g<2>",
-            usable_fragment)
-        result = f"{version} {no_square_brackets}". \
-            replace("# ", ""). \
-            replace("#", "")
-    else:
-        result = ""
-    return result
+    path = LOCAL_ROOT_DIR / "docs/plugin/changelog.txt"
+
+    with path.open() as fh:
+        changelog_file = fh.read()
+
+    return changelog_file
 
 
 def _add_to_zip(

@@ -19,8 +19,9 @@ PyQt5 = "^5.15.6"
 flask = "^2.0.2"
 
 [tool.qgis-plugin.metadata]
-name = "STAC APIs Browser "
+name = "STAC API Browser "
 qgisMinimumVersion = "3.0"
+qgisMaximumVersion = "3.99"
 icon = "icon.png"
 experimental = "True"
 deprecated = "False"
@@ -35,7 +36,7 @@ hasProcessingProvider = "no"
 about = """\
 Adds functionality to search, load and manage STAC APIs resources inside QGIS.
 """
-# changelog: dynamically pulled from the README.md file
+# changelog: dynamically pulled from the docs/plugin/changelog.txt file
 # description: dynamically pulled from the tool.poetry.description section
 # version: dynamically pulled from the tool.poetry.version section
 # author: dynamically pulled from the tool.poetry.authors section
