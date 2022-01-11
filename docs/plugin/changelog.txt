@@ -1,0 +1,18 @@
+
+Version 1.0.0-pre 2022-01-11
+- Changed loading and downloading assets workflow.
+- Implemented testing connection functionality.
+- Reworked filter and sort features on the search item results.
+- Fetch for STAC API conformance classes.
+- Added STAC API signing using SAS token.
+- Support for downloading assets and loading item footprints in QGIS.
+- Enabled adding STAC item assets as map layers in QGIS.
+- Added plugin documentation in GitHub pages.
+
+Version 1.0.0-beta 2021-12-11
+- Fixed slow item search.
+- Updated plugin search result to include pagination.
+- Support for search result filtering and sorting.
+- Implemented search.
+- Added default configured STAC API catalogs.
+- Basic STAC API support.
