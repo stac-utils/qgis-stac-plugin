@@ -19,7 +19,7 @@ PyQt5 = "^5.15.6"
 flask = "^2.0.2"
 
 [tool.qgis-plugin.metadata]
-name = "STAC APIs Browser "
+name = "STAC API Browser "
 qgisMinimumVersion = "3.0"
 icon = "icon.png"
 experimental = "True"
