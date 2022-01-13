@@ -318,6 +318,9 @@
        </item>
        <item>
         <widget class="QgsCollapsibleGroupBox" name="advanced_box">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Insert filter text to be used, the type of filter should align with the &lt;/p&gt;&lt;p&gt;current selected filter language.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="title">
           <string>Advanced filter</string>
          </property>
@@ -384,7 +387,7 @@
           <item>
            <widget class="QTextEdit" name="filter_edit">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Insert filter text to be used, the type of filter should align with the &lt;/p&gt;&lt;p&gt;current selected filter language.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string/>
             </property>
             <property name="styleSheet">
              <string notr="true">font: 15pt;</string>
