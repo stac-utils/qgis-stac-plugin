@@ -5,6 +5,8 @@
 
 import os
 
+from pathlib import Path
+
 from qgis import processing
 
 from qgis.core import (
@@ -131,26 +133,51 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         download_folder = settings_manager.get_value(
             Settings.DOWNLOAD_FOLDER
         )
+        item_folder = os.path.join(download_folder, self.item.id) \
+            if download_folder else None
+        try:
+            if item_folder:
+                os.mkdir(item_folder)
+        except FileExistsError as fe:
+            pass
+        except FileNotFoundError as fn:
+            self.main_widget.show_message(
+                tr("Folder {} is not found").format(download_folder),
+                Qgis.Critical
+            )
+            return
+        except PermissionError as pe:
+            self.main_widget.show_message(
+                tr("Permission error writing in download folder"),
+                Qgis.Critical
+            )
+            return
+
         url = asset.href
+        extension = Path(url).suffix
+        title = f"{asset.title}{extension}"
+
         output = os.path.join(
-            download_folder, asset.title
-        ) if download_folder else None
+            item_folder, title
+        ) if item_folder else None
         params = {'URL': url, 'OUTPUT': output} \
-            if download_folder else \
+            if item_folder else \
             {'URL': url}
         try:
             self.main_widget.show_message(
                 tr("Download for file {} to {} has started."
                    "View Processing log for the download progress"
                    ).format(
-                    asset.title,
-                    download_folder
+                    title,
+                    item_folder
                 ),
                 level=Qgis.Info
             )
             processing.run("qgis:filedownloader", params)
         except Exception as e:
-            self.main_widget.show_message("Error in downloading file")
+            self.main_widget.show_message(
+                tr("Error in downloading file, {}").format(str(e))
+            )
 
     def load_asset(self, asset):
         """ Loads asset into QGIS.
