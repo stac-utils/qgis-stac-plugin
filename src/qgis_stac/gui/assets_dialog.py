@@ -6,6 +6,7 @@
 import os
 
 from pathlib import Path
+from osgeo import ogr
 
 from qgis import processing
 
@@ -188,7 +189,16 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """
 
         assert_type = asset.type
-        layer_type = QgsMapLayer.RasterLayer
+        types = {
+            QgsMapLayer.RasterLayer: [AssetLayerType.COG, AssetLayerType.GEOTIFF],
+            QgsMapLayer.VectorLayer: [AssetLayerType.GEOJSON, AssetLayerType.GEOPACKAGE]
+        }
+        if assert_type in AssetLayerType.COG.value or \
+            assert_type in AssetLayerType.GEOTIFF.value:
+            layer_type = QgsMapLayer.RasterLayer
+        elif assert_type in AssetLayerType.GEOJSON.value or \
+            assert_type in AssetLayerType.GEOPACKAGE.value:
+            layer_type = QgsMapLayer.VectorLayer
 
         if AssetLayerType.COG.value in assert_type:
             asset_href = f"{self.cog_string}" \
@@ -232,6 +242,13 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             QgsProject.instance().addMapLayer(layer)
 
             message = tr("Sucessfully added asset as a map layer")
+            level = Qgis.Info
+        elif self.layer_loader and self.layer_loader.layers:
+            layers = self.layer_loader.layers
+            for layer in layers:
+                QgsProject.instance().addMapLayer(layer)
+
+            message = tr("Sucessfully added asset as a map layer(s)")
             level = Qgis.Info
         elif self.layer_loader and self.layer_loader.error:
             message = self.layer_loader.error
@@ -285,6 +302,7 @@ class LayerLoader(QgsTask):
         self.layer_type = layer_type
         self.error = None
         self.layer = None
+        self.layers = []
 
     def run(self):
         """ Operates the main layers loading logic
@@ -299,12 +317,31 @@ class LayerLoader(QgsTask):
             )
             return self.layer.isValid()
         elif self.layer_type is QgsMapLayer.VectorLayer:
-            self.layer = QgsVectorLayer(
-                self.layer_uri,
-                self.layer_name,
-                AssetLayerType.VECTOR.value
-            )
-            return self.layer.isValid()
+            extension = Path(self.layer_uri).suffix
+            result = False
+
+            if extension is not ".gpkg":
+                self.layer = QgsVectorLayer(
+                    self.layer_uri,
+                    self.layer_name,
+                    AssetLayerType.VECTOR.value
+                )
+                result = self.layer.isValid()
+            else:
+                gpkg_connection = ogr.Open(self.layer_uri)
+
+                for layer_item in gpkg_connection:
+                    layer = QgsVectorLayer(
+                        f"{gpkg_connection}|layername={layer_item.GetName()}",
+                        layer_item.GetName(),
+                        AssetLayerType.VECTOR.value
+                    )
+                    self.layers.append(layer.clone())
+                    # If any layer from the geopackage is valid, load it.
+                    if layer.isValid():
+                        self.layer = layer
+                        result = True
+            return result
         else:
             raise NotImplementedError
 
@@ -319,7 +356,7 @@ class LayerLoader(QgsTask):
         """
         if result and self.layer:
             log(
-                f"Fetched layer with URI"
+                f"Fetched layer with URI "
                 f"{self.layer_uri} "
             )
             # Due to the way QGIS is handling layers sharing between tasks and
@@ -329,10 +366,13 @@ class LayerLoader(QgsTask):
             # be used in the main thread.
             self.layer = self.layer.clone()
         else:
+            provider_error = tr("error {}").format(
+                self.layer.dataProvider().error()
+            )if self.layer else ""
             self.error = tr(
                 f"Couldn't load layer "
                 f"{self.layer_uri},"
-                f"error {self.layer.dataProvider().error()}"
+                f"{provider_error}"
             )
             log(
                 self.error
