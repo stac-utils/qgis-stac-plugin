@@ -390,7 +390,7 @@
              <string/>
             </property>
             <property name="styleSheet">
-             <string notr="true">font: 15pt;</string>
+             <string notr="true"/>
             </property>
            </widget>
           </item>
