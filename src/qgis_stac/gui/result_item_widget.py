@@ -107,10 +107,10 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.footprint_box.setEnabled(enabled)
 
     def open_assets_dialog(self):
-        """  Opens the assets dialog
+        """  Opens the assets dialog for the STAC item.
         """
         assets_dialog = AssetsDialog(
-            self.item.assets,
+            self.item,
             parent=self,
             main_widget=self.main_widget
         )

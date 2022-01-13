@@ -50,14 +50,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
     def __init__(
             self,
-            assets,
+            item,
             parent,
             main_widget
     ):
         """ Constructor
 
-        :param assets: List of item assets
-        :type assets: list
+        :param item: Item object with assets that are to be shown.
+        :type item: model.Item
 
         :param parent Parent widget
         :type parent: QWidget
@@ -67,7 +67,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """
         super().__init__()
         self.setupUi(self)
-        self.assets = assets
+        self.item = item
+        self.assets = item.assets
         self.parent = parent
         self.main_widget = main_widget
         self.cog_string = '/vsicurl/'
@@ -77,7 +78,18 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
     def prepare_assets(self):
         """ Loads the dialog with the list of assets.
         """
-        self.title.setText(tr("{} asset(s) available").format(len(self.assets)))
+
+        if len(self.assets) > 0:
+            self.title.setText(
+                tr("Item {}, has {} asset(s) available").
+                format(self.item.id, len(self.assets))
+            )
+        else:
+            self.title.setText(
+                tr("Item {} has no assets").
+                format(len(self.item.id))
+            )
+
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)
@@ -95,7 +107,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         )
         layout.addItem(vertical_spacer)
         scroll_container.setLayout(layout)
-        self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.scroll_area.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff
+        )
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
 
