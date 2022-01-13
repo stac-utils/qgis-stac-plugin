@@ -187,9 +187,10 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 role=QtCore.Qt.UserRole)
         )
 
-        self.highlighter = JsonHighlighter(self.filter_edit.document())
-        self.filter_edit.cursorPositionChanged.connect(
-            self.highlighter.rehighlight)
+        # TODO figure out why highlighting can cause text input to be slow
+        # self.highlighter = JsonHighlighter(self.filter_edit.document())
+        # self.filter_edit.cursorPositionChanged.connect(
+        #     self.highlighter.rehighlight)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates

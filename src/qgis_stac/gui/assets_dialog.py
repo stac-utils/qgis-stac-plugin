@@ -156,7 +156,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         url = asset.href
         extension = Path(url).suffix
-        title = f"{asset.title}{extension}"
+        extension_suffix = extension.split('?')[0] if extension else ""
+        title = f"{asset.title}{extension_suffix}"
 
         output = os.path.join(
             item_folder, title
