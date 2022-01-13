@@ -164,7 +164,17 @@
             </widget>
            </item>
            <item>
-            <widget class="QgsSpinBox" name="page_size"/>
+            <widget class="QgsSpinBox" name="page_size">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+             <property name="value">
+              <number>10</number>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>

@@ -81,6 +81,7 @@ _Connection dialog with a Microsoft Planetary Computer STAC API details_
 
 The connection dialog contains a **API Capabilities** field which can be used to set the connection to use
 a `SAS Token` [signing mechanism](https://planetarycomputer.microsoft.com/docs/concepts/sas/).
+The signing mechanism includes a token that have expiry period, Users should research the API after the period passes in order to resign the items.
 
 The **Advanced** group contain a list of the conformances type that the STAC API adhere to, when creating
 new connections the list is empty, users can click the **Get conformance classes** button to fetch the conformance

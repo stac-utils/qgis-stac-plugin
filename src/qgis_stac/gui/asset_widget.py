@@ -15,6 +15,8 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
+from ..api.models import AssetLayerType
+
 from ..utils import tr
 
 WidgetUi, _ = loadUiType(
@@ -44,9 +46,8 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         """ Populate UI inputs when loading the widget"""
 
         layer_types = [
-            "image/tiff; "
-            "application=geotiff; "
-            "profile=cloud-optimized"
+            AssetLayerType.COG.value,
+            AssetLayerType.GEOTIFF.value,
         ]
 
         self.title_la.setText(self.asset.title)
@@ -64,5 +65,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         if self.asset.type not in layer_types:
             self.load_btn.setToolTip(
-                tr("Asset cannot be loaded as a map layer in QGIS")
+                tr("Asset contains a {} media type which"
+                   "cannot be loaded as a map layer in QGIS"
+                   ).format(self.asset.type)
             )

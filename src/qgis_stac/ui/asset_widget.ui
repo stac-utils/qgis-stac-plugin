@@ -63,7 +63,7 @@
      <item row="0" column="2">
       <widget class="QPushButton" name="download_btn">
        <property name="toolTip">
-        <string>Download asset to the filesystem</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Download the item asset into the filesystem. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>Download asset</string>

@@ -50,8 +50,13 @@ class AssetRoles(enum.Enum):
 
 
 class AssetLayerType(enum.Enum):
-    """ Types of assets layers that can be added to QGIS"""
-    COG = 'profile=cloud-optimized'
+    """ Types of assets layers that can be added to QGIS, values are defined as in
+    https://github.com/radiantearth/stac-api-spec/blob/
+    master/stac-spec/best-practices.md#common-media-types-in-stac"""
+    COG = 'image/tiff; application=geotiff; profile=cloud-optimized'
+    GEOTIFF = 'image/tiff; application=geotiff'
+    GEOJSON = 'application/geo+json'
+    GEOPACKAGE = 'application/geopackage+sqlite3'
     VECTOR = 'ogr'
 
 
