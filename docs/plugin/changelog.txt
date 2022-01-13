@@ -1,3 +1,9 @@
+Version 1.0.0 2022-01-13
+- Updates to loading and downloading assets workflow.
+- Support for adding vector based assets eg. GeoJSON, GeoPackage
+- Fix connection page size now default is 10 items.
+- Include extension in the downloaded files.
+- Update UI with more descriptive tooltips.
 
 Version 1.0.0-pre 2022-01-11
 - Changed loading and downloading assets workflow.

@@ -1,5 +1,13 @@
 # Changelog
 
+## Released
+
+### 1.0.0 2022-01-13
+- Updates to loading and downloading assets workflow.
+- Support for adding vector based assets eg. GeoJSON, GeoPackage
+- Fix API page size now default is 10 items.
+- Include extension in the downloaded files.
+- Update UI with more descriptive tooltips.
 
 ## [Unreleased] 
 
