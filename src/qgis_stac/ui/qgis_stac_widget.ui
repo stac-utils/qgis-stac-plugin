@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>917</width>
-    <height>868</height>
+    <height>869</height>
    </rect>
   </property>
   <property name="font">
@@ -211,6 +211,9 @@
        </item>
        <item>
         <widget class="QgsCollapsibleGroupBox" name="date_filter_group">
+         <property name="toolTip">
+          <string/>
+         </property>
          <property name="title">
           <string>Filter by date</string>
          </property>
@@ -221,7 +224,7 @@
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
@@ -240,6 +243,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QgsDateTimeEdit" name="start_dte">
+            <property name="toolTip">
+             <string/>
+            </property>
             <property name="dateTime">
              <datetime>
               <hour>0</hour>
@@ -306,7 +312,7 @@
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -322,7 +328,7 @@
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_12">
           <item>
@@ -358,6 +364,9 @@
                 <height>0</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Select filter language to be used.</string>
+              </property>
               <property name="minimumContentsLength">
                <number>0</number>
               </property>
@@ -373,7 +382,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QTextEdit" name="filter_edit"/>
+           <widget class="QTextEdit" name="filter_edit">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Insert filter text to be used, the type of filter should align with the &lt;/p&gt;&lt;p&gt;current selected filter language.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font: 15pt;</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -565,7 +581,7 @@
             <x>0</x>
             <y>0</y>
             <width>875</width>
-            <height>706</height>
+            <height>707</height>
            </rect>
           </property>
          </widget>
