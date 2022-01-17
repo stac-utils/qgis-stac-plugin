@@ -14,10 +14,12 @@ nav:
   - Development: "development.md"
   - About: "about.md"
   - Changelog: "changelog.md"
+  - Tutorial: "tutorial.md"
 
 plugins:
   - search
   - git-revision-date-localized
+  - mkdocs-video
 
 markdown_extensions:
   - pymdownx.snippets:
