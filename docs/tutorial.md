@@ -1,22 +1,29 @@
 
-# Calculate NDIV from Sentinel 2 Imagery
+# Tutorials
+This page contains a tutorial that provides a step by step guide on how to use the plugin to get imagery that 
+can be used in doing NDVI analysis in QGIS.
 
-## What is NDVI (Normalized Difference Vegetation Index)
+## Calculating NDVI using Sentinel 2 Imagery
 
-NDVI is built from the red(R) and near-infrared (NIR) bands. The normalized vegetation index highlights the difference between the red band and the near-infrared band.
+### What is NDVI (Normalized Difference Vegetation Index)
+
+NDVI is built from the red(R) and near-infrared (NIR) bands. The normalized vegetation index highlights the 
+difference between the red band and the near-infrared band.
 
 **NDVI = (NIR - R) / (NIR + R)**
 
 This index is susceptible to the vegetation intensity and quantity.
 
-NDVI values range from -1 to +1, the negative values correspond to surfaces other than plant covers, such as snow, water, or clouds for which the red reflectance is higher than the near-infrared reflectance.
+NDVI values range from -1 to +1, the negative values correspond to surfaces other than plant covers, such as snow, water, 
+or clouds for which the red reflectance is higher than the near-infrared reflectance.
 For bare soil, the reflectances are approximately the same in the red and near-infrared bands, the NDVI presents values close to 0.
 
 The vegetation formations have positive NDVI values, generally between 0.1 and 0.7. The highest values correspond to the densest cover.
 
-NDVI is used in agriculture to assess the strength and quantity of vegetation by analyzing remote sensing measurements. NDVI is often used in precision agriculture decision-making tools.
+NDVI is used in agriculture to assess the strength and quantity of vegetation by analyzing remote sensing measurements.
+NDVI is often used in precision agriculture decision-making tools.
 
-## Sentinel 2 bands
+### Sentinel 2 bands
 
 Sentinel-2 has 13 spectral bands including 3 in the mid-infrared (mid-IR), they are ranging from 10 to 60-meter pixel size.
 
@@ -25,11 +32,15 @@ _Source: [https://gisgeography.com/sentinel-2-bands-combinations/](https://gisge
 
 In Sentinel 2 band red is represented by **B4** and the band near-infrared is **B8**
 
-## Calculate NDIV in QGIS
+### Run NDVI calculator in QGIS
 
-To calculate NDIV in QGIS, use the raster calculator form menu **Raster** or from **Processing Toolbox** and add the NDVI formula above into the expression.
-Use also **STAC API Browser** plugin to download sentinel 2 imagery. See [user guide](./user-guide)
+Load the **STAC API Browser** plugin and  download sentinel 2 imagery using the **Microsoft Planetary Computer** connection
+. See the [user guide](./user-guide) for more information about how to add imagery using the plugin.
 
+Open the raster calculator that is available from **Raster** menu or from **Processing Toolbox** and 
+add the NDVI formula above into the expression.
+
+Click **Run** to execute the formula
 
 
 ### Watch the video

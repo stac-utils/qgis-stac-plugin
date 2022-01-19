@@ -14,7 +14,7 @@ nav:
   - Development: "development.md"
   - About: "about.md"
   - Changelog: "changelog.md"
-  - Tutorial: "tutorial.md"
+  - Tutorials: "tutorial.md"
 
 plugins:
   - search
