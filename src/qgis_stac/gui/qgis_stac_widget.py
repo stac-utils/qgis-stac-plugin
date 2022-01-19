@@ -176,7 +176,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         labels = {
             FilterLang.CQL_JSON: tr("CQL_JSON"),
-            FilterLang.CQL2_JSON: tr("CQL2_JSON"),
             FilterLang.STAC_QUERY: tr("STAC_QUERY"),
         }
         for lang_type, item_text in labels.items():

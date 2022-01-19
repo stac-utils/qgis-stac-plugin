@@ -1,4 +1,5 @@
-Version 1.0.0 2022-01-13
+Version 1.0.0 2022-01-19
+- Fix for plugin UI lagging bug.
 - Updates to loading and downloading assets workflow.
 - Support for adding vector based assets eg. GeoJSON, GeoPackage
 - Fix connection page size now default is 10 items.

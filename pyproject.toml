@@ -29,10 +29,12 @@ homepage = "https://stac-utils.github.io/qgis-stac-api"
 tracker = "https://github.com/stac-utils/qgis-stac-api/issues"
 repository = "https://github.com/stac-utils/qgis-stac-api"
 tags = [
-    "stac-api",
     "stac",
+    "web",
+    "raster",
+    "cog",
 ]
-category = "plugins"
+category = "plugins, web"
 hasProcessingProvider = "no"
 about = """\
 Adds functionality to search, load and manage STAC API resources inside QGIS.
