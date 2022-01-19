@@ -132,6 +132,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.prepare_filter_box()
 
         # actions that trigger saving filters to the plugin settings
+
         self.start_dte.valueChanged.connect(self.save_filters)
         self.end_dte.valueChanged.connect(self.save_filters)
         self.extent_box.extentChanged.connect(self.save_filters)
@@ -187,10 +188,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 role=QtCore.Qt.UserRole)
         )
 
-        # TODO figure out why highlighting can cause text input to be slow
-        # self.highlighter = JsonHighlighter(self.filter_edit.document())
-        # self.filter_edit.cursorPositionChanged.connect(
-        #     self.highlighter.rehighlight)
+        self.highlighter = JsonHighlighter(self.filter_edit.document())
+        self.filter_edit.cursorPositionChanged.connect(
+            self.highlighter.rehighlight)
 
     def add_connection(self):
         """ Adds a new connection into the plugin, then updates
@@ -495,7 +495,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             self.model.removeRows(0, self.model.rowCount())
             self.current_collections = results
             self.load_collections(results)
-            self.save_filters()
+            self.save_filters(collections=self.current_collections)
 
         elif self.search_type == ResourceType.FEATURE:
 
@@ -739,13 +739,15 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         if not result[0]:
             self.show_message(result[1], level=Qgis.Critical)
 
-    def save_filters(self):
+    def save_filters(self, collections=None):
         """ Save search filters fetched from the corresponding UI inputs """
         filter_lang = self.filter_lang_cmb.itemData(
             self.filter_lang_cmb.currentIndex()
         )
+        collections = collections if isinstance(collections, list) else None
+
         filters = SearchFilters(
-            collections=self.current_collections,
+            collections=collections,
             start_date=(
                 self.start_dte.dateTime()
                 if not self.start_dte.dateTime().isNull() else None

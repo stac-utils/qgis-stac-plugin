@@ -702,16 +702,16 @@ class SettingsManager(QtCore.QObject):
         current_connection = self.get_current_connection()
         if filters.collections:
             self.delete_all_collections(current_connection)
-        for collection in filters.collections:
-            collection = CollectionSettings(
-                collection_id=uuid.uuid4(),
-                id=collection.id,
-                title=collection.title
-            )
-            self.save_collection(
-                current_connection,
-                collection
-            )
+            for collection in filters.collections:
+                collection = CollectionSettings(
+                    collection_id=uuid.uuid4(),
+                    id=collection.id,
+                    title=collection.title
+                )
+                self.save_collection(
+                    current_connection,
+                    collection
+                )
 
     def get_search_filters(self):
         """ Retrieve the store fitlers settings"""
