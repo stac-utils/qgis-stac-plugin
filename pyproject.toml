@@ -25,9 +25,9 @@ qgisMaximumVersion = "3.99"
 icon = "icon.png"
 experimental = "False"
 deprecated = "False"
-homepage = "https://stac-utils.github.io/qgis-stac-api"
-tracker = "https://github.com/stac-utils/qgis-stac-api/issues"
-repository = "https://github.com/stac-utils/qgis-stac-api"
+homepage = "https://stac-utils.github.io/qgis-stac-plugin"
+tracker = "https://github.com/stac-utils/qgis-stac-plugin/issues"
+repository = "https://github.com/stac-utils/qgis-stac-plugin"
 tags = [
     "stac",
     "web",
