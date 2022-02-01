@@ -7,6 +7,8 @@ can be used in doing NDVI analysis in QGIS.
 
 ### What is NDVI (Normalized Difference Vegetation Index)
 
+NDVI is an indicator used in assessing whether the target(e.g. space imagery) being observed contains live green vegetation.
+
 NDVI is built from the red(R) and near-infrared (NIR) bands. The normalized vegetation index highlights the 
 difference between the red band and the near-infrared band.
 
@@ -23,29 +25,46 @@ The vegetation formations have positive NDVI values, generally between 0.1 and 0
 NDVI is used in agriculture to assess the strength and quantity of vegetation by analyzing remote sensing measurements.
 NDVI is often used in precision agriculture decision-making tools.
 
-### Sentinel 2 bands
+### NDVI calculator on data provided using the plugin
+The plugin through STAC API catalogs can provide imagery that can be downloaded and used to calculate NDVI in the QGIS 
+desktop application. 
 
-Sentinel-2 has 13 spectral bands including 3 in the mid-infrared (mid-IR), they are ranging from 10 to 60-meter pixel size.
+Follow the below steps to calculate NDVI on imagery acquiring the data using the plugin.
 
-![image](images/sentinel_bands.png)
-_Source: [https://gisgeography.com/sentinel-2-bands-combinations/](https://gisgeography.com/sentinel-2-bands-combinations/)_
+- Load the **STAC API Browser** plugin, then select a STAC API provider that offers imagery that contain assets with 
+  infrared and red bands.
+- Search for the required items in the selected STAC API catalog.
+![image](images/search_result_stac_api_plugin.png)
 
-In Sentinel 2 band red is represented by **B4** and the band near-infrared is **B8**
+_Screenshot showing available items one of Microsoft Planetary Computer catalog collections_.
 
-### Run NDVI calculator in QGIS
+- From the search results, select **View assets** on the item that contain targeted imagery and 
+  click **Add asset as layer** to load the required assets into QGIS.
+- After the assets have been loaded successfully into QGIS as a COG layers.
+  
+  Open the raster calculator that is available 
+  from **Raster** > **Raster Calculator** menu or
+  
+  from the **Processing Toolbox**. 
 
-Load the **STAC API Browser** plugin and  download sentinel 2 imagery using the **Microsoft Planetary Computer** connection
-. See the [user guide](./user-guide) for more information about how to add imagery using the plugin.
+- Inside the calculator dialog, add the NDVI formula **NDVI = (NIR - R) / (NIR + R)** into the expression text box, 
+  where **NIR** is the layer with infrared band and **R** is the layer with the red band.
 
-Open the raster calculator that is available from **Raster** menu or from **Processing Toolbox** and 
-add the NDVI formula above into the expression.
-
-Click **Run** to execute the formula
+  After adding the formular, click **Ok** to execute the formula. If the calculation is successful
+  the resulting layer with NDVI computation will be loaded into QGIS.
 
 
-### Watch the video
+![image](images/ndvi.png)
 
-![type:video](images/stac-api-ndvi.mp4)
-_Video demonstration of how to calculate NDVI using STAC API Browser_
+_Example of a styled NDVI imagery_.
+
+### Watch the video 
+
+Below is a video that shows how to go through the above steps and create NDVI from the imagery supplied 
+by the plugin.
+
+![type:video](https://youtu.be/2vnzQ-4dQhI)
+
+See the [user guide](./user-guide) for more information about how to add imagery using the plugin.
 
 

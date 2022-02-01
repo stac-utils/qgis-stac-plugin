@@ -48,10 +48,11 @@ GitHub actions workflow is provided by the plugin to run tests in QGIS 3.16, 3.1
 the plugin repository, the workflow is located in the following directory `.github/workflow/ci.yml`
 
 
-## Build documentation
+## Building documentation
 
-Plugin uses a [mkdocs-material](https://squidfunk.github.io/mkdocs-material/) theme for the github pages documentation site, to run locally the site run the following
-commands after making updates to the documentation.
+Plugin uses a [mkdocs-material](https://squidfunk.github.io/mkdocs-material/) theme for the github pages documentation site,
+to run locally the site run the following
+commands after making updates to the documentation pages that are located inside the `docs` plugin folder.
 
 ```
 poetry run mkdocs serve

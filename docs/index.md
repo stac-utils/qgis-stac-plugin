@@ -17,7 +17,7 @@ _Example search results, showing available items on a STAC API service_.
 
 
 ## Quick Installation
-The plugin will be available to download and install in QGIS from the official QGIS plugin repository 
+The plugin is available to download and install in QGIS from the official QGIS plugin repository 
 [https://plugins.qgis.org/](https://plugins.qgis.org/).
 
 To install the plugin, follow the below steps.
