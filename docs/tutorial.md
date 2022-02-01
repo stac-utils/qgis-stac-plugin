@@ -63,7 +63,7 @@ _Example of a styled NDVI imagery_.
 Below is a video that shows how to go through the above steps and create NDVI from the imagery supplied 
 by the plugin.
 
-![type:video](https://youtu.be/2vnzQ-4dQhI)
+![type:video](https://www.youtube.com/embed/2vnzQ-4dQhI)
 
 See the [user guide](./user-guide) for more information about how to add imagery using the plugin.
 
