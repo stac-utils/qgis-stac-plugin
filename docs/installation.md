@@ -4,7 +4,7 @@ The following sections explains how plugin users can install the plugin into the
 installation guide for plugin development purposes is covered here [development page](./development).
 
 ## From QGIS plugin repository
-The plugin will be available in the QGIS official plugins repository.
+The plugin is available in the QGIS official plugin repository.
 
 To install the plugin, follow the below steps.
 

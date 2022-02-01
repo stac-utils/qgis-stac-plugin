@@ -299,6 +299,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "mkdocs-video"
+version = "1.1.0"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+mkdocs = ">=1.1.0,<2"
+
+[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -505,7 +516,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "bd736a66129595d75f10eb48752864d0890fb387331e7bf4e17461c3d00d8594"
+content-hash = "d45c033ff0ac8e0c48b9833458b075083e138804cd503bbfa294326ab3580459"
 
 [metadata.files]
 anyio = [
@@ -670,6 +681,9 @@ mkdocs-material = [
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
     {file = "mkdocs_material_extensions-1.0.3-py3-none-any.whl", hash = "sha256:a82b70e533ce060b2a5d9eb2bc2e1be201cf61f901f93704b4acf6e3d5983a44"},
+]
+mkdocs-video = [
+    {file = "mkdocs-video-1.1.0.tar.gz", hash = "sha256:691124bcd1a721c07590fe94021277151eb8dabe06a2cb1fd66b58298506e5fc"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
