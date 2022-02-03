@@ -58,13 +58,6 @@ _Screenshot showing available items one of Microsoft Planetary Computer catalog 
 
 _Example of a styled NDVI imagery_.
 
-### Watch the video 
-
-Below is a video that shows how to go through the above steps and create NDVI from the imagery supplied 
-by the plugin.
-
-![type:video](https://www.youtube.com/embed/2vnzQ-4dQhI)
-
 See the [user guide](./user-guide) for more information about how to add imagery using the plugin.
 
 
