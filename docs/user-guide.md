@@ -98,13 +98,13 @@ languages, when **STAC_QUERY** is used then filter input will be treated as a [S
 If **CQL_JSON** is selected then filter will used as a [CQL_FILTER](https://github.com/radiantearth/stac-api-spec/tree/master/fragments/filter).
 
 
-![image](images/filters.png)
+![image](images/available_filters_planetary.png)
 
 _Available filters_
 
 
 
-![image](images/results_latest.png)
+![image](images/search_results_planetary.png)
 
 _Example search result items_
 
@@ -120,7 +120,7 @@ The plugin currently support loading assets as [COGs](https://github.com/cogeoti
 To add the assets into QGIS canvas, click the **View assets** button from the required result item.
 
 
-![image](images/view_assets.png)
+![image](images/view_assets_planetary.png)
 
 _Image showing the button used for viewing the STAC item assets_
 
@@ -133,9 +133,8 @@ _Assets dialog_
 
 
 
-![image](images/raster.png)
-
-_View of one of the added asset as a map layer in QGIS_
+![image](images/added_asset_planetary.png)
+_One of the added asset as a QGIS map layer_
 
 #### Adding item footprint
 
@@ -143,7 +142,7 @@ Click the **Add footprint** button to add the footprint of an item into QGIS can
 The footprint map layer will be loaded into QGIS, if the STAC item had properties then will be added in the
 resulting map layer attribute table as layer data.
 
-![image](images/add_footprint_latest.png)
+![image](images/add_footprint_planetary.png)
 
 _Image showing the button used for adding the STAC item footprint_
 
