@@ -692,7 +692,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         )
 
         for result in collections:
-            title = result.title if result.title else tr("No Title")
+            title = result.title if result.title else tr("No Title") + f" ({result.id})"
             item = QtGui.QStandardItem(title)
             item.setData(result.id, 1)
             self.model.appendRow(item)
