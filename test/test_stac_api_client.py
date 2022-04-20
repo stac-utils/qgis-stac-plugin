@@ -4,6 +4,8 @@
 """
 import unittest
 
+from multiprocessing import Process
+
 from mock.mock_http_server import MockSTACApiServer
 from qgis.PyQt.QtTest import QSignalSpy
 
@@ -14,9 +16,13 @@ from qgis_stac.api.models import ItemSearch
 class STACApiClientTest(unittest.TestCase):
 
     def setUp(self):
-        self.server = MockSTACApiServer()
+
+        app_server = MockSTACApiServer()
+
+        self.server = Process(target=app_server.run)
         self.server.start()
-        self.api_client = Client(self.server.url)
+
+        self.api_client = Client(app_server.url)
         self.response = None
 
     def test_resources_fetch(self):
@@ -77,7 +83,8 @@ class STACApiClientTest(unittest.TestCase):
         self.response = response_args
 
     def tearDown(self):
-        self.server.shutdown_server()
+        self.server.terminate()
+        self.server.join()
 
 
 if __name__ == '__main__':
