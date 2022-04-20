@@ -75,6 +75,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         if connection:
             self.load_connection_settings(connection)
             self.conformance = connection.conformances
+            self.setWindowTitle(tr("Edit Connection"))
         else:
             self.conformance = []
 
@@ -93,9 +94,12 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         connection = self.get_connection()
 
         if connection is not None:
+            self.update_connection_inputs(False)
             api_client = Client.from_connection_settings(connection)
             api_client.conformance_received.connect(self.display_conformances)
             api_client.error_received.connect(self.show_message)
+            update_inputs = partial(self.update_connection_inputs, True)
+            api_client.error_received.connect(update_inputs)
             self.show_progress(
                 tr("Getting API conformance classes..."),
                 progress_bar=False
@@ -124,6 +128,7 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             ),
             Qgis.Info
         )
+        self.update_connection_inputs(True)
 
     def load_conformances(self, conformances):
         """ Loads the passed list of conformances into the Connection conformances
