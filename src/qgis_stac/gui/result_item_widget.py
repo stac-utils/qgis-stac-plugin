@@ -19,8 +19,6 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
-from qgis import processing
-
 from qgis.core import (
     Qgis,
     QgsApplication,
@@ -33,6 +31,14 @@ from qgis.core import (
 
 )
 
+try:
+    import urlparse
+    from urllib import urlencode
+except: # For Python 3
+    import urllib.parse as urlparse
+    from urllib.parse import urlencode
+
+
 from ..resources import *
 from ..utils import log, tr
 
@@ -42,6 +48,7 @@ from ..api.models import (
 )
 
 from .assets_dialog import AssetsDialog
+from ..definitions import constants
 
 
 WidgetUi, _ = loadUiType(
@@ -97,6 +104,13 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             elif AssetRoles.OVERVIEW.value in asset.roles:
                 overview_url = asset.href
 
+        if overview_url:
+            params = {
+                constants.THUMBNAIL_HEIGHT_PARAM: constants.THUMBNAIL_HEIGHT,
+                constants.THUMBNAIL_WIDTH_PARAM: constants.THUMBNAIL_WIDTH,
+            }
+            overview_url = self.append_url_params(overview_url, params)
+
         self.thumbnail_url = thumbnail_url if thumbnail_url else overview_url
 
         self.view_assets_btn.setEnabled(self.item.assets is not None)
@@ -104,6 +118,26 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
 
         self.footprint_box.setEnabled(self.item.stac_object is not None)
         self.footprint_box.clicked.connect(self.add_footprint)
+
+    def append_url_params(self, url, params):
+        """ Appends the passed params into the url.
+        :param url: HTTP URL
+        :type url: str
+
+        :param url: URL params
+        :type url: dict
+
+        :returns New url updated with params
+        :rtype str
+        """
+        parts = list(urlparse.urlparse(url))
+
+        query = urlparse.parse_qsl(parts[4])
+        query += params.items()
+
+        parts[4] = urlencode(query)
+
+        return urlparse.urlunparse(parts)
 
     def update_inputs(self, enabled):
         """ Updates the inputs widgets state in the main search item widget.
