@@ -113,6 +113,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.collections_tree.setModel(self.proxy_model)
+        self.collections_tree.selectionModel().selectionChanged.connect(self.display_selected_collection)
+        self.selected_collections_la.hide()
 
         self.filter_text.textChanged.connect(self.filter_changed)
 
@@ -479,6 +481,16 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.extent_box.setMapCanvas(map_canvas)
         self.extent_box.setChecked(False)
 
+    def display_selected_collection(self):
+        self.selected_collections_la.show()
+        collections = self.get_selected_collections(title=True)
+
+        self.selected_collections_la.setText(
+            tr("Selected collections: <b>{}</b>").format(
+                ', '.join(collections)
+            )
+        )
+
     def display_results(self, results, pagination):
         """ Shows the found results into their respective view. Emits
         the search end signal after completing loading up the results
@@ -664,18 +676,22 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         self.populate_results(sorted_data)
 
-    def get_selected_collections(self):
-        """ Gets the currently selected collections ids from the collection
+    def get_selected_collections(self, title=False):
+        """ Gets the currently selected collections from the collection
         view.
 
-        :returns: Collection ids
+        :param title: Whether to return collection titles or ids
+        :type title: bool
+
+        :returns: Collection
         :rtype: list
         """
+        data_index = 0 if title else 1
         indexes = self.collections_tree.selectionModel().selectedIndexes()
         collections_ids = []
 
         for index in indexes:
-            collections_ids.append(index.data(1))
+            collections_ids.append(index.data(data_index))
 
         return collections_ids
 
