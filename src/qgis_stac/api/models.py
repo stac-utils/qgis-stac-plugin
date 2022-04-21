@@ -270,10 +270,22 @@ class ItemSearch:
 
         text = json.loads(self.filter_text) if self.filter_text else None
 
+        filter_lang_values = {
+            FilterLang.CQL_JSON: 'cql-json',
+            FilterLang.CQL2_JSON: 'cql2-json',
+            FilterLang.CQL_TEXT: 'cql-text'
+        }
+
+        filter_lang_text = filter_lang_values[self.filter_lang] \
+            if self.filter_lang else None
+
         filter_text = text \
-            if self.filter_lang == FilterLang.CQL_JSON else None
+            if self.filter_lang in [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
+
+        from ..utils import log
+        log(f"Filter lang is {self.filter_lang}, filter lang text {filter_lang_text}")
 
         parameters = {
             "ids": self.ids,
@@ -281,6 +293,7 @@ class ItemSearch:
             "limit": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
+            "filter_lang": filter_lang_text,
             "filter": filter_text,
             "query": query_text,
         }
