@@ -113,7 +113,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.collections_tree.setModel(self.proxy_model)
-        self.collections_tree.selectionModel().selectionChanged.connect(self.display_selected_collection)
+        self.collections_tree.selectionModel().selectionChanged.connect(
+            self.display_selected_collection
+        )
         self.selected_collections_la.hide()
 
         self.filter_text.textChanged.connect(self.filter_changed)
@@ -482,6 +484,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.extent_box.setChecked(False)
 
     def display_selected_collection(self):
+        """ Shows the current selected collections in the
+        targeted label
+        """
         self.selected_collections_la.show()
         collections = self.get_selected_collections(title=True)
 
