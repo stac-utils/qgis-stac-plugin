@@ -87,10 +87,17 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.created_date.setText(
             datetime_str
         )
+        thumbnail_url = None
+        overview_url = None
 
         for asset in self.item.assets:
             if AssetRoles.THUMBNAIL.value in asset.roles:
-                self.thumbnail_url = asset.href
+                thumbnail_url = asset.href
+
+            elif AssetRoles.OVERVIEW.value in asset.roles:
+                overview_url = asset.href
+
+        self.thumbnail_url = thumbnail_url if thumbnail_url else overview_url
 
         self.view_assets_btn.setEnabled(self.item.assets is not None)
         self.view_assets_btn.clicked.connect(self.open_assets_dialog)
