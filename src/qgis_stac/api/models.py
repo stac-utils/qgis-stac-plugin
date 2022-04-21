@@ -270,8 +270,10 @@ class ItemSearch:
 
         text = json.loads(self.filter_text) if self.filter_text else None
 
+        filter_lang = self.filter_lang.value.lower() if self.filter_lang else None
+
         filter_text = text \
-            if self.filter_lang == FilterLang.CQL_JSON else None
+            if self.filter_lang in [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
 
@@ -281,6 +283,7 @@ class ItemSearch:
             "limit": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
+            "filter_lang": filter_lang,
             "filter": filter_text,
             "query": query_text,
         }
