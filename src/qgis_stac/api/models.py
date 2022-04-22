@@ -240,6 +240,7 @@ class ItemSearch:
     end_datetime: typing.Optional[QtCore.QDateTime] = None
     filter_text: str = None
     filter_lang: FilterLang = FilterLang.CQL_JSON
+    sortby: str = None
 
     def params(self):
         """ Converts the class members into a dictionary that
@@ -284,6 +285,13 @@ class ItemSearch:
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
 
+        sort_lang_values = {
+            SortField.ID: 'name',
+            SortField.COLLECTION: 'collection',
+        }
+
+        sort_field = sort_lang_values[self.sortby] if self.sortby else None
+
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
@@ -292,6 +300,7 @@ class ItemSearch:
             "datetime": datetime_str,
             "filter_lang": filter_lang_text,
             "filter": filter_text,
+            "sortby": sort_field,
             "query": query_text,
         }
 

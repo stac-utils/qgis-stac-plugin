@@ -350,6 +350,11 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         filter_lang = self.filter_lang_cmb.itemData(
             self.filter_lang_cmb.currentIndex()
         ) if self.advanced_box.isChecked() else None
+
+        sort_field = self.sort_cmb.itemData(
+            self.sort_cmb.currentIndex()
+        )
+
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
@@ -360,6 +365,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 spatial_extent=spatial_extent,
                 filter_text=filter_text,
                 filter_lang=filter_lang,
+                sortby=sort_field,
             )
         )
         self.search_started.emit()
