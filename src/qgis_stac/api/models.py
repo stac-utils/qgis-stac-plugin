@@ -284,9 +284,6 @@ class ItemSearch:
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
 
-        from ..utils import log
-        log(f"Filter lang is {self.filter_lang}, filter lang text {filter_lang_text}")
-
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
