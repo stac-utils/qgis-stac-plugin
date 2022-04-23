@@ -107,7 +107,7 @@ class ContentFetcherTask(QgsTask):
                 self.pagination = ResourcePagination()
             else:
                 raise NotImplementedError
-        except (APIError, JSONDecodeError) as err:
+        except (APIError, NotImplementedError, JSONDecodeError) as err:
             log(str(err))
             self.error = str(err)
 

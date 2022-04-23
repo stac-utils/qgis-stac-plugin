@@ -286,7 +286,7 @@ class ItemSearch:
             if self.filter_lang == FilterLang.STAC_QUERY else None
 
         sort_lang_values = {
-            SortField.ID: 'name',
+            SortField.ID: 'id',
             SortField.COLLECTION: 'collection',
         }
 

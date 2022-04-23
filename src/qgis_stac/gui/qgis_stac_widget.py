@@ -162,15 +162,11 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         # setup model for filtering and sorting item results
 
         self.item_model = ItemsModel([])
-        self.items_proxy_model = ItemsSortFilterProxyModel(
-            SortField.ID
-        )
+        self.items_proxy_model = ItemsSortFilterProxyModel()
         self.items_proxy_model.setSourceModel(self.item_model)
         self.items_proxy_model.setDynamicSortFilter(True)
         self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.items_proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
-        self.sort_cmb.activated.connect(self.sort_items)
         self.items_filter.textChanged.connect(self.items_filter_changed)
 
         self.get_filters()
@@ -661,6 +657,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             SortField.ID: tr("Name"),
             SortField.COLLECTION: tr("Collection"),
         }
+        self.sort_cmb.addItem("")
         for ordering_type, item_text in labels.items():
             self.sort_cmb.addItem(item_text, ordering_type)
         self.sort_cmb.setCurrentIndex(
