@@ -87,6 +87,17 @@ class SortField(enum.Enum):
     DATE = 'date'
 
 
+class SortOrder(enum.Enum):
+    """ Holds the ordering value when sorting items results."""
+    ASCENDING = 'ascending'
+    DESCENDING = 'descending'
+
+
+class SortOrderPrefix(enum.Enum):
+    """ Holds the STAC ordering prefix value when sorting items results."""
+    ASCENDING = '+'
+    DESCENDING = '-'
+
 class GeometryType(enum.Enum):
     """Enum to represent the available geometry types """
 
@@ -241,6 +252,7 @@ class ItemSearch:
     filter_text: str = None
     filter_lang: FilterLang = FilterLang.CQL_JSON
     sortby: str = None
+    sort_order: SortOrder = SortOrder.ASCENDING
 
     def params(self):
         """ Converts the class members into a dictionary that
@@ -281,7 +293,8 @@ class ItemSearch:
             if self.filter_lang else None
 
         filter_text = text \
-            if self.filter_lang in [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
+            if self.filter_lang in \
+               [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
 
@@ -290,7 +303,11 @@ class ItemSearch:
             SortField.COLLECTION: 'collection',
         }
 
-        sort_field = sort_lang_values[self.sortby] if self.sortby else None
+        order_prefix = SortOrderPrefix.ASCENDING.value \
+            if SortOrder.ASCENDING else SortOrderPrefix.DESCENDING.value
+
+        sort_field = f"{order_prefix}{sort_lang_values[self.sortby]}" \
+            if self.sortby else None
 
         parameters = {
             "ids": self.ids,

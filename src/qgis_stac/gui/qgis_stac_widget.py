@@ -24,6 +24,7 @@ from ..api.models import (
     SearchFilters,
     Settings,
     SortField,
+    SortOrder,
 )
 from ..api.client import Client
 
@@ -351,6 +352,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             self.sort_cmb.currentIndex()
         )
 
+        sort_order = SortOrder.DESCENDING \
+            if self.reverse_order_box.isChecked() else SortOrder.DESCENDING
+
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
@@ -362,6 +366,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 filter_text=filter_text,
                 filter_lang=filter_lang,
                 sortby=sort_field,
+                sort_order=sort_order,
             )
         )
         self.search_started.emit()
