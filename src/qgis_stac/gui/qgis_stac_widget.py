@@ -15,6 +15,7 @@ from qgis.utils import iface
 
 from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
+from ..gui.collection_dialog import CollectionDialog
 
 from ..conf import settings_manager
 from ..api.models import (
@@ -117,6 +118,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.collections_tree.selectionModel().selectionChanged.connect(
             self.display_selected_collection
         )
+        self.collections_tree.doubleClicked.connect(self.collections_tree_double_clicked)
 
         self.filter_text.textChanged.connect(self.filter_changed)
 
@@ -504,6 +506,12 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             )
         )
 
+    def collections_tree_double_clicked(self, index):
+        item = self.proxy_model.index(0, 0, index)
+        collection = item.data(1)
+        collection_dialog = CollectionDialog(collection)
+        collection_dialog.exec_()
+
     def display_results(self, results, pagination):
         """ Shows the found results into their respective view. Emits
         the search end signal after completing loading up the results
@@ -676,14 +684,16 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         :returns: Collection
         :rtype: list
         """
-        data_index = 0 if title else 1
+        data_index = 1
         indexes = self.collections_tree.selectionModel().selectedIndexes()
-        collections_ids = []
+        collections_items = []
 
         for index in indexes:
-            collections_ids.append(index.data(data_index))
+            collection = index.data(data_index)
+            item = collection.title if title else collection.id
+            collections_items.append(item)
 
-        return collections_ids
+        return collections_items
 
     def load_collections(self, collections):
         """ Adds the collections results into collections tree view
@@ -700,7 +710,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         for result in collections:
             title = result.title if result.title else tr("No Title") + f" ({result.id})"
             item = QtGui.QStandardItem(title)
-            item.setData(result.id, 1)
+            item.setData(result, 1)
             self.model.appendRow(item)
 
         self.proxy_model.setSourceModel(self.model)

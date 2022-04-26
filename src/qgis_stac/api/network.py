@@ -17,9 +17,13 @@ from .models import (
     Item,
     ItemSearch,
     ResourceAsset,
+    ResourceExtent,
+    ResourceLink,
     ResourcePagination,
     ResourceProperties,
     ResourceType,
+    SpatialExtent,
+    TemporalExtent
 )
 
 from ..lib import planetary_computer as pc
@@ -127,9 +131,37 @@ class ContentFetcherTask(QgsTask):
         """
         collections = []
         for collection in collections_response:
+            links = []
+            for link in collection.links:
+                resource_link = ResourceLink(
+                    href=link.href,
+                    rel=link.rel,
+                    title=link.title,
+                    type=link.type
+                )
+                links.append(resource_link)
+            spatial_extent = SpatialExtent(
+                bbox=collection.bbox
+            )
+            temporal_extent = TemporalExtent(
+                interval=collection.interval
+            )
+
+            extent = ResourceExtent(
+                spatial=spatial_extent,
+                temporal=temporal_extent
+            )
+
             collection_result = Collection(
                 id=collection.id,
-                title=collection.title
+                title=collection.title,
+                description=collection.description,
+                keywords=collection.keywords,
+                license=collection.license,
+                stac_version=collection.stac_version,
+                summaries=collection.summaries,
+                links=links,
+                extent=extent,
             )
             collections.append(collection_result)
         return collections
