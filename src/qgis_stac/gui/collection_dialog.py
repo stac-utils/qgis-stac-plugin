@@ -27,4 +27,8 @@ class CollectionDialog(QtWidgets.QDialog, DialogUi):
         self.collection = collection
 
         if self.collection:
+            self.name.setText(self.collection.id)
             self.title.setText(self.collection.title)
+            self.keywords.setText(self.collection.keywords)
+            self.description.setText(self.collection.description)
+            self.licence.setText(self.collection.license)

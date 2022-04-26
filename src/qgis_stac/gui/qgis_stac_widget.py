@@ -507,8 +507,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         )
 
     def collections_tree_double_clicked(self, index):
-        item = self.proxy_model.index(0, 0, index)
-        collection = item.data(1)
+        collection = self.collections_tree.model().data(index, 1)
         collection_dialog = CollectionDialog(collection)
         collection_dialog.exec_()
 
