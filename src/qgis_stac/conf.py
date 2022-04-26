@@ -19,6 +19,8 @@ from .api.models import (
     ApiCapability,
     FilterLang,
     SearchFilters,
+    SortField,
+    SortOrder,
 )
 
 
@@ -699,6 +701,12 @@ class SettingsManager(QtCore.QObject):
             settings.setValue("filter_lang", filters.filter_lang.name) \
                 if filters.filter_lang else None
             settings.setValue("filter_text", filters.filter_text)
+
+            sort_field = filters.sort_field.name if filters.sort_field else None
+            settings.setValue("sort_field", sort_field)
+
+            settings.setValue("sort_order", filters.sort_order.name) \
+                if filters.sort_order else None
         current_connection = self.get_current_connection()
         if filters.collections:
             self.delete_all_collections(current_connection)
@@ -750,6 +758,12 @@ class SettingsManager(QtCore.QObject):
                 if settings.value("filter_lang", None) else None
             filter_text = settings.value("filter_text")
 
+            sort_field = SortField(settings.value("sort_field", None)) \
+                if settings.value("sort_field", None) else None
+
+            sort_order = SortOrder(settings.value("sort_order", None)) \
+                if settings.value("sort_order", None) else None
+
             return SearchFilters(
                 collections=collections,
                 start_date=start_date,
@@ -760,6 +774,8 @@ class SettingsManager(QtCore.QObject):
                 advanced_filter=advanced_filter,
                 filter_text=filter_text,
                 filter_lang=filter_lang,
+                sort_field=sort_field,
+                sort_order=sort_order,
             )
 
 

@@ -82,21 +82,22 @@ class Settings(enum.Enum):
 
 class SortField(enum.Enum):
     """ Holds the field value used when sorting items results."""
-    ID = 'name'
-    COLLECTION = 'collection'
-    DATE = 'date'
+    ID = 'ID'
+    COLLECTION = 'COLLECTION'
+    DATE = 'DATE'
 
 
 class SortOrder(enum.Enum):
     """ Holds the ordering value when sorting items results."""
-    ASCENDING = 'ascending'
-    DESCENDING = 'descending'
+    ASCENDING = 'ASCENDING'
+    DESCENDING = 'DESCENDING'
 
 
 class SortOrderPrefix(enum.Enum):
     """ Holds the STAC ordering prefix value when sorting items results."""
     ASCENDING = '+'
     DESCENDING = '-'
+
 
 class GeometryType(enum.Enum):
     """Enum to represent the available geometry types """
@@ -338,3 +339,5 @@ class SearchFilters:
     advanced_filter: bool = False
     filter_lang: FilterLang = FilterLang.CQL_TEXT
     filter_text: str = None
+    sort_field: SortField = None
+    sort_order: SortOrder = SortOrder.ASCENDING
