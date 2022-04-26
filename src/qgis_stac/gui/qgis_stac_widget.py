@@ -24,6 +24,7 @@ from ..api.models import (
     SearchFilters,
     Settings,
     SortField,
+    SortOrder,
 )
 from ..api.client import Client
 
@@ -145,6 +146,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.extent_box.toggled.connect(self.save_filters)
         self.filter_lang_cmb.activated.connect(self.save_filters)
         self.filter_edit.textChanged.connect(self.save_filters)
+        self.sort_cmb.activated.connect(self.save_filters)
+        self.reverse_order_box.toggled.connect(self.save_filters)
 
         self.populate_sorting_field()
 
@@ -162,15 +165,11 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         # setup model for filtering and sorting item results
 
         self.item_model = ItemsModel([])
-        self.items_proxy_model = ItemsSortFilterProxyModel(
-            SortField.ID
-        )
+        self.items_proxy_model = ItemsSortFilterProxyModel()
         self.items_proxy_model.setSourceModel(self.item_model)
         self.items_proxy_model.setDynamicSortFilter(True)
         self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.items_proxy_model.setSortCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
-        self.sort_cmb.activated.connect(self.sort_items)
         self.items_filter.textChanged.connect(self.items_filter_changed)
 
         self.get_filters()
@@ -350,6 +349,14 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         filter_lang = self.filter_lang_cmb.itemData(
             self.filter_lang_cmb.currentIndex()
         ) if self.advanced_box.isChecked() else None
+
+        sort_field = self.sort_cmb.itemData(
+            self.sort_cmb.currentIndex()
+        )
+
+        sort_order = SortOrder.DESCENDING \
+            if self.reverse_order_box.isChecked() else SortOrder.DESCENDING
+
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
@@ -360,6 +367,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 spatial_extent=spatial_extent,
                 filter_text=filter_text,
                 filter_lang=filter_lang,
+                sortby=sort_field,
+                sort_order=sort_order,
             )
         )
         self.search_started.emit()
@@ -650,37 +659,14 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
     def populate_sorting_field(self):
         """" Initializes sorting field combo box list items"""
-        default = SortField.ID
         labels = {
             SortField.ID: tr("Name"),
             SortField.COLLECTION: tr("Collection"),
         }
+        self.sort_cmb.addItem("")
         for ordering_type, item_text in labels.items():
             self.sort_cmb.addItem(item_text, ordering_type)
-        self.sort_cmb.setCurrentIndex(
-            self.sort_cmb.findData(default, role=QtCore.Qt.UserRole)
-        )
-
-    def sort_items(self, index):
-        """ Sort the tree view items based on the current selected sort field
-        in the sort fields combo box
-
-        :param index: Current index of the sort fields list
-        :type index: int
-        """
-        sort_field = self.sort_cmb.itemData(index)
-        self.items_proxy_model.set_sort_field(sort_field)
-        order = QtCore.Qt.AscendingOrder \
-            if not self.reverse_order_box.isChecked() \
-            else QtCore.Qt.DescendingOrder
-        self.items_proxy_model.sort(index, order)
-
-        sorted_data = []
-        for index in range(0, self.items_proxy_model.rowCount()):
-            model_index = self.items_proxy_model.index(index, 0)
-            sorted_data.append(self.items_proxy_model.data(model_index))
-
-        self.populate_results(sorted_data)
+        self.sort_cmb.setCurrentIndex(0)
 
     def get_selected_collections(self, title=False):
         """ Gets the currently selected collections from the collection
@@ -767,6 +753,12 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         )
         collections = collections if isinstance(collections, list) else None
 
+        sort_field = self.sort_cmb.itemData(
+            self.sort_cmb.currentIndex()
+        )
+        sort_order = SortOrder.DESCENDING if self.reverse_order_box.isChecked() \
+            else SortOrder.ASCENDING
+
         filters = SearchFilters(
             collections=collections,
             start_date=(
@@ -784,6 +776,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             advanced_filter=self.advanced_box.isChecked(),
             filter_lang=filter_lang,
             filter_text=self.filter_edit.toPlainText(),
+            sort_field=sort_field,
+            sort_order=sort_order,
         )
         settings_manager.save_search_filters(filters)
 
@@ -826,3 +820,14 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             )
         ) if filters.filter_lang else None
         self.filter_edit.setPlainText(filters.filter_text)
+
+        self.sort_cmb.setCurrentIndex(
+            self.sort_cmb.findData(
+                filters.sort_field,
+                role=QtCore.Qt.UserRole
+            )
+        ) if filters.sort_field else None
+        self.reverse_order_box.setChecked(
+            filters.sort_order == SortOrder.DESCENDING
+        )
+

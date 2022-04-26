@@ -17,12 +17,12 @@ class STACApiClientTest(unittest.TestCase):
 
     def setUp(self):
 
-        app_server = MockSTACApiServer()
+        self.app_server = MockSTACApiServer()
 
-        self.server = Process(target=app_server.run)
+        self.server = Process(target=self.app_server.run)
         self.server.start()
 
-        self.api_client = Client(app_server.url)
+        self.api_client = Client(self.app_server.url)
         self.response = None
 
     def test_resources_fetch(self):
@@ -61,10 +61,10 @@ class STACApiClientTest(unittest.TestCase):
             "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
         )
 
-    # TODO resolve self href error when iterating over collections
+    # TODO resolve self href error from pystac-client lib when iterating over collections
     # def test_collections_search(self):
     #
-    #     api_client = Client(self.server.url)
+    #     api_client = Client(self.app_server.url)
     #     spy = QSignalSpy(api_client.collections_received)
     #     api_client.collections_received.connect(self.app_response)
     #     api_client.get_collections()

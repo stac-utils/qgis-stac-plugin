@@ -82,9 +82,21 @@ class Settings(enum.Enum):
 
 class SortField(enum.Enum):
     """ Holds the field value used when sorting items results."""
-    ID = 'name'
-    COLLECTION = 'collection'
-    DATE = 'date'
+    ID = 'ID'
+    COLLECTION = 'COLLECTION'
+    DATE = 'DATE'
+
+
+class SortOrder(enum.Enum):
+    """ Holds the ordering value when sorting items results."""
+    ASCENDING = 'ASCENDING'
+    DESCENDING = 'DESCENDING'
+
+
+class SortOrderPrefix(enum.Enum):
+    """ Holds the STAC ordering prefix value when sorting items results."""
+    ASCENDING = '+'
+    DESCENDING = '-'
 
 
 class GeometryType(enum.Enum):
@@ -240,6 +252,8 @@ class ItemSearch:
     end_datetime: typing.Optional[QtCore.QDateTime] = None
     filter_text: str = None
     filter_lang: FilterLang = FilterLang.CQL_JSON
+    sortby: str = None
+    sort_order: SortOrder = SortOrder.ASCENDING
 
     def params(self):
         """ Converts the class members into a dictionary that
@@ -280,9 +294,21 @@ class ItemSearch:
             if self.filter_lang else None
 
         filter_text = text \
-            if self.filter_lang in [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
+            if self.filter_lang in \
+               [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
+
+        sort_lang_values = {
+            SortField.ID: 'id',
+            SortField.COLLECTION: 'collection',
+        }
+
+        order_prefix = SortOrderPrefix.ASCENDING.value \
+            if SortOrder.ASCENDING else SortOrderPrefix.DESCENDING.value
+
+        sort_field = f"{order_prefix}{sort_lang_values[self.sortby]}" \
+            if self.sortby else None
 
         parameters = {
             "ids": self.ids,
@@ -292,6 +318,7 @@ class ItemSearch:
             "datetime": datetime_str,
             "filter_lang": filter_lang_text,
             "filter": filter_text,
+            "sortby": sort_field,
             "query": query_text,
         }
 
@@ -312,3 +339,5 @@ class SearchFilters:
     advanced_filter: bool = False
     filter_lang: FilterLang = FilterLang.CQL_TEXT
     filter_text: str = None
+    sort_field: SortField = None
+    sort_order: SortOrder = SortOrder.ASCENDING
