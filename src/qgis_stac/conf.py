@@ -17,6 +17,7 @@ from qgis.core import QgsRectangle, QgsSettings
 
 from .api.models import (
     ApiCapability,
+    Collection,
     FilterLang,
     SearchFilters,
     SortField,
@@ -110,13 +111,9 @@ class ConnectionSettings:
 
 
 @dataclasses.dataclass
-class CollectionSettings:
+class CollectionSettings(Collection):
     """Plugin STAC API collection setting
     """
-
-    collection_id: uuid.UUID
-    title: str
-    id: str
 
     @classmethod
     def from_qgs_settings(
@@ -136,9 +133,16 @@ class CollectionSettings:
         :rtype: CollectionSettings
         """
         return cls(
-            collection_id=uuid.UUID(identifier),
-            title=settings.value("title"),
-            id=settings.value("id")
+            uuid=uuid.UUID(identifier),
+            title=settings.value("title", None),
+            id=settings.value("id", None),
+            description=settings.value("description", None),
+            keywords=settings.value("keywords", None),
+            license=settings.value("license", None),
+            stac_version=settings.value("stac_version", None),
+            links=settings.value("links", None),
+            providers=settings.value("providers", None),
+            extent=settings.value("extent", None)
         )
 
 
@@ -510,7 +514,7 @@ class SettingsManager(QtCore.QObject):
         """
         settings_key = self._get_collection_settings_base(
             connection.id,
-            collection_settings.collection_id
+            collection_settings.uuid
         )
 
         with qgis_settings(settings_key) as settings:
@@ -553,16 +557,16 @@ class SettingsManager(QtCore.QObject):
                 f"{self.COLLECTION_GROUP_NAME}"
         ) \
                 as settings:
-            for collection_id in settings.childGroups():
+            for uuid in settings.childGroups():
                 collection_settings_key = self._get_collection_settings_base(
                     connection_identifier,
-                    collection_id
+                    uuid
                 )
                 with qgis_settings(collection_settings_key) \
                         as collection_settings:
                     result.append(
                         CollectionSettings.from_qgs_settings(
-                            collection_id, collection_settings
+                            uuid, collection_settings
                         )
                     )
         return result
@@ -712,9 +716,16 @@ class SettingsManager(QtCore.QObject):
             self.delete_all_collections(current_connection)
             for collection in filters.collections:
                 collection = CollectionSettings(
-                    collection_id=uuid.uuid4(),
+                    uuid=uuid.uuid4(),
                     id=collection.id,
-                    title=collection.title
+                    title=collection.title,
+                    description=collection.description,
+                    keywords=collection.keywords,
+                    license=collection.license,
+                    stac_version=collection.stac_version,
+                    links=collection.links,
+                    providers=collection.providers,
+                    extent=collection.extent,
                 )
                 self.save_collection(
                     current_connection,
@@ -731,8 +742,23 @@ class SettingsManager(QtCore.QObject):
             end_date = None
             spatial_extent = None
 
-            collections = self.get_collections(current_connection.id) \
+            collections_settings = self.get_collections(current_connection.id) \
                 if current_connection is not None else []
+            collections = []
+
+            for collection in collections_settings:
+                collection_instance = Collection(
+                    id=collection.id,
+                    title=collection.title,
+                    description=collection.description,
+                    keywords=collection.keywords,
+                    license=collection.license,
+                    stac_version=collection.stac_version,
+                    links=collection.links,
+                    providers=collection.providers,
+                    extent=collection.extent,
+                )
+                collections.append(collection_instance)
 
             if settings.value("start_date"):
                 start_date = QtCore.QDateTime.fromString(

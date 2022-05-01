@@ -21,6 +21,7 @@ from .models import (
     ResourceLink,
     ResourcePagination,
     ResourceProperties,
+    ResourceProvider,
     ResourceType,
     SpatialExtent,
     TemporalExtent
@@ -131,20 +132,39 @@ class ContentFetcherTask(QgsTask):
         """
         collections = []
         for collection in collections_response:
+            providers = []
+            for provider in collection.providers:
+                resource_provider = ResourceProvider(
+                    name=provider.name,
+                    description=provider.description,
+                    roles=provider.roles,
+                    url=provider.url
+                )
+                providers.append(resource_provider)
             links = []
             for link in collection.links:
+                link_dict = link.__dict__
+                link_type = link_dict.get('type') \
+                    if 'type' in link_dict.keys() else link_dict.get('media_type')
                 resource_link = ResourceLink(
                     href=link.href,
                     rel=link.rel,
                     title=link.title,
-                    type=link.type
+                    type=link_type
                 )
                 links.append(resource_link)
+            spatial = collection.extent.spatial.__dict__
+            bbox = spatial.get('bbox') \
+                if 'bbox' in spatial.keys() else spatial.get('bboxes')
+
+            temporal = collection.extent.temporal.__dict__
+            interval = temporal.get('interval') \
+                if 'bbox' in spatial.keys() else spatial.get('intervals')
             spatial_extent = SpatialExtent(
-                bbox=collection.bbox
+                bbox=bbox
             )
             temporal_extent = TemporalExtent(
-                interval=collection.interval
+                interval=interval
             )
 
             extent = ResourceExtent(
@@ -158,7 +178,7 @@ class ContentFetcherTask(QgsTask):
                 description=collection.description,
                 keywords=collection.keywords,
                 license=collection.license,
-                stac_version=collection.stac_version,
+                stac_version=None,
                 summaries=collection.summaries,
                 links=links,
                 extent=extent,
