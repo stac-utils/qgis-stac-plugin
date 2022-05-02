@@ -117,7 +117,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.collections_tree.selectionModel().selectionChanged.connect(
             self.display_selected_collection
         )
-        self.selected_collections_la.hide()
 
         self.filter_text.textChanged.connect(self.filter_changed)
 
@@ -497,7 +496,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         """ Shows the current selected collections in the
         targeted label
         """
-        self.selected_collections_la.show()
         collections = self.get_selected_collections(title=True)
 
         self.selected_collections_la.setText(
