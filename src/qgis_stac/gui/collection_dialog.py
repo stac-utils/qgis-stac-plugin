@@ -4,6 +4,8 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 
 from qgis.core import QgsCoordinateReferenceSystem, QgsRectangle
 
+from qgis.utils import iface
+
 
 from qgis.PyQt.uic import loadUiType
 
@@ -55,7 +57,17 @@ class CollectionDialog(QtWidgets.QDialog, DialogUi):
             self.spatialExtentSelector.setOutputCrs(
                 QgsCoordinateReferenceSystem("EPSG:4326")
             )
-            original_extent = QgsRectangle()
+
+            bbox = spatial_extent.bbox[0] \
+                if spatial_extent.bbox and isinstance(spatial_extent.bbox, list) \
+                else None
+
+            original_extent = QgsRectangle(
+                bbox[0],
+                bbox[1],
+                bbox[2],
+                bbox[3]
+            ) if bbox and isinstance(bbox, list) else QgsRectangle()
             self.spatialExtentSelector.setOriginalExtent(
                 original_extent,
                 QgsCoordinateReferenceSystem("EPSG:4326")
