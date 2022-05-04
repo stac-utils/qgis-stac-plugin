@@ -19,6 +19,9 @@ from .api.models import (
     ApiCapability,
     Collection,
     FilterLang,
+    ResourceExtent,
+    ResourceLink,
+    ResourceProvider,
     SearchFilters,
     SortField,
     SortOrder,
@@ -26,16 +29,18 @@ from .api.models import (
 
 
 @contextlib.contextmanager
-def qgis_settings(group_root: str):
+def qgis_settings(group_root: str, settings=QgsSettings()):
     """Context manager to help defining groups when creating QgsSettings.
 
     :param group_root: Name of the root group for the settings.
     :type group_root: str
 
+    :param settings: QGIS settings to use
+    :type settings: QgsSettings
+
     :yields: Instance of the created settings.
     :type: QgsSettings
     """
-    settings = QgsSettings()
     settings.beginGroup(group_root)
     try:
         yield settings
@@ -92,7 +97,7 @@ class ConnectionSettings:
             created_date = datetime.datetime.strptime(
                 settings.value("created_date"),
                 "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
+            ) if settings.value("created_date") is not None else None
             auth_cfg = settings.value("auth_config").strip()
         except AttributeError:
             created_date = datetime.datetime.now()
@@ -132,6 +137,10 @@ class CollectionSettings(Collection):
         :returns: Collection settings object
         :rtype: CollectionSettings
         """
+
+        links = cls.get_collection_links(settings)
+        extent = cls.get_collection_extent(settings)
+        providers = cls.get_collection_providers(settings)
         return cls(
             uuid=uuid.UUID(identifier),
             title=settings.value("title", None),
@@ -140,10 +149,51 @@ class CollectionSettings(Collection):
             keywords=settings.value("keywords", None),
             license=settings.value("license", None),
             stac_version=settings.value("stac_version", None),
-            links=settings.value("links", None),
-            providers=settings.value("providers", None),
-            extent=settings.value("extent", None)
+            links=links,
+            providers=providers,
+            extent=extent
         )
+
+    @classmethod
+    def get_collection_links(cls, collection_settings):
+        links = []
+        key = "links"
+
+        with qgis_settings(key, collection_settings) as settings:
+            link = ResourceLink()
+            link.title = settings.value("title", None)
+            link.href = settings.value("href", None)
+            link.rel = settings.value("rel", None)
+            link.type = settings.value("type", None)
+            links.append(link)
+        return links
+
+    @classmethod
+    def get_collection_extent(cls, collection_settings):
+        extent = ResourceExtent()
+        spatial_key = "extent/spatial"
+        temporal_key = "extent/temporal"
+
+        with qgis_settings(spatial_key, collection_settings) as settings:
+            bbox = settings.value("bbox", None)
+            extent.spatial.bbox = bbox
+        with qgis_settings(temporal_key, collection_settings) as settings:
+            extent.temporal.interval = settings.value("interval", None)
+
+        return extent
+
+    @classmethod
+    def get_collection_providers(cls, collection_settings):
+        providers = []
+
+        with qgis_settings("providers", collection_settings) as settings:
+            provider = ResourceProvider()
+            provider.name = settings.value("name", None)
+            provider.description = settings.value("description", None)
+            provider.roles = settings.value("roles", None)
+            provider.url = settings.value("url", None)
+            providers.append(provider)
+        return providers
 
 
 @dataclasses.dataclass
@@ -520,6 +570,48 @@ class SettingsManager(QtCore.QObject):
         with qgis_settings(settings_key) as settings:
             settings.setValue("title", collection_settings.title)
             settings.setValue("id", collection_settings.id)
+            settings.setValue("description", collection_settings.title)
+            settings.setValue("keywords", collection_settings.keywords)
+            settings.setValue("license", collection_settings.license)
+            settings.setValue("stac_version", collection_settings.stac_version)
+        self.save_collection_links(collection_settings.links, settings_key)
+        self.save_collection_extent(collection_settings.extent, settings_key)
+        self.save_collection_providers(collection_settings.providers, settings_key)
+
+
+    def save_collection_links(self, links, key):
+        for link in links:
+            link_uuid = uuid.uuid4()
+            settings_key = f"{key}/links/{link_uuid}"
+            with qgis_settings(settings_key) as settings:
+                settings.setValue("title", link.title)
+                settings.setValue("href", link.href)
+                settings.setValue("rel", link.rel)
+                settings.setValue("type", link.type)
+
+    def save_collection_providers(self, providers, key):
+        for provider in providers:
+            provider_uuid = uuid.uuid4()
+            settings_key = f"{key}/links/{provider_uuid}"
+            with qgis_settings(settings_key) as settings:
+                settings.setValue("name", provider.name)
+                settings.setValue("description", provider.description)
+                settings.setValue("role", provider.role)
+                settings.setValue("url", provider.url)
+
+
+    def save_collection_extent(self, extent, key):
+        interval = extent.temporal.interval
+        spatial_extent = extent.spatial.bbox
+
+        spatial_key = f"{key}/extent/spatial/"
+        with qgis_settings(spatial_key) as settings:
+            settings.setValue("bbox", spatial_extent)
+
+        temporal_key = f"{key}/extent/temporal/"
+        with qgis_settings(temporal_key) as settings:
+            settings.setValue("interval", interval)
+
 
     def get_collection(self, identifier, connection):
         """ Retrieves the collection with the identifier
