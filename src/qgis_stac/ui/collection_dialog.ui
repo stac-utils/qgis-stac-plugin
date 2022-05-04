@@ -27,7 +27,7 @@
      </property>
      <widget class="QWidget" name="tabIdentificationDialog">
       <attribute name="title">
-       <string>Basic</string>
+       <string>Identification</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
@@ -184,6 +184,9 @@
           <property name="text">
            <string>Keywords</string>
           </property>
+          <property name="toolTip">
+           <string>List of keywords describing the Collection</string>
+          </property>
          </column>
         </widget>
        </item>
@@ -310,7 +313,15 @@
          </attribute>
          <column>
           <property name="text">
-           <string>href</string>
+           <string>Title</string>
+          </property>
+          <property name="toolTip">
+           <string>A readable title to be used in rendered displays of the link.</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Href</string>
           </property>
           <property name="toolTip">
            <string>Type of address, e.g 'postal'</string>
@@ -318,26 +329,18 @@
          </column>
          <column>
           <property name="text">
-           <string>rel</string>
+           <string>Type</string>
           </property>
           <property name="toolTip">
-           <string>Free-form physical address component</string>
+           <string>Media type supplied by the link.</string>
           </property>
          </column>
          <column>
           <property name="text">
-           <string>type</string>
+           <string>Rel</string>
           </property>
           <property name="toolTip">
-           <string>Postal (or ZIP) code</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>title</string>
-          </property>
-          <property name="toolTip">
-           <string>City or locality name</string>
+           <string>he actual link in the format of an URL</string>
           </property>
          </column>
         </widget>
@@ -384,7 +387,7 @@
            <string>Name</string>
           </property>
           <property name="toolTip">
-           <string>Type of address, e.g 'postal'</string>
+           <string>The name of the organization or the individual.</string>
           </property>
          </column>
          <column>
@@ -392,7 +395,7 @@
            <string>Description</string>
           </property>
           <property name="toolTip">
-           <string>Free-form physical address component</string>
+           <string>Multi-line description to add further provider information.</string>
           </property>
          </column>
          <column>
@@ -400,7 +403,7 @@
            <string>Roles</string>
           </property>
           <property name="toolTip">
-           <string>Postal (or ZIP) code</string>
+           <string comment="Roles of the provider. Any of licensor, producer, processor or host.">Postal (or ZIP) code</string>
           </property>
          </column>
          <column>
@@ -408,7 +411,7 @@
            <string>URL</string>
           </property>
           <property name="toolTip">
-           <string>City or locality name</string>
+           <string extracomment="Homepage on which the provider describes the dataset and publishes contact information.">City or locality name</string>
           </property>
          </column>
         </widget>
@@ -438,5 +441,6 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <resources/>
  <connections/>
 </ui>

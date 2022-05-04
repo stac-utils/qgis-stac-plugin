@@ -25,11 +25,13 @@ from .api.models import (
     SearchFilters,
     SortField,
     SortOrder,
+    SpatialExtent,
+    TemporalExtent,
 )
 
 
 @contextlib.contextmanager
-def qgis_settings(group_root: str, settings=QgsSettings()):
+def qgis_settings(group_root: str, settings=None):
     """Context manager to help defining groups when creating QgsSettings.
 
     :param group_root: Name of the root group for the settings.
@@ -41,6 +43,8 @@ def qgis_settings(group_root: str, settings=QgsSettings()):
     :yields: Instance of the created settings.
     :type: QgsSettings
     """
+    if settings is None:
+        settings = QgsSettings()
     settings.beginGroup(group_root)
     try:
         yield settings
@@ -160,25 +164,33 @@ class CollectionSettings(Collection):
         key = "links"
 
         with qgis_settings(key, collection_settings) as settings:
-            link = ResourceLink()
-            link.title = settings.value("title", None)
-            link.href = settings.value("href", None)
-            link.rel = settings.value("rel", None)
-            link.type = settings.value("type", None)
+
+            title = settings.value("title", None)
+            href = settings.value("href", None)
+            rel = settings.value("rel", None)
+            type = settings.value("type", None)
+
+            link = ResourceLink(
+                title=title,
+                href=href,
+                rel=rel,
+                type=type,
+            )
             links.append(link)
         return links
 
     @classmethod
     def get_collection_extent(cls, collection_settings):
-        extent = ResourceExtent()
         spatial_key = "extent/spatial"
         temporal_key = "extent/temporal"
 
         with qgis_settings(spatial_key, collection_settings) as settings:
             bbox = settings.value("bbox", None)
-            extent.spatial.bbox = bbox
+            spatial = SpatialExtent(bbox=bbox)
         with qgis_settings(temporal_key, collection_settings) as settings:
-            extent.temporal.interval = settings.value("interval", None)
+            temporal = TemporalExtent(interval=settings.value("interval", None))
+
+        extent = ResourceExtent(spatial=spatial, temporal=temporal)
 
         return extent
 
@@ -187,11 +199,17 @@ class CollectionSettings(Collection):
         providers = []
 
         with qgis_settings("providers", collection_settings) as settings:
-            provider = ResourceProvider()
-            provider.name = settings.value("name", None)
-            provider.description = settings.value("description", None)
-            provider.roles = settings.value("roles", None)
-            provider.url = settings.value("url", None)
+
+            name = settings.value("name", None)
+            description = settings.value("description", None)
+            roles = settings.value("roles", None)
+            url = settings.value("url", None)
+            provider = ResourceProvider(
+                name=name,
+                description=description,
+                roles=roles,
+                url=url
+            )
             providers.append(provider)
         return providers
 
@@ -570,7 +588,7 @@ class SettingsManager(QtCore.QObject):
         with qgis_settings(settings_key) as settings:
             settings.setValue("title", collection_settings.title)
             settings.setValue("id", collection_settings.id)
-            settings.setValue("description", collection_settings.title)
+            settings.setValue("description", collection_settings.description)
             settings.setValue("keywords", collection_settings.keywords)
             settings.setValue("license", collection_settings.license)
             settings.setValue("stac_version", collection_settings.stac_version)
@@ -580,7 +598,7 @@ class SettingsManager(QtCore.QObject):
 
 
     def save_collection_links(self, links, key):
-        for link in links:
+        for link in links or []:
             link_uuid = uuid.uuid4()
             settings_key = f"{key}/links/{link_uuid}"
             with qgis_settings(settings_key) as settings:
@@ -590,7 +608,7 @@ class SettingsManager(QtCore.QObject):
                 settings.setValue("type", link.type)
 
     def save_collection_providers(self, providers, key):
-        for provider in providers:
+        for provider in providers or []:
             provider_uuid = uuid.uuid4()
             settings_key = f"{key}/links/{provider_uuid}"
             with qgis_settings(settings_key) as settings:

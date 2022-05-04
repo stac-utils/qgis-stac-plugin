@@ -145,7 +145,8 @@ class ContentFetcherTask(QgsTask):
             for link in collection.links:
                 link_dict = link.__dict__
                 link_type = link_dict.get('type') \
-                    if 'type' in link_dict.keys() else link_dict.get('media_type')
+                    if 'type' in link_dict.keys() \
+                    else link_dict.get('media_type')
                 resource_link = ResourceLink(
                     href=link.href,
                     rel=link.rel,
