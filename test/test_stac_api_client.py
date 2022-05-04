@@ -10,7 +10,9 @@ from mock.mock_http_server import MockSTACApiServer
 from qgis.PyQt.QtTest import QSignalSpy
 
 from qgis_stac.api.client import Client
-from qgis_stac.api.models import ItemSearch
+from qgis_stac.api.models import ItemSearch, SortField, SortOrder
+
+from qgis_stac.lib.pystac_client.conformance import ConformanceClasses
 
 
 class STACApiClientTest(unittest.TestCase):
@@ -24,6 +26,7 @@ class STACApiClientTest(unittest.TestCase):
 
         self.api_client = Client(self.app_server.url)
         self.response = None
+        self.error = None
 
     def test_resources_fetch(self):
         # check items searching
@@ -38,9 +41,9 @@ class STACApiClientTest(unittest.TestCase):
 
         items = self.response[0]
 
-        self.assertEqual(len(items), 2)
-        self.assertEqual(items[0].id, "20201211_223832_CS1")
-        self.assertEqual(items[1].id, "20201211_223832_CS2")
+        self.assertEqual(len(items), 4)
+        self.assertEqual(items[0].id, "20201211_223832_CS3")
+        self.assertEqual(items[1].id, "20201211_223832_CS4")
 
         # check conformance fetching
         spy = QSignalSpy(self.api_client.conformance_received)
@@ -61,6 +64,22 @@ class STACApiClientTest(unittest.TestCase):
             "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
         )
 
+    def test_items_sort(self):
+        # check items searching with sorting enabled
+        spy = QSignalSpy(self.api_client.items_received)
+        self.api_client.items_received.connect(self.app_response)
+        self.api_client.get_items(ItemSearch(collections=['simple-collection'], sortby=SortField.ID))
+        result = spy.wait(timeout=1000)
+
+        self.assertTrue(result)
+        self.assertIsNotNone(self.response)
+        self.assertEqual(len(self.response), 2)
+        items = self.response[0]
+
+        self.assertEqual(len(items), 4)
+        self.assertEqual(items[0].id, "20201211_223832_CS1")
+        self.assertEqual(items[1].id, "20201211_223832_CS2")
+
     def test_collections_search(self):
 
         api_client = Client(self.app_server.url)
@@ -80,6 +99,9 @@ class STACApiClientTest(unittest.TestCase):
 
     def app_response(self, *response_args):
         self.response = response_args
+
+    def error_response(self, *response_args):
+        self.error = response_args
 
     def tearDown(self):
         self.server.terminate()

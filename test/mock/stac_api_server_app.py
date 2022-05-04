@@ -36,16 +36,32 @@ def collection(collection_id):
 
 @app.route("/collections/<collection_id>/items")
 def items(collection_id):
+    import logging
+    logging.log(0, "sample collection")
     items_dict = {}
     if collection_id == "simple-collection":
         items_dict = {
             "type": "FeatureCollection",
             "features": []
         }
-        files = [
-            DATA_PATH / "first_item.json",
-            DATA_PATH / "second_item.json"
-        ]
+        sort_params = request.args.get('sortby')
+        sort_requested = sort_params is not None and \
+                         ('id' in sort_params.split(',') or 'id' == sort_params)
+
+        if sort_requested:
+            files = [
+                DATA_PATH / "first_item.json",
+                DATA_PATH / "second_item.json",
+                DATA_PATH / "third_item.json",
+                DATA_PATH / "fourth_item.json",
+            ]
+        else:
+            files = [
+                DATA_PATH / "third_item.json",
+                DATA_PATH / "fourth_item.json",
+                DATA_PATH / "first_item.json",
+                DATA_PATH / "second_item.json",
+            ]
 
         for f in files:
             with f.open() as fl:
@@ -56,7 +72,29 @@ def items(collection_id):
 
 @app.route("/search", methods=['GET', 'POST'])
 def search():
+
+    import logging
+    logging.log(0, "sample")
+
+    # sort_params = request.args.get('sortby')
+    #
+    # sort_requested = sort_params is not None and \
+    #                  ('id' in sort_params.split(',') or 'id' == sort_params)
+    #
+    # if sort_requested:
+    #     search_file = DATA_PATH / "search_sorted.json"
+    # else:
+    #     search_file = DATA_PATH / "search.json"
+
     search_file = DATA_PATH / "search.json"
 
     with search_file.open() as fl:
+        return json.load(fl)
+
+
+@app.route("/conformance", methods=['GET'])
+def conformance():
+    conformance_file = DATA_PATH / "conformance.json"
+
+    with conformance_file.open() as fl:
         return json.load(fl)
