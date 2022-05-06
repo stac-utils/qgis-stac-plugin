@@ -17,9 +17,14 @@ from .models import (
     Item,
     ItemSearch,
     ResourceAsset,
+    ResourceExtent,
+    ResourceLink,
     ResourcePagination,
     ResourceProperties,
+    ResourceProvider,
     ResourceType,
+    SpatialExtent,
+    TemporalExtent
 )
 
 from ..lib import planetary_computer as pc
@@ -127,9 +132,67 @@ class ContentFetcherTask(QgsTask):
         """
         collections = []
         for collection in collections_response:
+            providers = []
+            for provider in collection.providers:
+                resource_provider = ResourceProvider(
+                    name=provider.name,
+                    description=provider.description,
+                    roles=provider.roles,
+                    url=provider.url
+                )
+                providers.append(resource_provider)
+            links = []
+            for link in collection.links:
+                link_dict = vars(link)
+                link_type = link_dict.get('type') \
+                    if 'type' in link_dict.keys() \
+                    else link_dict.get('media_type')
+                resource_link = ResourceLink(
+                    href=link.href,
+                    rel=link.rel,
+                    title=link.title,
+                    type=link_type
+                )
+                links.append(resource_link)
+            spatial = vars(collection.extent.spatial)
+            bbox = spatial.get('bbox') \
+                if 'bbox' in spatial.keys() else spatial.get('bboxes')
+
+            temporal = vars(collection.extent.temporal)
+            interval = temporal.get('interval') \
+                if 'bbox' in spatial.keys() else spatial.get('intervals')
+            spatial_extent = SpatialExtent(
+                bbox=bbox
+            )
+            temporal_extent = TemporalExtent(
+                interval=interval
+            )
+
+            extent = ResourceExtent(
+                spatial=spatial_extent,
+                temporal=temporal_extent
+            )
+
+            # Avoid Attribute error and assign None to properties that are not available
+            collection_dict = vars(collection)
+            id = collection_dict.get('id', None)
+            title = collection_dict.get('title', None)
+            description = collection_dict.get('description', None)
+            keywords = collection_dict.get('keywords', None)
+            license = collection_dict.get('license', None)
+            stac_version = collection_dict.get('stac_version', None)
+            summaries = collection_dict.get('summaries', None)
+
             collection_result = Collection(
-                id=collection.id,
-                title=collection.title
+                id=id,
+                title=title,
+                description=description,
+                keywords=keywords,
+                license=license,
+                stac_version=stac_version,
+                summaries=summaries,
+                links=links,
+                extent=extent,
             )
             collections.append(collection_result)
         return collections

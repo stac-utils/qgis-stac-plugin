@@ -140,12 +140,14 @@ class ResourceAsset:
     roles: typing.List[str]
 
 
+@dataclasses.dataclass
 class ResourceExtent:
     """The STAC API extent"""
     spatial: SpatialExtent
     temporal: TemporalExtent
 
 
+@dataclasses.dataclass
 class ResourceLink:
     """The STAC API link resource"""
     href: str
@@ -178,8 +180,8 @@ class ResourceProvider:
     """
     name: str
     description: str
-    roles: str
-    urls: [str]
+    roles: [str]
+    url: str
 
 
 # TODO Update the geometry coordinates type to include
@@ -206,7 +208,7 @@ class Catalog:
 @dataclasses.dataclass
 class Collection:
     """ Represents the STAC API Collection"""
-    id: int = None
+    id: str = None
     uuid: UUID = None
     title: str = None
     description: str = None
