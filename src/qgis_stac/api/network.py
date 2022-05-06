@@ -143,7 +143,7 @@ class ContentFetcherTask(QgsTask):
                 providers.append(resource_provider)
             links = []
             for link in collection.links:
-                link_dict = link.__dict__
+                link_dict = vars(link)
                 link_type = link_dict.get('type') \
                     if 'type' in link_dict.keys() \
                     else link_dict.get('media_type')
@@ -154,11 +154,11 @@ class ContentFetcherTask(QgsTask):
                     type=link_type
                 )
                 links.append(resource_link)
-            spatial = collection.extent.spatial.__dict__
+            spatial = vars(collection.extent.spatial)
             bbox = spatial.get('bbox') \
                 if 'bbox' in spatial.keys() else spatial.get('bboxes')
 
-            temporal = collection.extent.temporal.__dict__
+            temporal = vars(collection.extent.temporal)
             interval = temporal.get('interval') \
                 if 'bbox' in spatial.keys() else spatial.get('intervals')
             spatial_extent = SpatialExtent(
@@ -173,14 +173,24 @@ class ContentFetcherTask(QgsTask):
                 temporal=temporal_extent
             )
 
+            # Avoid Attribute error and assign None to properties that are not available
+            collection_dict = vars(collection)
+            id = collection_dict.get('id', None)
+            title = collection_dict.get('title', None)
+            description = collection_dict.get('description', None)
+            keywords = collection_dict.get('keywords', None)
+            license = collection_dict.get('license', None)
+            stac_version = collection_dict.get('stac_version', None)
+            summaries = collection_dict.get('summaries', None)
+
             collection_result = Collection(
-                id=collection.id,
-                title=collection.title,
-                description=collection.description,
-                keywords=collection.keywords,
-                license=collection.license,
-                stac_version=None,
-                summaries=collection.summaries,
+                id=id,
+                title=title,
+                description=description,
+                keywords=keywords,
+                license=license,
+                stac_version=stac_version,
+                summaries=summaries,
                 links=links,
                 extent=extent,
             )
