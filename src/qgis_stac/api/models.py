@@ -58,6 +58,7 @@ class AssetLayerType(enum.Enum):
     GEOJSON = 'application/geo+json'
     GEOPACKAGE = 'application/geopackage+sqlite3'
     VECTOR = 'ogr'
+    NETCDF = 'application/netcdf; application/x-netcdf'
 
 
 class Constants(enum.Enum):
