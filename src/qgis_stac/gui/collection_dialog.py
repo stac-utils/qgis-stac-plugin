@@ -15,7 +15,7 @@ DialogUi, _ = loadUiType(
 
 
 class CollectionDialog(QtWidgets.QDialog, DialogUi):
-    """ Dialog for displaying STAC catalog collections details"""
+    """ Dialog for displaying STAC catalog collection details"""
 
     def __init__(
             self,
@@ -44,6 +44,11 @@ class CollectionDialog(QtWidgets.QDialog, DialogUi):
                 self.set_extent(collection.extent)
 
     def populate_keywords(self, keywords):
+        """ Populates the keywords list in the keyword tab
+
+        :param keywords: List of collection keywords
+        :type keywords:  []
+        """
         self.keywords_table.setRowCount(0)
         for keyword in keywords:
             self.keywords_table.insertRow(self.keywords_table.rowCount())
@@ -52,6 +57,11 @@ class CollectionDialog(QtWidgets.QDialog, DialogUi):
             self.keywords_table.setItem(row, 0, item)
 
     def set_extent(self, extent):
+        """ Sets the collection spatial and temporal extents
+
+        :param extent: Instance that contain spatial and temporal extents
+        :type extent: models.Extent
+        """
         spatial_extent = extent.spatial
         if spatial_extent:
             self.spatialExtentSelector.setOutputCrs(
@@ -82,7 +92,11 @@ class CollectionDialog(QtWidgets.QDialog, DialogUi):
             self.to_date.clear()
 
     def set_links(self, links):
+        """ Populates the links list in the link tab
 
+        :param links: List of collection links
+        :type links:  []
+        """
         self.links_table.setRowCount(0)
         for link in links:
             self.links_table.insertRow(self.links_table.rowCount())
@@ -93,7 +107,11 @@ class CollectionDialog(QtWidgets.QDialog, DialogUi):
             self.links_table.item(row, 3, QtWidgets.QTableWidgetItem(link.title))
 
     def set_providers(self, providers):
+        """ Populates the providers list in the providers tab
 
+        :param providers: List of collection providers
+        :type providers:  []
+        """
         self.providers_table.setRowCount(0)
         for provider in providers:
             self.providers_table.insertRow(self.providers_table.rowCount())

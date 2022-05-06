@@ -596,8 +596,16 @@ class SettingsManager(QtCore.QObject):
         self.save_collection_extent(collection_settings.extent, settings_key)
         self.save_collection_providers(collection_settings.providers, settings_key)
 
-
     def save_collection_links(self, links, key):
+        """ Saves the collection links into plugin settings
+        using the provided settings group key.
+
+        :param links: List of collection links
+        :type links: []
+
+        :param key: QgsSettings group key.
+        :type key: str
+        """
         for link in links or []:
             link_uuid = uuid.uuid4()
             settings_key = f"{key}/links/{link_uuid}"
@@ -608,6 +616,15 @@ class SettingsManager(QtCore.QObject):
                 settings.setValue("type", link.type)
 
     def save_collection_providers(self, providers, key):
+        """ Saves the collection provider into plugin settings
+        using the provided settings group key.
+
+        :param links: List of collection providers
+        :type links: []
+
+        :param key: QgsSettings group key.
+        :type key: str
+        """
         for provider in providers or []:
             provider_uuid = uuid.uuid4()
             settings_key = f"{key}/links/{provider_uuid}"
@@ -617,8 +634,16 @@ class SettingsManager(QtCore.QObject):
                 settings.setValue("role", provider.role)
                 settings.setValue("url", provider.url)
 
-
     def save_collection_extent(self, extent, key):
+        """ Saves the collection extent into plugin settings
+        using the provided settings group key.
+
+        :param links: Collection extent
+        :type links: models.Extent
+
+        :param key: QgsSettings group key.
+        :type key: str
+        """
         interval = extent.temporal.interval
         spatial_extent = extent.spatial.bbox
 
@@ -629,7 +654,6 @@ class SettingsManager(QtCore.QObject):
         temporal_key = f"{key}/extent/temporal/"
         with qgis_settings(temporal_key) as settings:
             settings.setValue("interval", interval)
-
 
     def get_collection(self, identifier, connection):
         """ Retrieves the collection with the identifier
