@@ -356,7 +356,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         )
 
         sort_order = SortOrder.DESCENDING \
-            if self.reverse_order_box.isChecked() else SortOrder.DESCENDING
+            if self.reverse_order_box.isChecked() else SortOrder.ASCENDING
 
         self.api_client.get_items(
             ItemSearch(

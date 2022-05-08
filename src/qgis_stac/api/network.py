@@ -85,8 +85,10 @@ class ContentFetcherTask(QgsTask):
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
+                    params = self.search_params.params()
+                    log(f"Searching with params {params}")
                     response = self.client.search(
-                        **self.search_params.params()
+                        **params
                     )
                 else:
                     response = self.client.search()
@@ -207,16 +209,18 @@ class ContentFetcherTask(QgsTask):
         :rtype: list
         """
         self.pagination = ResourcePagination()
+        response_items = []
         count = 1
-        items_generator = response.get_item_collections()
+        items_generator = response.get_items()
         prev_collection = None
         items_collection = None
         page = self.search_params.page \
             if self.search_params else Constants.PAGE_SIZE
         while True:
             try:
-                collection = next(items_generator)
+                item = next(items_generator)
                 prev_collection = collection
+                response_items.append(collection)
                 if page == count:
                     items_collection = collection
                     break
@@ -225,10 +229,11 @@ class ContentFetcherTask(QgsTask):
                 self.pagination.total_pages = count
                 items_collection = prev_collection
                 break
-        items = self.get_items_list(items_collection)
+        items = self.get_items_list(response_items=items_collection)
         return items
 
-    def get_items_list(self, items_collection):
+
+    def get_items_list(self, items_collection=None, response_items=None):
         """ Gets and prepares the items list from the
         pystac-client Collection generator
 
@@ -240,7 +245,8 @@ class ContentFetcherTask(QgsTask):
         """
         items = []
         properties = None
-        items_list = items_collection.items if items_collection else []
+        items_list = items_collection.items \
+            if items_collection else response_items
         for item in items_list:
             # For APIs that support usage of SAS token we sign the whole item
             # so that the item assets can be accessed.
