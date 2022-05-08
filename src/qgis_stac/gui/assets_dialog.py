@@ -190,15 +190,20 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """
 
         assert_type = asset.type
-        types = {
-            QgsMapLayer.RasterLayer: [AssetLayerType.COG, AssetLayerType.GEOTIFF],
-            QgsMapLayer.VectorLayer: [AssetLayerType.GEOJSON, AssetLayerType.GEOPACKAGE]
-        }
-        if assert_type in AssetLayerType.COG.value or \
-            assert_type in AssetLayerType.GEOTIFF.value:
+        raster_types = ','.join([
+            AssetLayerType.COG.value,
+            AssetLayerType.GEOTIFF.value,
+            AssetLayerType.NETCDF.value,
+            AssetLayerType.X_NETCDF.value
+        ])
+        vector_types = ','.join([
+            AssetLayerType.GEOJSON.value,
+            AssetLayerType.GEOPACKAGE.value
+        ])
+
+        if assert_type in raster_types:
             layer_type = QgsMapLayer.RasterLayer
-        elif assert_type in AssetLayerType.GEOJSON.value or \
-            assert_type in AssetLayerType.GEOPACKAGE.value:
+        elif assert_type in vector_types:
             layer_type = QgsMapLayer.VectorLayer
 
         if AssetLayerType.COG.value in assert_type:
