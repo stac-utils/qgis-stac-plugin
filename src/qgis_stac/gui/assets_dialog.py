@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 from osgeo import ogr
 
+from functools import partial
+
 from qgis import processing
 
 from qgis.PyQt import QtCore, QtGui, QtWidgets
@@ -169,6 +171,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.download_result["file"] = output
 
         params = {'URL': url, 'OUTPUT': output}
+
         try:
             self.main_widget.show_message(
                 tr("Download for file {} to {} has started."
@@ -217,7 +220,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
 
     def clean_filename(self, filename):
-        """ Create a safe filename by removing operating system
+        """ Creates a safe filename by removing operating system
         invalid filename characters.
 
         :param filename: File name
