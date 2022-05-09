@@ -167,10 +167,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         output = os.path.join(
             item_folder, title
         ) if item_folder else QgsProcessing.TEMPORARY_OUTPUT
+        params = {'URL': url, 'OUTPUT': output}
 
         self.download_result["file"] = output
-
-        params = {'URL': url, 'OUTPUT': output}
 
         try:
             self.main_widget.show_message(
@@ -248,6 +247,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
             AssetLayerType.NETCDF.value,
+            AssetLayerType.X_NETCDF.value
         ])
         vector_types = ','.join([
             AssetLayerType.GEOJSON.value,

@@ -63,7 +63,6 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         self.load_btn.clicked.connect(load_asset)
         self.download_btn.clicked.connect(download_asset)
 
-
         if self.asset.type not in layer_types:
             self.load_btn.setToolTip(
                 tr("Asset contains a {} media type which"
