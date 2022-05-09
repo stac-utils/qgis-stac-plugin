@@ -10,12 +10,17 @@ from osgeo import ogr
 
 from qgis import processing
 
+from qgis.PyQt import QtCore, QtGui, QtWidgets
+from qgis.PyQt.uic import loadUiType
+
 from qgis.core import (
     Qgis,
     QgsApplication,
     QgsMapLayer,
     QgsNetworkContentFetcherTask,
     QgsProject,
+    QgsProcessing,
+    QgsProcessingFeedback,
     QgsRasterLayer,
     QgsTask,
     QgsVectorLayer,
@@ -28,12 +33,6 @@ from ..api.models import (
     AssetLayerType,
     Settings,
 )
-
-from qgis.PyQt import QtCore, QtGui, QtWidgets
-
-from qgis.core import Qgis
-
-from qgis.PyQt.uic import loadUiType
 
 from ..conf import (
     settings_manager
@@ -75,6 +74,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.parent = parent
         self.main_widget = main_widget
         self.cog_string = '/vsicurl/'
+        self.download_result = {}
 
         self.prepare_assets()
 
@@ -136,6 +136,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         )
         item_folder = os.path.join(download_folder, self.item.id) \
             if download_folder else None
+        feedback = QgsProcessingFeedback()
         try:
             if item_folder:
                 os.mkdir(item_folder)
@@ -159,27 +160,77 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         extension_suffix = extension.split('?')[0] if extension else ""
         title = f"{asset.title}{extension_suffix}"
 
+        title = self.clean_filename(title)
+
         output = os.path.join(
             item_folder, title
-        ) if item_folder else None
-        params = {'URL': url, 'OUTPUT': output} \
-            if item_folder else \
-            {'URL': url}
+        ) if item_folder else QgsProcessing.TEMPORARY_OUTPUT
+
+        self.download_result["file"] = output
+
+        params = {'URL': url, 'OUTPUT': output}
         try:
             self.main_widget.show_message(
                 tr("Download for file {} to {} has started."
-                   "View Processing log for the download progress"
                    ).format(
                     title,
                     item_folder
                 ),
                 level=Qgis.Info
             )
-            processing.run("qgis:filedownloader", params)
+            self.main_widget.show_progress(
+                f"Downloading {url}",
+                minimum=0,
+                maximum=100,
+            )
+
+            feedback.progressChanged.connect(
+                self.main_widget.update_progress_bar
+            )
+            feedback.progressChanged.connect(self.download_progress)
+
+            processing.run(
+                "qgis:filedownloader",
+                params,
+                feedback=feedback
+            )
+
         except Exception as e:
             self.main_widget.show_message(
                 tr("Error in downloading file, {}").format(str(e))
             )
+
+    def download_progress(self, value):
+        """Tracks the download progress of value and updates
+        the info message when the download has finished
+
+        :param value: Download progress value
+        :type value: int
+        """
+        if value == 100:
+            self.main_widget.show_message(
+                tr("Download for file {} has finished."
+                   ).format(
+                    self.download_result["file"]
+                ),
+                level=Qgis.Info
+            )
+
+    def clean_filename(self, filename):
+        """ Create a safe filename by removing operating system
+        invalid filename characters.
+
+        :param filename: File name
+        :type filename: str
+        """
+        characters = " %:/,.\[]<>*?"
+
+        for character in characters:
+            if character in filename:
+                filename = filename.replace(character, '_')
+
+        return filename
+
 
     def load_asset(self, asset):
         """ Loads asset into QGIS.
@@ -194,7 +245,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
             AssetLayerType.NETCDF.value,
-            AssetLayerType.X_NETCDF.value
         ])
         vector_types = ','.join([
             AssetLayerType.GEOJSON.value,
