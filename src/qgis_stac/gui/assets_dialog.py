@@ -128,7 +128,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.parent.update_inputs(enabled)
 
     def download_asset(self, asset, load_asset=False):
-        """ Downloads asset into directory defined in the plugin settings.
+        """ Downloads the passed asset into directory defined in the plugin settings.
 
         :param asset: Item asset
         :type asset: models.ResourceAsset
@@ -199,12 +199,13 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
             feedback.progressChanged.connect(self.download_progress)
 
-            # After asset download has finished load the asset
-            # if it can be loaded as QGIS map layer.
+            # After asset download has finished, load the asset
+            # if it can be loaded as a QGIS map layer.
             if load_asset and asset.type in layer_types:
                 asset.href = self.download_result["file"]
                 asset.title = title
-                asset.type = AssetLayerType.GEOTIFF.value
+                asset.type = AssetLayerType.GEOTIFF.value \
+                    if AssetLayerType.COG.value in asset.type else asset.type
                 load_file = partial(self.load_file_asset, asset)
                 feedback.progressChanged.connect(load_file)
 
@@ -220,7 +221,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
 
     def load_file_asset(self, asset, value):
-        """Loads the asset file into QGIS map canvas
+        """Loads the passed asset into QGIS map canvas if the
+        progress value indicates the download has finished.
+
         param asset: Item asset
         :type asset: models.ResourceAsset
 
