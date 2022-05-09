@@ -48,6 +48,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         layer_types = [
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
+            AssetLayerType.NETCDF.value,
         ]
 
         self.title_la.setText(self.asset.title)
@@ -57,7 +58,8 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         )
         download_asset = partial(
             self.asset_dialog.download_asset,
-            self.asset
+            self.asset,
+            True
         )
         self.load_btn.setEnabled(self.asset.type in layer_types)
         self.load_btn.clicked.connect(load_asset)

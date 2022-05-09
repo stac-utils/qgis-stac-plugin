@@ -177,6 +177,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         layer_types = [
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
+            AssetLayerType.NETCDF.value,
         ]
         try:
             self.main_widget.show_message(
@@ -200,12 +201,12 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
             # After asset download has finished load the asset
             # if it can be loaded as QGIS map layer.
-            if load_asset and self.asset.type in layer_types:
-                self.asset.href = self.download_result["file"]
-                self.asset.title = title
+            if load_asset and asset.type in layer_types:
+                asset.href = self.download_result["file"]
+                asset.title = title
+                asset.type = AssetLayerType.GEOTIFF.value
                 load_file = partial(self.load_file_asset, asset)
                 feedback.progressChanged.connect(load_file)
-
 
             processing.run(
                 "qgis:filedownloader",
@@ -252,7 +253,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :param filename: File name
         :type filename: str
         """
-        characters = " %:/,.\[]<>*?"
+        characters = " %:/,\[]<>*?"
 
         for character in characters:
             if character in filename:
@@ -273,8 +274,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         raster_types = ','.join([
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
-            AssetLayerType.NETCDF.value,
-            AssetLayerType.X_NETCDF.value
+            AssetLayerType.NETCDF.value
         ])
         vector_types = ','.join([
             AssetLayerType.GEOJSON.value,
