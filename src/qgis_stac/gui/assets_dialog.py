@@ -127,11 +127,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.scroll_area.setEnabled(enabled)
         self.parent.update_inputs(enabled)
 
-    def download_asset(self, asset):
-        """ Download asset into directory defined in the plugin settings.
+    def download_asset(self, asset, load_asset=False):
+        """ Downloads asset into directory defined in the plugin settings.
 
         :param asset: Item asset
         :type asset: models.ResourceAsset
+
+        :param load_asset: Whether to load an asset after download has finished.
+        :type load_asset: bool
         """
         download_folder = settings_manager.get_value(
             Settings.DOWNLOAD_FOLDER
@@ -171,6 +174,10 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         self.download_result["file"] = output
 
+        layer_types = [
+            AssetLayerType.COG.value,
+            AssetLayerType.GEOTIFF.value,
+        ]
         try:
             self.main_widget.show_message(
                 tr("Download for file {} to {} has started."
@@ -191,6 +198,15 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
             feedback.progressChanged.connect(self.download_progress)
 
+            # After asset download has finished load the asset
+            # if it can be loaded as QGIS map layer.
+            if load_asset and self.asset.type in layer_types:
+                self.asset.href = self.download_result["file"]
+                self.asset.title = title
+                load_file = partial(self.load_file_asset, asset)
+                feedback.progressChanged.connect(load_file)
+
+
             processing.run(
                 "qgis:filedownloader",
                 params,
@@ -201,6 +217,17 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             self.main_widget.show_message(
                 tr("Error in downloading file, {}").format(str(e))
             )
+
+    def load_file_asset(self, asset, value):
+        """Loads the asset file into QGIS map canvas
+        param asset: Item asset
+        :type asset: models.ResourceAsset
+
+        :param value: Download progress value
+        :type value: int
+        """
+        if value == 100:
+            self.load_asset(asset)
 
     def download_progress(self, value):
         """Tracks the download progress of value and updates
