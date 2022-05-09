@@ -127,11 +127,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.scroll_area.setEnabled(enabled)
         self.parent.update_inputs(enabled)
 
-    def download_asset(self, asset):
-        """ Download asset into directory defined in the plugin settings.
+    def download_asset(self, asset, load_asset=False):
+        """ Downloads the passed asset into directory defined in the plugin settings.
 
         :param asset: Item asset
         :type asset: models.ResourceAsset
+
+        :param load_asset: Whether to load an asset after download has finished.
+        :type load_asset: bool
         """
         download_folder = settings_manager.get_value(
             Settings.DOWNLOAD_FOLDER
@@ -171,6 +174,11 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         self.download_result["file"] = output
 
+        layer_types = [
+            AssetLayerType.COG.value,
+            AssetLayerType.GEOTIFF.value,
+            AssetLayerType.NETCDF.value,
+        ]
         try:
             self.main_widget.show_message(
                 tr("Download for file {} to {} has started."
@@ -191,6 +199,16 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
             feedback.progressChanged.connect(self.download_progress)
 
+            # After asset download has finished, load the asset
+            # if it can be loaded as a QGIS map layer.
+            if load_asset and asset.type in layer_types:
+                asset.href = self.download_result["file"]
+                asset.title = title
+                asset.type = AssetLayerType.GEOTIFF.value \
+                    if AssetLayerType.COG.value in asset.type else asset.type
+                load_file = partial(self.load_file_asset, asset)
+                feedback.progressChanged.connect(load_file)
+
             processing.run(
                 "qgis:filedownloader",
                 params,
@@ -201,6 +219,19 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             self.main_widget.show_message(
                 tr("Error in downloading file, {}").format(str(e))
             )
+
+    def load_file_asset(self, asset, value):
+        """Loads the passed asset into QGIS map canvas if the
+        progress value indicates the download has finished.
+
+        param asset: Item asset
+        :type asset: models.ResourceAsset
+
+        :param value: Download progress value
+        :type value: int
+        """
+        if value == 100:
+            self.load_asset(asset)
 
     def download_progress(self, value):
         """Tracks the download progress of value and updates
@@ -225,7 +256,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :param filename: File name
         :type filename: str
         """
-        characters = " %:/,.\[]<>*?"
+        characters = " %:/,\[]<>*?"
 
         for character in characters:
             if character in filename:
@@ -246,8 +277,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         raster_types = ','.join([
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
-            AssetLayerType.NETCDF.value,
-            AssetLayerType.X_NETCDF.value
+            AssetLayerType.NETCDF.value
         ])
         vector_types = ','.join([
             AssetLayerType.GEOJSON.value,

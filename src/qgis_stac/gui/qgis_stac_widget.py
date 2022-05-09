@@ -746,7 +746,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             self.show_message(
                 tr(
                     'Download folder has not been set, '
-                   'a system temporary folder will be used'
+                    'a system temporary folder will be used'
                    ),
                 level=Qgis.Warning
             )
