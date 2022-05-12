@@ -255,7 +255,7 @@ class ItemSearch:
     end_datetime: typing.Optional[QtCore.QDateTime] = None
     filter_text: str = None
     filter_lang: FilterLang = FilterLang.CQL_JSON
-    sortby: str = None
+    sortby: SortField = None
     sort_order: SortOrder = SortOrder.ASCENDING
 
     def params(self):
@@ -307,11 +307,17 @@ class ItemSearch:
             SortField.COLLECTION: 'collection',
         }
 
-        order_prefix = SortOrderPrefix.ASCENDING.value \
-            if SortOrder.ASCENDING else SortOrderPrefix.DESCENDING.value
+        field = sort_lang_values[self.sortby] if self.sortby else None
 
-        sort_field = f"{order_prefix}{sort_lang_values[self.sortby]}" \
-            if self.sortby else None
+        order = 'asc' \
+            if self.sort_order == SortOrder.ASCENDING else 'desc'
+
+        sort_load = [
+            {
+                'field': field,
+                'direction': order,
+            }
+        ] if self.sortby else []
 
         parameters = {
             "ids": self.ids,
@@ -321,9 +327,11 @@ class ItemSearch:
             "datetime": datetime_str,
             "filter_lang": filter_lang_text,
             "filter": filter_text,
-            "sortby": sort_field,
             "query": query_text,
         }
+
+        if self.sortby:
+            parameters["sortby"] = sort_load
 
         return parameters
 
