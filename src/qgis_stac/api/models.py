@@ -309,7 +309,7 @@ class ItemSearch:
         field = sort_lang_values[self.sortby] if self.sortby else None
 
         order = 'asc' \
-            if SortOrder.ASCENDING else 'desc'
+            if self.sort_order == SortOrder.ASCENDING else 'desc'
 
         sort_load = [
             {
