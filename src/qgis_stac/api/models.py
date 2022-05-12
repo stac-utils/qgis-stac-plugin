@@ -326,9 +326,11 @@ class ItemSearch:
             "datetime": datetime_str,
             "filter_lang": filter_lang_text,
             "filter": filter_text,
-            "sortby": sort_load,
             "query": query_text,
         }
+
+        if self.sortby:
+            parameters["sortby"] = sort_load
 
         return parameters
 
