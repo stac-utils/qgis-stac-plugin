@@ -150,7 +150,6 @@ class ItemSearch:
                  url: str,
                  *,
                  limit: Optional[int] = 100,
-                 page: Optional[int] = 1,
                  bbox: Optional[BBoxLike] = None,
                  datetime: Optional[DatetimeLike] = None,
                  intersects: Optional[IntersectsLike] = None,
@@ -185,7 +184,6 @@ class ItemSearch:
 
         params = {
             'limit': limit,
-            'page': page,
             'bbox': self._format_bbox(bbox),
             'datetime': self._format_datetime(datetime),
             'ids': self._format_ids(ids),
