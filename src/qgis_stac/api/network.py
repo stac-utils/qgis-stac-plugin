@@ -76,7 +76,6 @@ class ContentFetcherTask(QgsTask):
     def run(self):
         """
         Runs the main task operation in the background.
-
         :returns: Whether the task completed successfully
         :rtype: bool
         """
@@ -85,10 +84,8 @@ class ContentFetcherTask(QgsTask):
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
-                    params = self.search_params.params()
-                    log(f"Searching with params {params}")
                     response = self.client.search(
-                        **params
+                        **self.search_params.params()
                     )
                 else:
                     response = self.client.search()
@@ -125,10 +122,8 @@ class ContentFetcherTask(QgsTask):
             collections_response
     ):
         """ Prepares the collections results
-
         :param collections_response: Collection generator
         :type collections_response: pystac_client.CollectionClient
-
         :returns: List of collections
         :rtype: list
         """
@@ -201,53 +196,44 @@ class ContentFetcherTask(QgsTask):
 
     def prepare_items_results(self, response):
         """ Prepares the search items results
-
         :param response: Fetched response from the pystac-client library
         :type response: pystac_client.ItemSearch
-
         :returns: Collection of items in a list
         :rtype: list
         """
         self.pagination = ResourcePagination()
-        response_items = []
         count = 1
-        items_generator = response.get_items()
+        items_generator = response.get_item_collections()
         prev_collection = None
         items_collection = None
         page = self.search_params.page \
             if self.search_params else Constants.PAGE_SIZE
-        while True:
-            try:
-                item = next(items_generator)
-                prev_collection = collection
-                response_items.append(collection)
-                if page == count:
-                    items_collection = collection
-                    break
-                count += 1
-            except StopIteration:
-                self.pagination.total_pages = count
-                items_collection = prev_collection
-                break
-        items = self.get_items_list(response_items=items_collection)
+        # while True:
+        #     try:
+        #         collection = next(items_generator)
+        #         prev_collection = collection
+        #         if page == count:
+        #             items_collection = collection
+        #             break
+        #         count += 1
+        #     except StopIteration:
+        #         self.pagination.total_pages = count
+        #         items_collection = prev_collection
+        #         break
+        items = self.get_items_list(response)
         return items
 
-
-    def get_items_list(self, items_collection=None, response_items=None):
+    def get_items_list(self, items_collection):
         """ Gets and prepares the items list from the
         pystac-client Collection generator
-
         :param items_collection: The STAC item collection generator
         :type items_collection: pystac_client.CollectionClient
-
         :returns: List of items
         :rtype: models.Item
         """
         items = []
         properties = None
-        items_list = items_collection.items \
-            if items_collection else response_items
-        for item in items_list:
+        for item in items_collection.get_items():
             # For APIs that support usage of SAS token we sign the whole item
             # so that the item assets can be accessed.
             if self.api_capability == ApiCapability.SUPPORT_SAS_TOKEN:
@@ -290,10 +276,8 @@ class ContentFetcherTask(QgsTask):
 
     def prepare_conformance_results(self, conformance):
         """ Prepares the fetched conformance classes
-
         :param conformance: Fetched list of the conformance classes  API
         :type conformance: list
-
         :returns: Conformance classes settings instance list
         :rtype: list
         """
@@ -314,7 +298,6 @@ class ContentFetcherTask(QgsTask):
         """
         Called after the task run() completes either successfully
         or upon early termination.
-
         :param result: Whether task completed with success
         :type result: bool
         """
