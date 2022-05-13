@@ -300,6 +300,13 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 current_index = self.connections_box. \
                     findText(current_connection.name)
                 self.connections_box.setCurrentIndex(current_index)
+                # Update the collections view to show the current connection
+                # collections
+                collections = settings_manager.get_collections(
+                    current_connection.id
+                )
+                self.model.removeRows(0, self.model.rowCount())
+                self.load_collections(collections)
             else:
                 self.connections_box.setCurrentIndex(0)
 
