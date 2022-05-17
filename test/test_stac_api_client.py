@@ -61,23 +61,22 @@ class STACApiClientTest(unittest.TestCase):
             "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
         )
 
-    # TODO resolve self href error from pystac-client lib when iterating over collections
-    # def test_collections_search(self):
-    #
-    #     api_client = Client(self.app_server.url)
-    #     spy = QSignalSpy(api_client.collections_received)
-    #     api_client.collections_received.connect(self.app_response)
-    #     api_client.get_collections()
-    #     result = spy.wait(timeout=1000)
-    #
-    #     self.assertTrue(result)
-    #     self.assertIsNotNone(self.response)
-    #     self.assertEqual(len(self.response), 2)
-    #     collections = self.response[0]
-    #
-    #     self.assertEqual(len(collections), 1)
-    #     self.assertEqual(collections[0].id, "simple-collection")
-    #     self.assertEqual(collections[0].title, "Simple Example Collection")
+    def test_collections_search(self):
+
+        api_client = Client(self.app_server.url)
+        spy = QSignalSpy(api_client.collections_received)
+        api_client.collections_received.connect(self.app_response)
+        api_client.get_collections()
+        result = spy.wait(timeout=1000)
+
+        self.assertTrue(result)
+        self.assertIsNotNone(self.response)
+        self.assertEqual(len(self.response), 2)
+        collections = self.response[0]
+
+        self.assertEqual(len(collections), 1)
+        self.assertEqual(collections[0].id, "simple-collection")
+        self.assertEqual(collections[0].title, "Simple Example Collection")
 
     def app_response(self, *response_args):
         self.response = response_args
