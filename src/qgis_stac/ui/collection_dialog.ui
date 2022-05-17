@@ -32,32 +32,6 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <layout class="QGridLayout" name="gridLayout_5">
-         <item row="4" column="1">
-          <widget class="QTextEdit" name="description_le">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string>Detailed multi-line description to fully explain the collection.</string>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_8">
-           <property name="toolTip">
-            <string>Detailed multi-line description to fully explain the collection.</string>
-           </property>
-           <property name="text">
-            <string>Description</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_5">
            <property name="toolTip">
@@ -68,23 +42,10 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="toolTip">
-            <string>A short descriptive one-line title for the collection.</string>
-           </property>
-           <property name="text">
-            <string>Title</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="toolTip">
-            <string>The STAC version the collection implements.</string>
-           </property>
+          <widget class="QLabel" name="license_la">
            <property name="text">
-            <string>STAC version</string>
+            <string>License</string>
            </property>
           </widget>
          </item>
@@ -104,6 +65,33 @@
            </property>
           </widget>
          </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_8">
+           <property name="toolTip">
+            <string>Detailed multi-line description to fully explain the collection.</string>
+           </property>
+           <property name="text">
+            <string>Description</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="license_le">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="toolTip">
+            <string>A short descriptive one-line title for the collection.</string>
+           </property>
+           <property name="text">
+            <string>Title</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="1">
           <widget class="QLineEdit" name="id_le">
            <property name="toolTip">
@@ -114,31 +102,17 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="stac_version_le">
+         <item row="3" column="1">
+          <widget class="QTextEdit" name="description_le">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>The STAC version the collection implements.</string>
+            <string>Detailed multi-line description to fully explain the collection.</string>
            </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="license_la">
-           <property name="text">
-            <string>License</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="license_le">
            <property name="readOnly">
             <bool>true</bool>
            </property>
