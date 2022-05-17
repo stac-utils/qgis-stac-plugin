@@ -44,12 +44,13 @@ def items(collection_id):
             "features": []
         }
         sort_requested = False
-        sort_params = None
 
-        if request.method == 'POST' and request.form.get('sortby'):
-            sort_params = request.form.get('sortby')
-            sort_requested = sort_params is not None and \
-                             ('field' in sort_params.keys() and sort_params['order'] == 'asc')
+        if request.method == 'POST':
+            sort_params = request.json.get('sortby')
+            sort_requested = sort_params is not None and (
+                    sort_params[0].get('field') == 'id' and
+                    sort_params[0].get('direction') == 'asc'
+            )
 
         if sort_requested:
             files = [

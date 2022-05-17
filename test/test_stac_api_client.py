@@ -3,7 +3,7 @@
 
 """
 import unittest
-import re
+import logging
 
 from multiprocessing import Process
 
@@ -123,6 +123,7 @@ class STACApiClientTest(unittest.TestCase):
 
     def error_response(self, *response_args):
         self.error = response_args
+        logging(0, self.error)
 
     def tearDown(self):
         self.server.terminate()
