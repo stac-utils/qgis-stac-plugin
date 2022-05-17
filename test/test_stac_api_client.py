@@ -13,9 +13,6 @@ from qgis.PyQt.QtTest import QSignalSpy
 from qgis_stac.api.client import Client
 from qgis_stac.api.models import ItemSearch, SortField, SortOrder
 
-from qgis_stac.lib.pystac_client.conformance import ConformanceClasses, CONFORMANCE_URIS
-from qgis_stac.lib.pystac_client import Client as STACClient
-
 
 class STACApiClientTest(unittest.TestCase):
 
@@ -120,26 +117,6 @@ class STACApiClientTest(unittest.TestCase):
         conformances = self.response[0]
 
         self.assertEqual(len(conformances), 16)
-
-    def conforms_to(self, conformance_class: ConformanceClasses) -> bool:
-        stac_client = STACClient.open(self.app_server.url)
-
-        if stac_client._stac_io._conformance is None:
-            return True
-
-        class_regex = CONFORMANCE_URIS.get(conformance_class.name, None)
-
-        if class_regex is None:
-            raise Exception(f"Invalid conformance class {conformance_class}")
-
-        pattern = re.compile(class_regex)
-        print("Pattern")
-        print(pattern)
-
-        if not any(re.match(pattern, uri) for uri in stac_client._stac_io._conformance):
-            return False
-
-        return True
 
     def app_response(self, *response_args):
         self.response = response_args
