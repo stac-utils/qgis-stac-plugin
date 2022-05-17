@@ -1,4 +1,5 @@
 import json
+import sys
 
 from pathlib import Path
 
@@ -34,7 +35,7 @@ def collection(collection_id):
             return json.load(fl)
 
 
-@app.route("/collections/<collection_id>/items")
+@app.route("/collections/<collection_id>/items", methods=['GET', 'POST'])
 def items(collection_id):
     items_dict = {}
     if collection_id == "simple-collection":
@@ -42,10 +43,29 @@ def items(collection_id):
             "type": "FeatureCollection",
             "features": []
         }
-        files = [
-            DATA_PATH / "first_item.json",
-            DATA_PATH / "second_item.json"
-        ]
+        sort_requested = False
+
+        if request.method == 'POST':
+            sort_params = request.json.get('sortby')
+            sort_requested = sort_params is not None and (
+                    sort_params[0].get('field') == 'id' and
+                    sort_params[0].get('direction') == 'asc'
+            )
+
+        if sort_requested:
+            files = [
+                DATA_PATH / "first_item.json",
+                DATA_PATH / "second_item.json",
+                DATA_PATH / "third_item.json",
+                DATA_PATH / "fourth_item.json",
+            ]
+        else:
+            files = [
+                DATA_PATH / "third_item.json",
+                DATA_PATH / "fourth_item.json",
+                DATA_PATH / "first_item.json",
+                DATA_PATH / "second_item.json",
+            ]
 
         for f in files:
             with f.open() as fl:
@@ -56,7 +76,26 @@ def items(collection_id):
 
 @app.route("/search", methods=['GET', 'POST'])
 def search():
-    search_file = DATA_PATH / "search.json"
+    sort_requested = False
+
+    if request.method == 'POST':
+        sort_params = request.json.get('sortby')
+        sort_requested = sort_params is not None and (
+                sort_params[0].get('field') == 'id' and
+                sort_params[0].get('direction') == 'asc'
+        )
+    if sort_requested:
+        search_file = DATA_PATH / "search_sorted.json"
+    else:
+        search_file = DATA_PATH / "search.json"
 
     with search_file.open() as fl:
+        return json.load(fl)
+
+
+@app.route("/conformance", methods=['GET'])
+def conformance():
+    conformance_file = DATA_PATH / "conformance.json"
+
+    with conformance_file.open() as fl:
         return json.load(fl)

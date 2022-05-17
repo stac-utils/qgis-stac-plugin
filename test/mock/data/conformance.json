@@ -1,0 +1,20 @@
+{
+  "conformsTo": [
+    "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
+    "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson",
+    "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30",
+    "http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30",
+    "https://api.stacspec.org/v1.0.0-beta.3/core",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#filter",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#filter:basic-spatial-operators",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#filter:basic-temporal-operators",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#filter:cql-json",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#filter:filter",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#filter:item-search-filter",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#fields",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#query",
+    "https://api.stacspec.org/v1.0.0-beta.3/item-search#sort",
+    "https://api.stacspec.org/v1.0.0-beta.3/ogcapi-features"
+  ]
+}
