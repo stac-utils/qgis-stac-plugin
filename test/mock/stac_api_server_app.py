@@ -1,4 +1,5 @@
 import json
+import sys
 
 from pathlib import Path
 
@@ -34,19 +35,22 @@ def collection(collection_id):
             return json.load(fl)
 
 
-@app.route("/collections/<collection_id>/items")
+@app.route("/collections/<collection_id>/items", methods=['GET', 'POST'])
 def items(collection_id):
-    import logging
-    logging.log(0, "sample collection")
+
     items_dict = {}
     if collection_id == "simple-collection":
         items_dict = {
             "type": "FeatureCollection",
             "features": []
         }
-        sort_params = request.args.get('sortby')
-        sort_requested = sort_params is not None and \
-                         ('id' in sort_params.split(',') or 'id' == sort_params)
+        sort_requested = False
+        sort_params = None
+
+        if request.method == 'POST' and request.form.get('sortby'):
+            sort_params = request.form.get('sortby')
+            sort_requested = sort_params is not None and \
+                             ('field' in sort_params.keys() and sort_params['order'] == 'asc')
 
         if sort_requested:
             files = [
@@ -72,21 +76,20 @@ def items(collection_id):
 
 @app.route("/search", methods=['GET', 'POST'])
 def search():
+    sort_requested = False
+    sort_params = None
 
-    import logging
-    logging.log(0, "sample")
+    if request.method == 'POST' and request.form.get('sortby'):
+        sort_params = request.form.get('sortby')
+        sort_requested = sort_params is not None and \
+                         ('field' in sort_params.keys() and sort_params['order'] == 'asc')
 
-    # sort_params = request.args.get('sortby')
-    #
-    # sort_requested = sort_params is not None and \
-    #                  ('id' in sort_params.split(',') or 'id' == sort_params)
-    #
-    # if sort_requested:
-    #     search_file = DATA_PATH / "search_sorted.json"
-    # else:
-    #     search_file = DATA_PATH / "search.json"
+    print(f"sort requested {sort_requested}, params {sort_params}, method {request.method}, form {request.form}, json  {request.json}, data {request.data}", file=sys.stderr)
 
-    search_file = DATA_PATH / "search.json"
+    if sort_requested:
+        search_file = DATA_PATH / "search_sorted.json"
+    else:
+        search_file = DATA_PATH / "search.json"
 
     with search_file.open() as fl:
         return json.load(fl)

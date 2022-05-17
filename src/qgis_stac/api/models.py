@@ -7,11 +7,13 @@ https://github.com/radiantearth/stac-api-spec/tree/master/stac-spec
 
 """
 
+
+import dataclasses
 import datetime
 import enum
-import typing
-import dataclasses
 import json
+import typing
+
 from uuid import UUID
 
 from qgis.PyQt import (
@@ -223,6 +225,15 @@ class Collection:
     providers: typing.List[ResourceProvider] = None
     extent: ResourceExtent = None
     summaries: typing.Dict[str, str] = None
+
+
+@dataclasses.dataclass
+class Conformance:
+    """ Represents the stored plugin conformance class"""
+
+    id: UUID = None
+    name: str = None
+    uri: str = None
 
 
 @dataclasses.dataclass

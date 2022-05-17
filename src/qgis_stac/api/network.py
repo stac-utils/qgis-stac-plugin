@@ -12,6 +12,7 @@ from qgis.core import (
 
 from .models import (
     ApiCapability,
+    Conformance,
     Collection,
     Constants,
     Item,
@@ -295,12 +296,12 @@ class ContentFetcherTask(QgsTask):
         for uri in conformance:
             parts = uri.split('/')
             name = parts[len(parts) - 1]
-            conformance_settings = ConformanceSettings(
+            conformance_instance = Conformance(
                 id=uuid.uuid4(),
                 name=name,
                 uri=uri,
             )
-            conformance_classes.append(conformance_settings)
+            conformance_classes.append(conformance_instance)
 
         return conformance_classes
 

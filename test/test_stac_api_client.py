@@ -3,6 +3,7 @@
 
 """
 import unittest
+import re
 
 from multiprocessing import Process
 
@@ -12,7 +13,8 @@ from qgis.PyQt.QtTest import QSignalSpy
 from qgis_stac.api.client import Client
 from qgis_stac.api.models import ItemSearch, SortField, SortOrder
 
-from qgis_stac.lib.pystac_client.conformance import ConformanceClasses
+from qgis_stac.lib.pystac_client.conformance import ConformanceClasses, CONFORMANCE_URIS
+from qgis_stac.lib.pystac_client import Client as STACClient
 
 
 class STACApiClientTest(unittest.TestCase):
@@ -68,7 +70,14 @@ class STACApiClientTest(unittest.TestCase):
         # check items searching with sorting enabled
         spy = QSignalSpy(self.api_client.items_received)
         self.api_client.items_received.connect(self.app_response)
-        self.api_client.get_items(ItemSearch(collections=['simple-collection'], sortby=SortField.ID))
+
+        self.api_client.get_items(
+            ItemSearch(
+                collections=['simple-collection'],
+                sortby=SortField.ID,
+                sort_order=SortOrder.ASCENDING
+            )
+        )
         result = spy.wait(timeout=1000)
 
         self.assertTrue(result)
@@ -96,6 +105,41 @@ class STACApiClientTest(unittest.TestCase):
         self.assertEqual(len(collections), 1)
         self.assertEqual(collections[0].id, "simple-collection")
         self.assertEqual(collections[0].title, "Simple Example Collection")
+
+    def test_conformance_search(self):
+
+        api_client = Client(self.app_server.url)
+        spy = QSignalSpy(api_client.conformance_received)
+        api_client.conformance_received.connect(self.app_response)
+        api_client.get_conformance()
+        result = spy.wait(timeout=1000)
+
+        self.assertTrue(result)
+        self.assertIsNotNone(self.response)
+        self.assertEqual(len(self.response), 2)
+        conformances = self.response[0]
+
+        self.assertEqual(len(conformances), 16)
+
+    def conforms_to(self, conformance_class: ConformanceClasses) -> bool:
+        stac_client = STACClient.open(self.app_server.url)
+
+        if stac_client._stac_io._conformance is None:
+            return True
+
+        class_regex = CONFORMANCE_URIS.get(conformance_class.name, None)
+
+        if class_regex is None:
+            raise Exception(f"Invalid conformance class {conformance_class}")
+
+        pattern = re.compile(class_regex)
+        print("Pattern")
+        print(pattern)
+
+        if not any(re.match(pattern, uri) for uri in stac_client._stac_io._conformance):
+            return False
+
+        return True
 
     def app_response(self, *response_args):
         self.response = response_args

@@ -18,6 +18,7 @@ from qgis.core import QgsRectangle, QgsSettings
 from .api.models import (
     ApiCapability,
     Collection,
+    Conformance,
     FilterLang,
     ResourceExtent,
     ResourceLink,
@@ -215,13 +216,9 @@ class CollectionSettings(Collection):
 
 
 @dataclasses.dataclass
-class ConformanceSettings:
+class ConformanceSettings(Conformance):
     """Plugin STAC API conformance setting
     """
-
-    id: uuid.UUID
-    name: str
-    uri: str
 
     @classmethod
     def from_qgs_settings(
