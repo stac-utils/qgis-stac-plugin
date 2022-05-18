@@ -44,25 +44,6 @@ class STACApiClientTest(unittest.TestCase):
         self.assertEqual(items[0].id, "20201211_223832_CS3")
         self.assertEqual(items[1].id, "20201211_223832_CS4")
 
-        # check conformance fetching
-        spy = QSignalSpy(self.api_client.conformance_received)
-        self.api_client.conformance_received.connect(self.app_response)
-        self.api_client.get_conformance()
-        result = spy.wait(timeout=1000)
-
-        self.assertTrue(result)
-        self.assertIsNotNone(self.response)
-        self.assertEqual(len(self.response), 2)
-
-        conformance_classes = self.response[0]
-
-        self.assertEqual(len(conformance_classes), 16)
-        self.assertEqual(conformance_classes[0].name, 'core')
-        self.assertEqual(
-            conformance_classes[0].uri,
-            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
-        )
-
     def test_items_sort(self):
         # check items searching with sorting enabled
         spy = QSignalSpy(self.api_client.items_received)
@@ -104,19 +85,24 @@ class STACApiClientTest(unittest.TestCase):
         self.assertEqual(collections[0].title, "Simple Example Collection")
 
     def test_conformance_search(self):
-
-        api_client = Client(self.app_server.url)
-        spy = QSignalSpy(api_client.conformance_received)
-        api_client.conformance_received.connect(self.app_response)
-        api_client.get_conformance()
+        # check conformance fetching
+        spy = QSignalSpy(self.api_client.conformance_received)
+        self.api_client.conformance_received.connect(self.app_response)
+        self.api_client.get_conformance()
         result = spy.wait(timeout=1000)
 
         self.assertTrue(result)
         self.assertIsNotNone(self.response)
         self.assertEqual(len(self.response), 2)
-        conformances = self.response[0]
 
-        self.assertEqual(len(conformances), 16)
+        conformance_classes = self.response[0]
+
+        self.assertEqual(len(conformance_classes), 16)
+        self.assertEqual(conformance_classes[0].name, 'core')
+        self.assertEqual(
+            conformance_classes[0].uri,
+            "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core"
+        )
 
     def app_response(self, *response_args):
         self.response = response_args
