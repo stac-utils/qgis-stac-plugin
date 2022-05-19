@@ -14,11 +14,16 @@ from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
 from ..resources import *
+from ..lib import planetary_computer as pc
+from ..lib.pystac.item import Item as STACObject
+
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
 
-from ..conf import Settings, settings_manager
+from ..conf import ConnectionSettings, Settings, settings_manager
+
 from ..api.models import (
+    ApiCapability,
     ItemSearch,
     FilterLang,
     ResourceType,
@@ -50,6 +55,10 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
     search_started = QtCore.pyqtSignal()
     search_completed = QtCore.pyqtSignal()
+    updated_result_items = QtCore.pyqtSignal(ConnectionSettings, list)
+    items_refresh_finished = QtCore.pyqtSignal(ConnectionSettings, list)
+
+    result_items = []
 
     def __init__(
             self,
@@ -60,6 +69,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.new_connection_btn.clicked.connect(self.add_connection)
         self.edit_connection_btn.clicked.connect(self.edit_connection)
         self.remove_connection_btn.clicked.connect(self.remove_connection)
+
+        self.updated_result_items.connect(self.update_refreshed_items)
+        self.items_refresh_finished.connect(self.refresh_items_finished)
 
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
@@ -194,6 +206,21 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         settings_manager.set_value(
             Settings.AUTO_ASSET_LOADING,
             self.asset_loading.isChecked(),
+        )
+
+        # Set default refresh period to 24 hours
+        settings_manager.set_value(
+            SettingName.REFRESH_FREQUENCY,
+            10000
+        )
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.refresh_items)
+        self.timer.start(
+            settings_manager.get_value(
+                SettingName.REFRESH_FREQUENCY,
+                setting_type=int
+            )
         )
 
     def prepare_filter_box(self):
@@ -542,7 +569,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         collection_dialog = CollectionDialog(collection)
         collection_dialog.exec_()
 
-    def display_results(self, results, pagination):
+    def display_results(self, results, pagination=None):
         """ Shows the found results into their respective view. Emits
         the search end signal after completing loading up the results
         into the view.
@@ -561,7 +588,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         elif self.search_type == ResourceType.FEATURE:
 
-            if pagination.total_pages > 0:
+            if pagination and pagination.total_pages > 0:
                 if self.page > 1:
                     self.page -= 1
                 self.next_btn.setEnabled(False)
@@ -577,6 +604,11 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                     )
                     self.item_model = ItemsModel(results)
                     self.items_proxy_model.setSourceModel(self.item_model)
+                    self.result_items = results
+                    settings_manager.save_items(
+                        settings_manager.get_current_connection(),
+                        results
+                    )
                     self.populate_results(results)
                 else:
                     self.clear_search_results()
@@ -618,6 +650,60 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.message_bar.clearWidgets()
         self.search_error_message = message
         self.search_completed.emit()
+
+    def refresh_items(self):
+        """ Refreshes the current SAS token connection results items """
+        updated_items = []
+
+        self.show_progress(
+            tr("Refreshing the SAS Token based STAC connections items...")
+        )
+
+        connections = settings_manager.list_connections()
+
+        for connection in connections:
+            if connection.capability == \
+                    ApiCapability.SUPPORT_SAS_TOKEN:
+                items = settings_manager.get_items(
+                    connection.id
+                )
+                for item in items:
+                    if item.stac_object is not None and \
+                            isinstance(item.stac_object, STACObject):
+                        stac_object = pc.sign(item.stac_object)
+                        item.stac_object = stac_object
+                        updated_items.append(item)
+                if len(updated_items) > 0:
+                    settings_manager.save_items(connection, updated_items)
+                    self.updated_result_items.emit(connection, updated_items)
+                    log(
+                        f"Updated STAC connection "
+                        f"{connection.name} {len(items)} "
+                        f"items"
+                    )
+
+            self.items_refresh_finished.emit(connection, updated_items)
+
+    def refresh_items_finished(self, connection, items):
+        if len(items) > 0:
+            self.show_message(
+                tr(f"Items refresh for {connection.name} has finished"),
+                Qgis.Info
+            )
+        else:
+            log(
+                tr(
+                    f"No available items for {connection.name} connection  "
+                    f"to be refreshed."
+                   )
+            )
+            self.message_bar.clearWidgets()
+
+    def update_refreshed_items(self, connection, items):
+        """ Refreshes the current SAS token connection results items """
+
+        if connection == settings_manager.get_current_connection():
+            self.display_results(items)
 
     def populate_results(self, results):
         """ Add the found results into the widget scroll area

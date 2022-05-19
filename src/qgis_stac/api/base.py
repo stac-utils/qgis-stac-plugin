@@ -10,8 +10,6 @@ from qgis.core import QgsApplication
 
 from .models import (
     ApiCapability,
-    Collection,
-    Item,
     ItemSearch,
     ResourcePagination,
     ResourceType,
