@@ -15,7 +15,7 @@ from qgis.utils import iface
 
 from ..resources import *
 from ..lib import planetary_computer as pc
-from ..lib.pystac.item import Item as STACObject
+from ..lib.pystac.item import Item
 
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
@@ -56,7 +56,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
     search_started = QtCore.pyqtSignal()
     search_completed = QtCore.pyqtSignal()
     updated_result_items = QtCore.pyqtSignal(ConnectionSettings, list)
-    items_refresh_finished = QtCore.pyqtSignal(ConnectionSettings, list)
+    items_refresh_finished = QtCore.pyqtSignal()
 
     result_items = []
 
@@ -605,9 +605,14 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                     self.item_model = ItemsModel(results)
                     self.items_proxy_model.setSourceModel(self.item_model)
                     self.result_items = results
+                    settings_manager.delete_all_items(
+                        settings_manager.get_current_connection(),
+                        self.page
+                    )
                     settings_manager.save_items(
                         settings_manager.get_current_connection(),
-                        results
+                        results,
+                        self.page
                     )
                     self.populate_results(results)
                 else:
@@ -654,6 +659,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
     def refresh_items(self):
         """ Refreshes the current SAS token connection results items """
         updated_items = []
+        updates = False
 
         self.show_progress(
             tr("Refreshing the SAS Token based STAC connections items...")
@@ -664,40 +670,37 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         for connection in connections:
             if connection.capability == \
                     ApiCapability.SUPPORT_SAS_TOKEN:
-                items = settings_manager.get_items(
+                settings_items = settings_manager.get_items(
                     connection.id
                 )
-                for item in items:
-                    if item.stac_object is not None and \
-                            isinstance(item.stac_object, STACObject):
-                        stac_object = pc.sign(item.stac_object)
-                        item.stac_object = stac_object
-                        updated_items.append(item)
-                if len(updated_items) > 0:
-                    settings_manager.save_items(connection, updated_items)
+                for page, items in settings_items.items():
+                    for item in items:
+                        if item.stac_object is not None:
+                            stac_object = pc.sign(item.stac_object)
+                            item.stac_object = stac_object
+                            updated_items.append(item)
+                    if len(updated_items) > 0:
+                        settings_manager.save_items(
+                            connection,
+                            updated_items,
+                            page
+                        )
+                        updates = True
+                        updated_items = []
+
+                if updates:
                     self.updated_result_items.emit(connection, updated_items)
                     log(
                         f"Updated STAC connection "
                         f"{connection.name} {len(items)} "
                         f"items"
                     )
+                updates = False
 
-            self.items_refresh_finished.emit(connection, updated_items)
+        self.items_refresh_finished.emit()
 
-    def refresh_items_finished(self, connection, items):
-        if len(items) > 0:
-            self.show_message(
-                tr(f"Items refresh for {connection.name} has finished"),
-                Qgis.Info
-            )
-        else:
-            log(
-                tr(
-                    f"No available items for {connection.name} connection  "
-                    f"to be refreshed."
-                   )
-            )
-            self.message_bar.clearWidgets()
+    def refresh_items_finished(self):
+        self.message_bar.clearWidgets()
 
     def update_refreshed_items(self, connection, items):
         """ Refreshes the current SAS token connection results items """

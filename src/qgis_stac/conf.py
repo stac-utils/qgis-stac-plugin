@@ -656,6 +656,7 @@ class SettingsManager(QtCore.QObject):
     def _get_item_settings_base(
             self,
             connection_identifier,
+            page,
             identifier
     ):
         """Gets the items settings base url.
@@ -664,8 +665,8 @@ class SettingsManager(QtCore.QObject):
                f"{self.CONNECTION_GROUP_NAME}/" \
                f"{connection_identifier}/" \
                f"{self.ITEMS_GROUP_NAME}/" \
+               f"{page}/" \
                f"{identifier}"
-
 
     def save_collection(self, connection, collection_settings):
         """ Save the passed colection settings into the plugin settings
@@ -751,7 +752,7 @@ class SettingsManager(QtCore.QObject):
         with qgis_settings(temporal_key) as settings:
             settings.setValue("interval", interval)
 
-    def save_items(self, connection, items):
+    def save_items(self, connection, items, page):
         """ Save the passed items into the plugin connection settings
 
         :param connection: Connection settings
@@ -761,11 +762,12 @@ class SettingsManager(QtCore.QObject):
             item_setting = ItemSettings(
                 item_uuid=item.item_uuid,
                 id=item.id,
-                assets=item.assets
+                assets=item.assets,
+                stac_object=item.stac_object
             )
-            self.save_item(connection, item_setting)
+            self.save_item(connection, item_setting, page)
 
-    def save_item(self, connection, item_settings):
+    def save_item(self, connection, item_settings, page):
         """ Save the passed item settings into the plugin settings
 
         :param connection: Connection settings
@@ -773,6 +775,7 @@ class SettingsManager(QtCore.QObject):
         """
         settings_key = self._get_item_settings_base(
             connection.id,
+            page,
             item_settings.item_uuid
         )
 
@@ -902,42 +905,6 @@ class SettingsManager(QtCore.QObject):
                     )
         return result
 
-    def get_items(self, connection_identifier, items_uuids = None):
-        """ Gets all the available items settings in the
-        provided connection.
-
-        :param connection_identifier: Connection identifier from which
-        to get all the available collections
-        :type connection_identifier: uuid.UUID
-
-        :param items_uuids: List of target items ids
-        :type items_uuids: []
-        """
-        result = []
-        with qgis_settings(
-                f"{self.BASE_GROUP_NAME}/"
-                f"{self.CONNECTION_GROUP_NAME}/"
-                f"{str(connection_identifier)}/"
-                f"{self.ITEMS_GROUP_NAME}"
-        ) \
-                as settings:
-            for item_id in settings.childGroups():
-                if items_uuids and item_id not in items_uuids:
-                    continue
-                item_setting_key = self._get_item_settings_base(
-                    connection_identifier,
-                    item_id
-                )
-                with qgis_settings(item_setting_key) \
-                        as item_settings:
-                    result.append(
-                        ItemSettings.from_qgs_settings(
-                            item_id,
-                            item_settings
-                        )
-                    )
-        return result
-
     def save_conformance(self, connection, conformance_settings):
         """ Save the passed conformance settings into the plugin settings
 
@@ -973,6 +940,72 @@ class SettingsManager(QtCore.QObject):
                 as settings:
             for conformance_name in settings.childGroups():
                 settings.remove(conformance_name)
+
+    def get_items(self, connection_identifier, items_uuids=None):
+        """ Gets all the available items settings in the
+        provided connection.
+
+        :param connection_identifier: Connection identifier from which
+        to get all the available collections
+        :type connection_identifier: uuid.UUID
+
+        :param items_uuids: List of target items ids
+        :type items_uuids: []
+        """
+        result = {}
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/"
+                f"{self.CONNECTION_GROUP_NAME}/"
+                f"{str(connection_identifier)}/"
+                f"{self.ITEMS_GROUP_NAME}"
+        ) \
+                as settings:
+            for page in settings.childGroups():
+                with qgis_settings(
+                        f"{self.BASE_GROUP_NAME}/"
+                        f"{self.CONNECTION_GROUP_NAME}/"
+                        f"{str(connection_identifier)}/"
+                        f"{self.ITEMS_GROUP_NAME}/"
+                        f"{page}"
+                ) as page_settings:
+                    result[f"{page}"] = []
+                    for item_id in page_settings.childGroups():
+                        if items_uuids and item_id not in items_uuids:
+                            continue
+                        item_setting_key = self._get_item_settings_base(
+                            connection_identifier,
+                            page,
+                            item_id
+                        )
+                        with qgis_settings(item_setting_key) \
+                                as item_settings:
+                            result[f"{page}"].append(
+                                ItemSettings.from_qgs_settings(
+                                    item_id,
+                                    item_settings
+                                )
+                            )
+        return result
+
+    def delete_all_items(self, connection, page=None):
+        """Deletes all the plugin connections items settings,
+        in the connection.
+
+        :param connection: Connection from which to delete all the
+        available collections
+        :type connection: ConnectionSettings
+        """
+        key = f"{self.BASE_GROUP_NAME}/" \
+              f"{self.CONNECTION_GROUP_NAME}/" \
+              f"{str(connection.id)}/" \
+              f"{self.ITEMS_GROUP_NAME}"
+
+        if page:
+            key = f"{key}/{page}"
+
+        with qgis_settings(key) as settings:
+            for item_name in settings.childGroups():
+                settings.remove(item_name)
 
     def save_search_filters(
         self,
