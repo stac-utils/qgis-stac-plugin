@@ -17,7 +17,7 @@ from qgis.PyQt.uic import loadUiType
 
 from ..api.models import AssetLayerType
 
-from ..conf import SettingName, settings_manager
+from ..conf import Settings, settings_manager
 
 from ..utils import tr
 
@@ -59,7 +59,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
             self.asset
         )
         auto_asset_loading = settings_manager.get_value(
-            SettingName.AUTO_ASSET_LOADING,
+            Settings.AUTO_ASSET_LOADING,
             False,
             setting_type=bool
         )

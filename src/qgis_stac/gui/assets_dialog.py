@@ -33,10 +33,10 @@ from ..resources import *
 
 from ..api.models import (
     AssetLayerType,
-    Settings,
 )
 
 from ..conf import (
+    Settings,
     settings_manager
 )
 

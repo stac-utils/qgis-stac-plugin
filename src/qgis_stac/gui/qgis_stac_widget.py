@@ -17,13 +17,12 @@ from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
 
-from ..conf import SettingName, settings_manager
+from ..conf import Settings, settings_manager
 from ..api.models import (
     ItemSearch,
     FilterLang,
     ResourceType,
     SearchFilters,
-    Settings,
     SortField,
     SortOrder,
 )
@@ -180,7 +179,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         """ Initializes all the plugin related settings"""
 
         auto_asset_loading = settings_manager.get_value(
-            SettingName.AUTO_ASSET_LOADING,
+            Settings.AUTO_ASSET_LOADING,
             False,
             setting_type=bool
         )
@@ -193,7 +192,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
          defined in the settings tab
          """
         settings_manager.set_value(
-            SettingName.AUTO_ASSET_LOADING,
+            Settings.AUTO_ASSET_LOADING,
             self.asset_loading.isChecked(),
         )
 
