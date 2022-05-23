@@ -17,7 +17,7 @@ from ..resources import *
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
 
-from ..conf import settings_manager
+from ..conf import SettingName, settings_manager
 from ..api.models import (
     ItemSearch,
     FilterLang,
@@ -174,7 +174,28 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.items_filter.textChanged.connect(self.items_filter_changed)
 
         self.get_filters()
+        self.prepare_plugin_settings()
 
+    def prepare_plugin_settings(self):
+        """ Initializes all the plugin related settings"""
+
+        auto_asset_loading = settings_manager.get_value(
+            SettingName.AUTO_ASSET_LOADING,
+            False,
+            setting_type=bool
+        )
+        self.asset_loading.setChecked(auto_asset_loading)
+
+        self.asset_loading.toggled.connect(self.update_plugin_settings)
+
+    def update_plugin_settings(self):
+        """ Makes updates to all the plugin settings
+         defined in the settings tab
+         """
+        settings_manager.set_value(
+            SettingName.AUTO_ASSET_LOADING,
+            self.asset_loading.isChecked(),
+        )
     def prepare_filter_box(self):
         """ Prepares the advanced filter group box inputs"""
 

@@ -29,7 +29,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="search">
       <attribute name="title">
@@ -645,8 +645,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>98</width>
-            <height>28</height>
+            <width>875</width>
+            <height>815</height>
            </rect>
           </property>
          </widget>
@@ -811,6 +811,16 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="asset_loading">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting enables loading item assets that can be added into QGIS as map layers after dowloading them.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Enable loading assets after download</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

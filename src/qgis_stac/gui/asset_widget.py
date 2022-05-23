@@ -17,6 +17,8 @@ from qgis.PyQt.uic import loadUiType
 
 from ..api.models import AssetLayerType
 
+from ..conf import SettingName, settings_manager
+
 from ..utils import tr
 
 WidgetUi, _ = loadUiType(
@@ -56,10 +58,16 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
             self.asset_dialog.load_asset,
             self.asset
         )
+        auto_asset_loading = settings_manager.get_value(
+            SettingName.AUTO_ASSET_LOADING,
+            False,
+            setting_type=bool
+        )
+
         download_asset = partial(
             self.asset_dialog.download_asset,
             self.asset,
-            True
+            auto_asset_loading
         )
         self.load_btn.setEnabled(self.asset.type in layer_types)
         self.load_btn.clicked.connect(load_asset)
