@@ -5,9 +5,10 @@
 
 import contextlib
 import dataclasses
+import datetime
+import enum
 import typing
 import uuid
-import datetime
 
 from qgis.PyQt import (
     QtCore,
@@ -242,6 +243,9 @@ class ConformanceSettings(Conformance):
             name=settings.value("name"),
             uri=settings.value("uri")
         )
+
+class SettingName(enum.Enum):
+    AUTO_ASSET_LOADING = "auto_asset_loading"
 
 
 class SettingsManager(QtCore.QObject):
