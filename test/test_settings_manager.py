@@ -63,7 +63,8 @@ class SettingsManagerTest(unittest.TestCase):
             page_size=10,
             collections=[],
             conformances=[],
-            capability=None
+            capability=None,
+            search_items=None,
         )
 
         self.assertIsNone(
@@ -103,7 +104,8 @@ class SettingsManagerTest(unittest.TestCase):
             page_size=10,
             collections=[],
             conformances=[],
-            capability=None
+            capability=None,
+            search_items=None,
         )
         settings_manager.save_connection_settings(
             second_connection
