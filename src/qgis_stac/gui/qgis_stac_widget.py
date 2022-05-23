@@ -196,6 +196,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             SettingName.AUTO_ASSET_LOADING,
             self.asset_loading.isChecked(),
         )
+
     def prepare_filter_box(self):
         """ Prepares the advanced filter group box inputs"""
 
