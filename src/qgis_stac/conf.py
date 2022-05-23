@@ -244,8 +244,11 @@ class ConformanceSettings(Conformance):
             uri=settings.value("uri")
         )
 
-class SettingName(enum.Enum):
+
+class Settings(enum.Enum):
+    """ Plugin settings names"""
     AUTO_ASSET_LOADING = "auto_asset_loading"
+    DOWNLOAD_FOLDER = "download_folder"
 
 
 class SettingsManager(QtCore.QObject):

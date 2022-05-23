@@ -78,11 +78,6 @@ class FilterLang(enum.Enum):
     STAC_QUERY = 'STAC_QUERY'
 
 
-class Settings(enum.Enum):
-    """ Plugin settings names"""
-    DOWNLOAD_FOLDER = "download_folder"
-
-
 class SortField(enum.Enum):
     """ Holds the field value used when sorting items results."""
     ID = 'ID'
