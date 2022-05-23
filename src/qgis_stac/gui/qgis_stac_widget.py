@@ -14,8 +14,6 @@ from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
 from ..resources import *
-from ..lib import planetary_computer as pc
-from ..lib.pystac.item import Item
 
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
@@ -32,6 +30,8 @@ from ..api.models import (
     SortOrder,
 )
 from ..api.client import Client
+
+from ..jobs.token_manager import SASManager
 
 from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
 from .json_highlighter import JsonHighlighter
@@ -71,7 +71,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.remove_connection_btn.clicked.connect(self.remove_connection)
 
         self.updated_result_items.connect(self.update_refreshed_items)
-        self.items_refresh_finished.connect(self.refresh_items_finished)
 
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
@@ -208,14 +207,25 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             self.asset_loading.isChecked(),
         )
 
-        # Set default refresh period to 24 hours
+        self.sas_manager = SASManager()
+        self.sas_manager.token_refresh_started.connect(
+            self.sas_token_refresh_started
+        )
+        self.sas_manager.token_refresh_finished.connect(
+            self.sas_token_refresh_finished
+        )
+
+        self.update_sas_frequency()
+
+    def update_sas_frequency(self):
+        # Set default refresh period to 8 hours
         settings_manager.set_value(
             SettingName.REFRESH_FREQUENCY,
             10000
         )
 
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.refresh_items)
+        self.timer.timeout.connect(self.sas_manager.token_refresh)
         self.timer.start(
             settings_manager.get_value(
                 SettingName.REFRESH_FREQUENCY,
@@ -224,7 +234,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         )
 
     def prepare_filter_box(self):
-        """ Prepares the advanced filter group box inputs"""
+        """ Prepares the advanced filter group box inputs
+        """
 
         labels = {
             FilterLang.CQL_JSON: tr("CQL_JSON"),
@@ -656,50 +667,19 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.search_error_message = message
         self.search_completed.emit()
 
-    def refresh_items(self):
-        """ Refreshes the current SAS token connection results items """
-        updated_items = []
-        updates = False
+    def sas_token_refresh_started(self):
+        """ Handles logic for when the token manager is updating the plugin
+         SAS Token based connections
+        """
 
         self.show_progress(
             tr("Refreshing the SAS Token based STAC connections items...")
         )
 
-        connections = settings_manager.list_connections()
-
-        for connection in connections:
-            if connection.capability == \
-                    ApiCapability.SUPPORT_SAS_TOKEN:
-                settings_items = settings_manager.get_items(
-                    connection.id
-                )
-                for page, items in settings_items.items():
-                    for item in items:
-                        if item.stac_object is not None:
-                            stac_object = pc.sign(item.stac_object)
-                            item.stac_object = stac_object
-                            updated_items.append(item)
-                    if len(updated_items) > 0:
-                        settings_manager.save_items(
-                            connection,
-                            updated_items,
-                            page
-                        )
-                        updates = True
-                        updated_items = []
-
-                if updates:
-                    self.updated_result_items.emit(connection, updated_items)
-                    log(
-                        f"Updated STAC connection "
-                        f"{connection.name} {len(items)} "
-                        f"items"
-                    )
-                updates = False
-
-        self.items_refresh_finished.emit()
-
-    def refresh_items_finished(self):
+    def sas_token_refresh_finished(self):
+        """ Handles logic for when the token manager has finished updating the plugin
+         SAS Token based connections
+        """
         self.message_bar.clearWidgets()
 
     def update_refreshed_items(self, connection, items):
