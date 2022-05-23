@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>917</width>
-    <height>869</height>
+    <height>977</height>
    </rect>
   </property>
   <property name="font">
@@ -423,7 +423,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="label_9">
+          <widget class="QLabel" name="sort_by_la">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -645,8 +645,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>875</width>
-            <height>707</height>
+            <width>98</width>
+            <height>28</height>
            </rect>
           </property>
          </widget>
