@@ -469,6 +469,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.extent_box.setEnabled(enabled)
         self.advanced_box.setEnabled(enabled)
         self.search_btn.setEnabled(enabled)
+        self.sort_by_la.setEnabled(enabled)
+        self.sort_cmb.setEnabled(enabled)
+        self.reverse_order_box.setEnabled(enabled)
 
     def prepare_message_bar(self):
         """ Initializes the widget message bar settings"""
