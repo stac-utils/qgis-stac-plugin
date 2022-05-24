@@ -1,3 +1,4 @@
+import os
 import typing
 import uuid
 
@@ -240,6 +241,11 @@ class ContentFetcherTask(QgsTask):
         items = []
         properties = None
         items_list = items_collection.items if items_collection else []
+
+        key = os.getenv("PC_SDK_SUBSCRIPTION_KEY")
+        if key:
+            pc.set_subscription_key(key)
+
         for item in items_list:
             # For APIs that support usage of SAS token we sign the whole item
             # so that the item assets can be accessed.
