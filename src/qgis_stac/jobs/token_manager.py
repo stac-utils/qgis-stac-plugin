@@ -41,45 +41,6 @@ class SASManager(QtCore.QObject):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        refresh_state = RefreshState.IDLE
-
-    def token_refresh(self):
-        """ Refreshes the current SAS token available in search results
-         items store in the plugin settings.
-         """
-        updated_items = []
-
-        connections = settings_manager.list_connections()
-
-        for connection in connections:
-            if connection.capability == \
-                    ApiCapability.SUPPORT_SAS_TOKEN:
-                settings_items = settings_manager.get_items(
-                    connection.id
-                )
-                for page, items in settings_items.items():
-                    for item in items:
-                        if item.stac_object:
-                            stac_object = pc.sign(item.stac_object)
-                            item.stac_object = stac_object
-                            item.assets = [
-                                ResourceAsset(
-                                    href=asset.href,
-                                    title=asset.title or key,
-                                    description=asset.description,
-                                    type=asset.media_type,
-                                    roles=asset.roles or []
-                                )
-                                for key, asset in stac_object.assets.items()
-                            ]
-                            updated_items.append(item)
-                    if updated_items:
-                        settings_manager.save_items(
-                            connection,
-                            updated_items,
-                            page
-                        )
-                        updated_items = []
 
     def refresh_started(self):
         self.token_refresh_started.emit()
@@ -101,13 +62,6 @@ class SASManager(QtCore.QObject):
         self.token_refresh_error.emit()
 
     def run_refresh_task(self):
-        # task = QgsTask.fromFunction(
-        #     'Refresh token',
-        #     self.token_refresh,
-        #     on_finished=self.refresh_complete
-        # )
-        # task.taskTerminated.connect(self.token_refresh_error)
-        # QgsApplication.taskManager().addTask(task)
 
         refresh_state = settings_manager.get_value(
             Settings.REFRESH_STATE,
@@ -126,7 +80,7 @@ class SASManager(QtCore.QObject):
 
 
 class RefreshTask(QgsTask):
-    """ Prepares and loads the passed thumbnail into the item widget."""
+    """ Runs token manager refresh process on a background Task."""
     def __init__(
         self
     ):
@@ -134,7 +88,7 @@ class RefreshTask(QgsTask):
         super().__init__()
 
     def run(self):
-        """ Operates the main logic of loading the th data in
+        """ Operates the main logic of loading the token refreshin
         background.
         """
         self.token_refresh()
@@ -233,8 +187,7 @@ class RefreshTask(QgsTask):
 
 
     def finished(self, result: bool):
-        """ Loads the thumbnail into the widget, if its image data has
-        been successfully loaded.
+        """ Handle logic after task has completed.
 
         :param result: Whether the run() operation finished successfully
         :type result: bool

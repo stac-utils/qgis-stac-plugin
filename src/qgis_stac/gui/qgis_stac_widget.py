@@ -738,15 +738,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
          SAS Token based connections
         """
 
-        # self.show_message(
-        #     tr("Refreshing the SAS Token based STAC connections items..."),
-        #     level=Qgis.Info
-        # )
-
-        self.show_progress(
-            tr("Refreshing SAS based connections..."),
-        )
-
         log(tr("Refreshing SAS based connections..."))
         self.update_search_inputs(False)
 
