@@ -737,7 +737,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         """ Handles logic for when the token manager is updating the plugin
          SAS Token based connections
         """
-
+        self.show_progress(
+            tr("Refreshing the SAS based connections...")
+        )
         log(tr("Refreshing SAS based connections..."))
         self.update_search_inputs(False)
 
@@ -745,6 +747,9 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         """ Handles logic for when the token manager has finished updating the plugin
          SAS Token based connections
         """
+        self.show_message(
+            tr("Finished refreshing SAS based connections.")
+        )
         log(tr("Finished refreshing SAS based connections."))
         self.update_search_inputs(True)
 
