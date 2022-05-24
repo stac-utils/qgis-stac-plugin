@@ -3,6 +3,7 @@
     Handles the plugin connection Token management.
 """
 
+import os
 import enum
 
 from qgis.PyQt import (
@@ -152,6 +153,10 @@ class RefreshTask(QgsTask):
         )
 
         connections = settings_manager.list_connections()
+
+        key = os.getenv("PC_SDK_SUBSCRIPTION_KEY")
+        if key:
+            pc.set_subscription_key(key)
 
         for connection in connections:
             if connection.capability == \
