@@ -47,6 +47,8 @@ from ..api.models import (
     AssetRoles,
 )
 
+from ..conf import settings_manager
+
 from .assets_dialog import AssetsDialog
 from ..definitions import constants
 
@@ -149,7 +151,17 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
 
     def open_assets_dialog(self):
         """  Opens the assets dialog for the STAC item.
+            Queries the plugin Item from the plugin settings to get the
+            most recent updated assets.
         """
+        connection = settings_manager.get_current_connection()
+        saved_item = settings_manager.get_items(
+            connection.id
+            [self.item.item_uuid]
+        )
+        if saved_item:
+            self.item.assets = self.item.stac_object.assets
+
         assets_dialog = AssetsDialog(
             self.item,
             parent=self,

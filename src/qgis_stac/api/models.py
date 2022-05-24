@@ -97,6 +97,14 @@ class SortOrderPrefix(enum.Enum):
     DESCENDING = '-'
 
 
+class TimeUnits(enum.Enum):
+    """ Represents time units."""
+    SECONDS = 'SECONDS'
+    MINUTES = 'MINUTES'
+    HOURS = 'HOURS'
+    DAYS = 'DAYS'
+
+
 class GeometryType(enum.Enum):
     """Enum to represent the available geometry types """
 

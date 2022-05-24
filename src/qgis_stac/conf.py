@@ -257,6 +257,9 @@ class Settings(enum.Enum):
     AUTO_ASSET_LOADING = "auto_asset_loading"
     DOWNLOAD_FOLDER = "download_folder"
     REFRESH_FREQUENCY = "refresh/period"
+    REFRESH_FREQUENCY_UNIT = "refresh/unit"
+    REFRESH_LAST_UPDATE = "refresh/last_update"
+    REFRESH_STATE = "refresh/state"
 
 
 @dataclasses.dataclass

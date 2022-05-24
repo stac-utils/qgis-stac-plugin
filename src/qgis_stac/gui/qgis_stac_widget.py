@@ -1,5 +1,6 @@
 import os
 
+import setuptools
 from qgis.PyQt import (
     QtCore,
     QtGui,
@@ -21,13 +22,13 @@ from ..gui.collection_dialog import CollectionDialog
 from ..conf import ConnectionSettings, Settings, settings_manager
 
 from ..api.models import (
-    ApiCapability,
     ItemSearch,
     FilterLang,
     ResourceType,
     SearchFilters,
     SortField,
     SortOrder,
+    TimeUnits,
 )
 from ..api.client import Client
 
@@ -186,6 +187,20 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.get_filters()
         self.prepare_plugin_settings()
 
+        self.sas_manager = SASManager()
+        self.sas_manager.token_refresh_started.connect(
+            self.sas_token_refresh_started
+        )
+        self.sas_manager.token_refresh_finished.connect(
+            self.sas_token_refresh_finished
+        )
+
+        self.sas_manager.token_refresh_error.connect(
+            self.sas_token_refresh_error
+        )
+
+        self.update_sas_frequency()
+
     def prepare_plugin_settings(self):
         """ Initializes all the plugin related settings"""
 
@@ -198,6 +213,43 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         self.asset_loading.toggled.connect(self.update_plugin_settings)
 
+        refresh_time_value = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY,
+            1,
+            setting_type=int
+        )
+
+        refresh_time_unit = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY_UNIT,
+            TimeUnits.MINUTES,
+        )
+
+        self.sas_refresh_time_value.setValue(refresh_time_value)
+
+        labels = {
+            TimeUnits.MINUTES: tr("Minutes"),
+            TimeUnits.HOURS: tr("Hours"),
+            TimeUnits.DAYS: tr("Days"),
+        }
+        for unit, unit_text in labels.items():
+            self.sas_refresh_time_units.addItem(
+                unit_text,
+                unit
+            )
+        self.sas_refresh_time_units.setCurrentIndex(
+            self.sas_refresh_time_units.findData(
+                refresh_time_unit
+            )
+        )
+
+        self.sas_refresh_time_value.valueChanged.connect(
+            self.update_plugin_settings
+        )
+
+        self.sas_refresh_time_units.currentIndexChanged.connect(
+            self.update_plugin_settings
+        )
+
     def update_plugin_settings(self):
         """ Makes updates to all the plugin settings
          defined in the settings tab
@@ -207,30 +259,44 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             self.asset_loading.isChecked(),
         )
 
-        self.sas_manager = SASManager()
-        self.sas_manager.token_refresh_started.connect(
-            self.sas_token_refresh_started
+        refresh_unit = self.sas_refresh_time_units.currentData()
+
+        refresh_time_value = self.sas_refresh_time_value.value()
+
+        settings_manager.set_value(
+            Settings.REFRESH_FREQUENCY,
+            refresh_time_value
         )
-        self.sas_manager.token_refresh_finished.connect(
-            self.sas_token_refresh_finished
+        settings_manager.set_value(
+            Settings.REFRESH_FREQUENCY_UNIT,
+            refresh_unit
         )
 
         self.update_sas_frequency()
 
     def update_sas_frequency(self):
         # Set default refresh period to 8 hours
-        settings_manager.set_value(
-            SettingName.REFRESH_FREQUENCY,
-            10000
+        refresh_frequency = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY,
+            1,
+            setting_type=int
         )
 
+        unit = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY_UNIT,
+            TimeUnits.MINUTES
+        )
+
+        refresh_time_count = {
+            TimeUnits.MINUTES: 60000,
+            TimeUnits.HOURS: 60 * 6000,
+            TimeUnits.DAYS: 24 * 60 * 6000,
+        }
+
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.sas_manager.token_refresh)
+        self.timer.timeout.connect(self.sas_manager.run_refresh_task)
         self.timer.start(
-            settings_manager.get_value(
-                SettingName.REFRESH_FREQUENCY,
-                setting_type=int
-            )
+            refresh_frequency * refresh_time_count[unit]
         )
 
     def prepare_filter_box(self):
@@ -672,15 +738,31 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
          SAS Token based connections
         """
 
+        # self.show_message(
+        #     tr("Refreshing the SAS Token based STAC connections items..."),
+        #     level=Qgis.Info
+        # )
+
         self.show_progress(
-            tr("Refreshing the SAS Token based STAC connections items...")
+            tr("Refreshing SAS based connections..."),
         )
+
+        log(tr("Refreshing SAS based connections..."))
+        self.update_search_inputs(False)
 
     def sas_token_refresh_finished(self):
         """ Handles logic for when the token manager has finished updating the plugin
          SAS Token based connections
         """
+        log(tr("Finished refreshing SAS based connections."))
+        self.update_search_inputs(True)
+
+    def sas_token_refresh_error(self):
+        """ Handles logic for when the token refresh result into an error
+        """
+        log(tr("Encountered error while refreshing SAS based connections."))
         self.message_bar.clearWidgets()
+        self.update_search_inputs(True)
 
     def update_refreshed_items(self, connection, items):
         """ Refreshes the current SAS token connection results items """
