@@ -14,7 +14,7 @@ import enum
 import json
 import typing
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from qgis.PyQt import (
     QtCore
@@ -95,6 +95,14 @@ class SortOrderPrefix(enum.Enum):
     """ Holds the STAC ordering prefix value when sorting items results."""
     ASCENDING = '+'
     DESCENDING = '-'
+
+
+class TimeUnits(enum.Enum):
+    """ Represents time units."""
+    SECONDS = 'SECONDS'
+    MINUTES = 'MINUTES'
+    HOURS = 'HOURS'
+    DAYS = 'DAYS'
 
 
 class GeometryType(enum.Enum):
@@ -234,8 +242,8 @@ class Conformance:
 @dataclasses.dataclass
 class Item:
     """ Represents the STAC API Item"""
-    id: str
-    uuid: UUID = None
+    id: str = None
+    item_uuid: UUID = uuid4()
     type: ResourceType = None
     stac_version: str = None
     stac_extensions: typing.List[str] = None

@@ -729,7 +729,7 @@
       <attribute name="title">
        <string>Settings</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_9">
+      <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
         <widget class="QGroupBox" name="mConnectionGroupBox_2">
          <property name="sizePolicy">
@@ -741,8 +741,8 @@
          <property name="title">
           <string>Configurations</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_10">
-          <item row="2" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
            <layout class="QGridLayout" name="gridLayout_11">
             <item row="0" column="0">
              <widget class="QLabel" name="download_folder">
@@ -812,7 +812,7 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
+          <item>
            <widget class="QCheckBox" name="asset_loading">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This setting enables loading item assets that can be added into QGIS as map layers after dowloading them.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -821,6 +821,33 @@
              <string>Enable loading assets after download</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="sas_refresh_time_la">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The refresh time value that will used to determine the frequency for the SAS token updates to the SAS based connections.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>SAS Token refresh time</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="sas_refresh_time_value">
+              <property name="maximum">
+               <number>100000000</number>
+              </property>
+              <property name="value">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="sas_refresh_time_units"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

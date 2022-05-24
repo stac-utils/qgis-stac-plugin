@@ -1,5 +1,6 @@
 import os
 
+import setuptools
 from qgis.PyQt import (
     QtCore,
     QtGui,
@@ -14,10 +15,12 @@ from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
 from ..resources import *
+
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
 
-from ..conf import Settings, settings_manager
+from ..conf import ConnectionSettings, Settings, settings_manager
+
 from ..api.models import (
     ItemSearch,
     FilterLang,
@@ -25,8 +28,11 @@ from ..api.models import (
     SearchFilters,
     SortField,
     SortOrder,
+    TimeUnits,
 )
 from ..api.client import Client
+
+from ..jobs.token_manager import SASManager
 
 from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
 from .json_highlighter import JsonHighlighter
@@ -50,6 +56,10 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
     search_started = QtCore.pyqtSignal()
     search_completed = QtCore.pyqtSignal()
+    updated_result_items = QtCore.pyqtSignal(ConnectionSettings, list)
+    items_refresh_finished = QtCore.pyqtSignal()
+
+    result_items = []
 
     def __init__(
             self,
@@ -60,6 +70,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.new_connection_btn.clicked.connect(self.add_connection)
         self.edit_connection_btn.clicked.connect(self.edit_connection)
         self.remove_connection_btn.clicked.connect(self.remove_connection)
+
+        self.updated_result_items.connect(self.update_refreshed_items)
 
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
@@ -175,6 +187,20 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.get_filters()
         self.prepare_plugin_settings()
 
+        self.sas_manager = SASManager()
+        self.sas_manager.token_refresh_started.connect(
+            self.sas_token_refresh_started
+        )
+        self.sas_manager.token_refresh_finished.connect(
+            self.sas_token_refresh_finished
+        )
+
+        self.sas_manager.token_refresh_error.connect(
+            self.sas_token_refresh_error
+        )
+
+        self.update_sas_frequency()
+
     def prepare_plugin_settings(self):
         """ Initializes all the plugin related settings"""
 
@@ -187,6 +213,43 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         self.asset_loading.toggled.connect(self.update_plugin_settings)
 
+        refresh_time_value = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY,
+            1,
+            setting_type=int
+        )
+
+        refresh_time_unit = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY_UNIT,
+            TimeUnits.MINUTES,
+        )
+
+        self.sas_refresh_time_value.setValue(refresh_time_value)
+
+        labels = {
+            TimeUnits.MINUTES: tr("Minutes"),
+            TimeUnits.HOURS: tr("Hours"),
+            TimeUnits.DAYS: tr("Days"),
+        }
+        for unit, unit_text in labels.items():
+            self.sas_refresh_time_units.addItem(
+                unit_text,
+                unit
+            )
+        self.sas_refresh_time_units.setCurrentIndex(
+            self.sas_refresh_time_units.findData(
+                refresh_time_unit
+            )
+        )
+
+        self.sas_refresh_time_value.valueChanged.connect(
+            self.update_plugin_settings
+        )
+
+        self.sas_refresh_time_units.currentIndexChanged.connect(
+            self.update_plugin_settings
+        )
+
     def update_plugin_settings(self):
         """ Makes updates to all the plugin settings
          defined in the settings tab
@@ -196,8 +259,49 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             self.asset_loading.isChecked(),
         )
 
+        refresh_unit = self.sas_refresh_time_units.currentData()
+
+        refresh_time_value = self.sas_refresh_time_value.value()
+
+        settings_manager.set_value(
+            Settings.REFRESH_FREQUENCY,
+            refresh_time_value
+        )
+        settings_manager.set_value(
+            Settings.REFRESH_FREQUENCY_UNIT,
+            refresh_unit
+        )
+
+        self.update_sas_frequency()
+
+    def update_sas_frequency(self):
+        # Set default refresh period to 8 hours
+        refresh_frequency = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY,
+            1,
+            setting_type=int
+        )
+
+        unit = settings_manager.get_value(
+            Settings.REFRESH_FREQUENCY_UNIT,
+            TimeUnits.MINUTES
+        )
+
+        refresh_time_count = {
+            TimeUnits.MINUTES: 60000,
+            TimeUnits.HOURS: 60 * 6000,
+            TimeUnits.DAYS: 24 * 60 * 6000,
+        }
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.sas_manager.run_refresh_task)
+        self.timer.start(
+            refresh_frequency * refresh_time_count[unit]
+        )
+
     def prepare_filter_box(self):
-        """ Prepares the advanced filter group box inputs"""
+        """ Prepares the advanced filter group box inputs
+        """
 
         labels = {
             FilterLang.CQL_JSON: tr("CQL_JSON"),
@@ -542,7 +646,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         collection_dialog = CollectionDialog(collection)
         collection_dialog.exec_()
 
-    def display_results(self, results, pagination):
+    def display_results(self, results, pagination=None):
         """ Shows the found results into their respective view. Emits
         the search end signal after completing loading up the results
         into the view.
@@ -561,7 +665,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         elif self.search_type == ResourceType.FEATURE:
 
-            if pagination.total_pages > 0:
+            if pagination and pagination.total_pages > 0:
                 if self.page > 1:
                     self.page -= 1
                 self.next_btn.setEnabled(False)
@@ -577,6 +681,16 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                     )
                     self.item_model = ItemsModel(results)
                     self.items_proxy_model.setSourceModel(self.item_model)
+                    self.result_items = results
+                    settings_manager.delete_all_items(
+                        settings_manager.get_current_connection(),
+                        self.page
+                    )
+                    settings_manager.save_items(
+                        settings_manager.get_current_connection(),
+                        results,
+                        self.page
+                    )
                     self.populate_results(results)
                 else:
                     self.clear_search_results()
@@ -618,6 +732,39 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.message_bar.clearWidgets()
         self.search_error_message = message
         self.search_completed.emit()
+
+    def sas_token_refresh_started(self):
+        """ Handles logic for when the token manager is updating the plugin
+         SAS Token based connections
+        """
+        self.show_progress(
+            tr("Refreshing the SAS based connections...")
+        )
+        log(tr("Refreshing SAS based connections..."))
+        self.update_search_inputs(False)
+
+    def sas_token_refresh_finished(self):
+        """ Handles logic for when the token manager has finished updating the plugin
+         SAS Token based connections
+        """
+        self.show_message(
+            tr("Finished refreshing SAS based connections.")
+        )
+        log(tr("Finished refreshing SAS based connections."))
+        self.update_search_inputs(True)
+
+    def sas_token_refresh_error(self):
+        """ Handles logic for when the token refresh result into an error
+        """
+        log(tr("Encountered error while refreshing SAS based connections."))
+        self.message_bar.clearWidgets()
+        self.update_search_inputs(True)
+
+    def update_refreshed_items(self, connection, items):
+        """ Refreshes the current SAS token connection results items """
+
+        if connection == settings_manager.get_current_connection():
+            self.display_results(items)
 
     def populate_results(self, results):
         """ Add the found results into the widget scroll area

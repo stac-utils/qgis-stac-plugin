@@ -33,8 +33,6 @@ from ..lib import planetary_computer as pc
 from pystac_client import Client
 from pystac_client.exceptions import APIError
 
-from ..conf import ConformanceSettings
-
 from ..utils import log, tr
 
 
@@ -271,6 +269,7 @@ class ContentFetcherTask(QgsTask):
                 assets.append(item_asset)
             item_result = Item(
                 id=item.id,
+                item_uuid=uuid.uuid4(),
                 properties=properties,
                 collection=item.collection_id,
                 assets=assets,

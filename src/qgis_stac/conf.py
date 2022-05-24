@@ -21,6 +21,8 @@ from .api.models import (
     Collection,
     Conformance,
     FilterLang,
+    Item,
+    ResourceAsset,
     ResourceExtent,
     ResourceLink,
     ResourceProvider,
@@ -65,6 +67,7 @@ class ConnectionSettings:
     page_size: int
     collections: list
     conformances: list
+    search_items: list
     capability: ApiCapability
     created_date: datetime.datetime = datetime.datetime.now()
     auth_config: typing.Optional[str] = None
@@ -97,6 +100,9 @@ class ConnectionSettings:
             conformances = settings_manager.get_conformances(
                 uuid.UUID(identifier)
             )
+            items = settings_manager.get_items(
+                uuid.UUID(identifier)
+            )
             capability_value = settings.value("capability", defaultValue=None)
             capability = ApiCapability(capability_value) \
                 if capability_value else None
@@ -118,6 +124,7 @@ class ConnectionSettings:
             capability=capability,
             created_date=created_date,
             auth_config=auth_cfg,
+            search_items=items,
         )
 
 
@@ -249,6 +256,78 @@ class Settings(enum.Enum):
     """ Plugin settings names"""
     AUTO_ASSET_LOADING = "auto_asset_loading"
     DOWNLOAD_FOLDER = "download_folder"
+    REFRESH_FREQUENCY = "refresh/period"
+    REFRESH_FREQUENCY_UNIT = "refresh/unit"
+    REFRESH_LAST_UPDATE = "refresh/last_update"
+    REFRESH_STATE = "refresh/state"
+
+
+@dataclasses.dataclass
+class ItemSettings(Item):
+    """Plugin STAC API Item settings class
+    """
+
+    @classmethod
+    def from_qgs_settings(
+            cls,
+            identifier: str,
+            settings: QgsSettings):
+        """Reads QGIS settings and parses them into the item
+        settings instance with the respective settings values as properties.
+
+        :param identifier: Item identifier
+        :type identifier: str
+
+        :param settings: QGIS settings.
+        :type settings: QgsSettings
+
+        :returns: Conformance settings object
+        :rtype: ConformanceSettings
+        """
+        assets = cls.get_assets(settings)
+        item_uuid = None
+        try:
+            item_uuid = uuid.UUID(identifier)
+        except:
+            pass
+        return cls(
+            item_uuid=item_uuid,
+            id=settings.value("id"),
+            stac_version=settings.value("stac_version"),
+            assets=assets,
+            stac_object=settings.value("stac_object")
+        )
+
+    @classmethod
+    def get_assets(cls, item_settings):
+        """Gets the store item assets from the given settings.
+
+        :param name: Plugin item settings
+        :type name: QgsSettings()
+
+        :returns: Plugin STAC Item assets list
+        :rtype: []
+        """
+        assets = []
+        key = "assets"
+
+        with qgis_settings(key, item_settings) as settings:
+
+            title = settings.value("title", None)
+            href = settings.value("href", None)
+            description = settings.value("description", None)
+            roles = settings.value("roles", None)
+            type = settings.value("type", None)
+
+            asset = ResourceAsset(
+                title=title,
+                href=href,
+                roles=roles,
+                type=type,
+                description=description,
+            )
+            assets.append(asset)
+        return assets
 
 
 class SettingsManager(QtCore.QObject):
@@ -260,6 +339,8 @@ class SettingsManager(QtCore.QObject):
     SELECTED_CONNECTION_KEY: str = "selected_connection"
     COLLECTION_GROUP_NAME: str = "collections"
     CONFORMANCE_GROUP_NAME: str = "conformance"
+    ITEMS_GROUP_NAME: str = "items"
+    ASSETS_GROUP_NAME: str = "assets"
 
     settings = QgsSettings()
 
@@ -575,6 +656,21 @@ class SettingsManager(QtCore.QObject):
                f"{self.CONFORMANCE_GROUP_NAME}/" \
                f"{str(identifier)}"
 
+    def _get_item_settings_base(
+            self,
+            connection_identifier,
+            page,
+            identifier
+    ):
+        """Gets the items settings base url.
+        """
+        return f"{self.BASE_GROUP_NAME}/" \
+               f"{self.CONNECTION_GROUP_NAME}/" \
+               f"{connection_identifier}/" \
+               f"{self.ITEMS_GROUP_NAME}/" \
+               f"{page}/" \
+               f"{identifier}"
+
     def save_collection(self, connection, collection_settings):
         """ Save the passed colection settings into the plugin settings
 
@@ -658,6 +754,60 @@ class SettingsManager(QtCore.QObject):
         temporal_key = f"{key}/extent/temporal/"
         with qgis_settings(temporal_key) as settings:
             settings.setValue("interval", interval)
+
+    def save_items(self, connection, items, page):
+        """ Save the passed items into the plugin connection settings
+
+        :param connection: Connection settings
+        :type connection:  ConnectionSettings
+        """
+        for item in items:
+            item_setting = ItemSettings(
+                item_uuid=item.item_uuid,
+                id=item.id,
+                assets=item.assets,
+                stac_object=item.stac_object
+            )
+            self.save_item(connection, item_setting, page)
+
+    def save_item(self, connection, item_settings, page):
+        """ Save the passed item settings into the plugin settings
+
+        :param connection: Connection settings
+        :type connection:  ConnectionSettings
+        """
+        settings_key = self._get_item_settings_base(
+            connection.id,
+            page,
+            item_settings.item_uuid
+        )
+
+        with qgis_settings(settings_key) as settings:
+            settings.setValue("id", item_settings.id)
+            settings.setValue("item_uuid", item_settings.item_uuid)
+            settings.setValue("stac_version", item_settings.stac_version)
+            settings.setValue("stac_object", item_settings.stac_object)
+        self.save_item_assets(item_settings.assets, settings_key)
+
+    def save_item_assets(self, assets, key):
+        """ Saves the collection provider into plugin settings
+        using the provided settings group key.
+
+        :param links: List of collection providers
+        :type links: []
+
+        :param key: QgsSettings group key.
+        :type key: str
+        """
+        for asset in assets or []:
+            asset_uuid = uuid.uuid4()
+            settings_key = f"{key}/{self.ASSETS_GROUP_NAME}/{asset_uuid}"
+            with qgis_settings(settings_key) as settings:
+                settings.setValue("title", asset.title)
+                settings.setValue("description", asset.description)
+                settings.setValue("href", asset.href)
+                settings.setValue("roles", asset.roles)
+                settings.setValue("type", asset.type)
 
     def get_collection(self, identifier, connection):
         """ Retrieves the collection with the identifier
@@ -793,6 +943,72 @@ class SettingsManager(QtCore.QObject):
                 as settings:
             for conformance_name in settings.childGroups():
                 settings.remove(conformance_name)
+
+    def get_items(self, connection_identifier, items_uuids=None):
+        """ Gets all the available items settings in the
+        provided connection.
+
+        :param connection_identifier: Connection identifier from which
+        to get all the available collections
+        :type connection_identifier: uuid.UUID
+
+        :param items_uuids: List of target items ids
+        :type items_uuids: []
+        """
+        result = {}
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/"
+                f"{self.CONNECTION_GROUP_NAME}/"
+                f"{str(connection_identifier)}/"
+                f"{self.ITEMS_GROUP_NAME}"
+        ) \
+                as settings:
+            for page in settings.childGroups():
+                with qgis_settings(
+                        f"{self.BASE_GROUP_NAME}/"
+                        f"{self.CONNECTION_GROUP_NAME}/"
+                        f"{str(connection_identifier)}/"
+                        f"{self.ITEMS_GROUP_NAME}/"
+                        f"{page}"
+                ) as page_settings:
+                    result[f"{page}"] = []
+                    for item_id in page_settings.childGroups():
+                        if items_uuids and item_id not in items_uuids:
+                            continue
+                        item_setting_key = self._get_item_settings_base(
+                            connection_identifier,
+                            page,
+                            item_id
+                        )
+                        with qgis_settings(item_setting_key) \
+                                as item_settings:
+                            result[f"{page}"].append(
+                                ItemSettings.from_qgs_settings(
+                                    item_id,
+                                    item_settings
+                                )
+                            )
+        return result
+
+    def delete_all_items(self, connection, page=None):
+        """Deletes all the plugin connections items settings,
+        in the connection.
+
+        :param connection: Connection from which to delete all the
+        available collections
+        :type connection: ConnectionSettings
+        """
+        key = f"{self.BASE_GROUP_NAME}/" \
+              f"{self.CONNECTION_GROUP_NAME}/" \
+              f"{str(connection.id)}/" \
+              f"{self.ITEMS_GROUP_NAME}"
+
+        if page:
+            key = f"{key}/{page}"
+
+        with qgis_settings(key) as settings:
+            for item_name in settings.childGroups():
+                settings.remove(item_name)
 
     def save_search_filters(
         self,
