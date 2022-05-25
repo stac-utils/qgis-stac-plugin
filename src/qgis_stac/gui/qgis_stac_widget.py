@@ -878,6 +878,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         :param collections: List of collections to be added
         :type collections: []
         """
+        self.model.removeRows(0, self.model.rowCount())
+
         self.result_collections_la.setText(
             tr("{} STAC collection(s)").format(
                 len(collections)
