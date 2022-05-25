@@ -28,7 +28,6 @@ from qgis.core import (
     QgsRasterLayer,
     QgsTask,
     QgsVectorLayer,
-
 )
 
 try:
@@ -45,6 +44,7 @@ from ..utils import log, tr
 from ..api.models import (
     AssetLayerType,
     AssetRoles,
+    ResourceAsset
 )
 
 from ..conf import settings_manager
@@ -156,11 +156,21 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         """
         connection = settings_manager.get_current_connection()
         saved_item = settings_manager.get_items(
-            connection.id
-            [self.item.item_uuid]
+            connection.id,
+            [str(self.item.item_uuid)]
         )
         if saved_item:
-            self.item.assets = self.item.stac_object.assets
+            stored_assets = [
+                ResourceAsset(
+                    href=asset.href,
+                    title=asset.title or key,
+                    description=asset.description,
+                    type=asset.media_type,
+                    roles=asset.roles or []
+                )
+                for key, asset in self.item.stac_object.assets.items()
+            ]
+            self.item.assets = stored_assets
 
         assets_dialog = AssetsDialog(
             self.item,

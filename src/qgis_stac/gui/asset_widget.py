@@ -54,6 +54,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         ]
 
         self.title_la.setText(self.asset.title)
+        self.type_la.setText(self.asset.type)
         load_asset = partial(
             self.asset_dialog.load_asset,
             self.asset
@@ -75,7 +76,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         if self.asset.type not in layer_types:
             self.load_btn.setToolTip(
-                tr("Asset contains a {} media type which"
+                tr("Asset contains a {} media type which "
                    "cannot be loaded as a map layer in QGIS"
                    ).format(self.asset.type)
             )
