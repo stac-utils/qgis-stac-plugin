@@ -56,6 +56,7 @@ class AssetLayerType(enum.Enum):
     https://github.com/radiantearth/stac-api-spec/blob/
     master/stac-spec/best-practices.md#common-media-types-in-stac"""
     COG = 'image/tiff; application=geotiff; profile=cloud-optimized'
+    COPC = 'application/vnd.laszip+copc'
     GEOTIFF = 'image/tiff; application=geotiff'
     GEOJSON = 'application/geo+json'
     GEOPACKAGE = 'application/geopackage+sqlite3'

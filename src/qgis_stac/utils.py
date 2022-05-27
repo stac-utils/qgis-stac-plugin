@@ -89,6 +89,7 @@ def config_defaults_catalogs():
                 capability=capability,
                 created_date=datetime.datetime.now(),
                 auth_config=None,
+                search_items=[],
             )
             settings_manager.save_connection_settings(connection_settings)
 
