@@ -155,22 +155,12 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             most recent updated assets.
         """
         connection = settings_manager.get_current_connection()
-        saved_item = settings_manager.get_items(
+        saved_item = settings_manager.get_item(
             connection.id,
-            [str(self.item.item_uuid)]
+            str(self.item.item_uuid)
         )
         if saved_item:
-            stored_assets = [
-                ResourceAsset(
-                    href=asset.href,
-                    title=asset.title or key,
-                    description=asset.description,
-                    type=asset.media_type,
-                    roles=asset.roles or []
-                )
-                for key, asset in self.item.stac_object.assets.items()
-            ]
-            self.item.assets = stored_assets
+            self.item.assets = saved_item.assets
 
         assets_dialog = AssetsDialog(
             self.item,

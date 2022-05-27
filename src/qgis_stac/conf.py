@@ -10,6 +10,8 @@ import enum
 import typing
 import uuid
 
+from dateutil import parser
+
 from qgis.PyQt import (
     QtCore,
     QtWidgets,
@@ -25,6 +27,7 @@ from .api.models import (
     ResourceAsset,
     ResourceExtent,
     ResourceLink,
+    ResourceProperties,
     ResourceProvider,
     SearchFilters,
     SortField,
@@ -32,6 +35,7 @@ from .api.models import (
     SpatialExtent,
     TemporalExtent,
 )
+
 
 
 @contextlib.contextmanager
@@ -93,6 +97,7 @@ class ConnectionSettings:
         conformances = []
         auth_cfg = None
         capability = None
+        items = None
         try:
             collections = settings_manager.get_collections(
                 uuid.UUID(identifier)
@@ -285,6 +290,21 @@ class ItemSettings(Item):
         :rtype: ConformanceSettings
         """
         assets = cls.get_assets(settings)
+        stac_object = settings.value("stac_object")
+        collection = None
+        properties = None
+
+        if stac_object:
+            collection = stac_object.collection_id
+            try:
+                item_datetime = parser.parse(
+                    stac_object.get("created_date"),
+                )
+                properties = ResourceProperties(
+                    resource_datetime=item_datetime
+                )
+            except Exception as e:
+                pass
         item_uuid = None
         try:
             item_uuid = uuid.UUID(identifier)
@@ -293,9 +313,11 @@ class ItemSettings(Item):
         return cls(
             item_uuid=item_uuid,
             id=settings.value("id"),
+            collection=collection,
+            properties=properties,
             stac_version=settings.value("stac_version"),
             assets=assets,
-            stac_object=settings.value("stac_object")
+            stac_object=stac_object
         )
 
     @classmethod
@@ -316,7 +338,7 @@ class ItemSettings(Item):
             title = settings.value("title", None)
             href = settings.value("href", None)
             description = settings.value("description", None)
-            roles = settings.value("roles", None)
+            roles = settings.value("roles", [])
             type = settings.value("type", None)
 
             asset = ResourceAsset(
@@ -989,6 +1011,50 @@ class SettingsManager(QtCore.QObject):
                                 )
                             )
         return result
+
+    def get_item(self, connection_identifier, items_uuid):
+        """ Gets the store item setting in the
+        provided connection.
+
+        :param connection_identifier: Connection identifier from which
+        to get all the available collections
+        :type connection_identifier: uuid.UUID
+
+        :param items_uuid: Target item id
+        :type items_uuid: UUID
+        """
+        result = {}
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/"
+                f"{self.CONNECTION_GROUP_NAME}/"
+                f"{str(connection_identifier)}/"
+                f"{self.ITEMS_GROUP_NAME}"
+        ) \
+                as settings:
+            for page in settings.childGroups():
+                with qgis_settings(
+                        f"{self.BASE_GROUP_NAME}/"
+                        f"{self.CONNECTION_GROUP_NAME}/"
+                        f"{str(connection_identifier)}/"
+                        f"{self.ITEMS_GROUP_NAME}/"
+                        f"{page}"
+                ) as page_settings:
+                    result[f"{page}"] = []
+                    for item_id in page_settings.childGroups():
+                        if items_uuid and item_id == str(items_uuid):
+                            item_setting_key = self._get_item_settings_base(
+                                connection_identifier,
+                                page,
+                                item_id
+                            )
+                            with qgis_settings(item_setting_key) \
+                                    as item_settings:
+                                return ItemSettings.from_qgs_settings(
+                                        item_id,
+                                        item_settings
+                                    )
+
+        return None
 
     def delete_all_items(self, connection, page=None):
         """Deletes all the plugin connections items settings,

@@ -71,6 +71,18 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.edit_connection_btn.clicked.connect(self.edit_connection)
         self.remove_connection_btn.clicked.connect(self.remove_connection)
 
+        # initialize page
+        self.page = 1
+        self.total_pages = 0
+
+        # setup model for filtering and sorting item results
+
+        self.item_model = ItemsModel([])
+        self.items_proxy_model = ItemsSortFilterProxyModel()
+        self.items_proxy_model.setSourceModel(self.item_model)
+        self.items_proxy_model.setDynamicSortFilter(True)
+        self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
         self.updated_result_items.connect(self.update_refreshed_items)
 
         self.connections_box.currentIndexChanged.connect(
@@ -139,10 +151,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         self.search_error_message = None
 
-        # initialize page
-        self.page = 1
-        self.total_pages = 0
-
         self.current_collections = []
 
         self.highlighter = None
@@ -173,14 +181,6 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.download_folder_btn.fileChanged.connect(
             self.save_download_folder)
         self.open_folder_btn.clicked.connect(self.open_download_folder)
-
-        # setup model for filtering and sorting item results
-
-        self.item_model = ItemsModel([])
-        self.items_proxy_model = ItemsSortFilterProxyModel()
-        self.items_proxy_model.setSourceModel(self.item_model)
-        self.items_proxy_model.setDynamicSortFilter(True)
-        self.items_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.items_filter.textChanged.connect(self.items_filter_changed)
 
@@ -392,6 +392,14 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             )
             self.model.removeRows(0, self.model.rowCount())
             self.load_collections(collections)
+            items = settings_manager.get_items(
+                current_connection.id
+            )
+            self.load_items(items.get(
+                str(self.page), []),
+                self.page,
+                False
+            )
 
         self.search_btn.setEnabled(current_connection is not None)
 
@@ -432,6 +440,15 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 )
                 self.model.removeRows(0, self.model.rowCount())
                 self.load_collections(collections)
+
+                items = settings_manager.get_items(
+                    current_connection.id
+                )
+                self.load_items(
+                    items.get(str(self.page), []),
+                    self.page,
+                    False
+                )
             else:
                 self.connections_box.setCurrentIndex(0)
 
@@ -679,19 +696,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                             len(results)
                         )
                     )
-                    self.item_model = ItemsModel(results)
-                    self.items_proxy_model.setSourceModel(self.item_model)
-                    self.result_items = results
-                    settings_manager.delete_all_items(
-                        settings_manager.get_current_connection(),
-                        self.page
-                    )
-                    settings_manager.save_items(
-                        settings_manager.get_current_connection(),
-                        results,
-                        self.page
-                    )
-                    self.populate_results(results)
+                    self.load_items(results, self.page)
                 else:
                     self.clear_search_results()
                     if self.page > 1:
@@ -718,6 +723,24 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         else:
             raise NotImplementedError
         self.search_completed.emit()
+
+    def load_items(self, results, page, save=True):
+
+        self.item_model = ItemsModel(results)
+        self.items_proxy_model.setSourceModel(self.item_model)
+        self.result_items = results
+
+        if save:
+            settings_manager.delete_all_items(
+                settings_manager.get_current_connection(),
+                page
+            )
+            settings_manager.save_items(
+                settings_manager.get_current_connection(),
+                results,
+                page
+            )
+        self.populate_results(results)
 
     def display_search_error(self, message):
         """
@@ -887,7 +910,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         )
 
         for result in collections:
-            title = result.title if result.title else tr("No Title") + f" ({result.id})"
+            title = result.title if result.title \
+                else tr("No Title") + f" ({result.id})"
             item = QtGui.QStandardItem(title)
             item.setData(result, 1)
             self.model.appendRow(item)
@@ -1024,4 +1048,3 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.reverse_order_box.setChecked(
             filters.sort_order == SortOrder.DESCENDING
         )
-

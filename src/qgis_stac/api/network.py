@@ -251,16 +251,17 @@ class ContentFetcherTask(QgsTask):
             # so that the item assets can be accessed.
             if self.api_capability == ApiCapability.SUPPORT_SAS_TOKEN:
                 item = pc.sign(item)
+
             try:
                 item_datetime = parser.parse(
-                    item.properties.get("datetime"),
+                    item.get("created_date"),
                 )
                 properties = ResourceProperties(
                     resource_datetime=item_datetime
                 )
             except Exception as e:
                 log(
-                    f"Error in parsing item properties datetime"
+                    f"Error in parsing item created date"
                 )
             assets = []
             for key, asset in item.assets.items():
