@@ -49,6 +49,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         layer_types = [
             AssetLayerType.COG.value,
+            AssetLayerType.COPC.value,
             AssetLayerType.GEOTIFF.value,
             AssetLayerType.NETCDF.value,
         ]

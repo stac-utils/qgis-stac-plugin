@@ -20,6 +20,7 @@ from qgis.core import (
     QgsApplication,
     QgsMapLayer,
     QgsNetworkContentFetcherTask,
+    QgsPointCloudLayer,
     QgsProject,
     QgsProcessing,
     QgsProcessingFeedback,
@@ -176,6 +177,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         layer_types = [
             AssetLayerType.COG.value,
+            AssetLayerType.COPC.value,
             AssetLayerType.GEOTIFF.value,
             AssetLayerType.NETCDF.value,
         ]
@@ -283,11 +285,16 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             AssetLayerType.GEOJSON.value,
             AssetLayerType.GEOPACKAGE.value
         ])
+        point_cloud_types = ','.join([
+            AssetLayerType.COPC.value,
+        ])
 
         if assert_type in raster_types:
             layer_type = QgsMapLayer.RasterLayer
         elif assert_type in vector_types:
             layer_type = QgsMapLayer.VectorLayer
+        elif assert_type in point_cloud_types:
+            layer_type = QgsMapLayer.PointCloudLayer
 
         if AssetLayerType.COG.value in assert_type:
             asset_href = f"{self.cog_string}" \
@@ -431,6 +438,13 @@ class LayerLoader(QgsTask):
                         self.layer = layer
                         result = True
             return result
+        elif self.layer_type is QgsMapLayer.PointCloudLayer:
+            self.layer = QgsPointCloudLayer(
+                self.layer_uri,
+                self.layer_name,
+                'copc'
+            )
+            return self.layer.isValid()
         else:
             raise NotImplementedError
 
