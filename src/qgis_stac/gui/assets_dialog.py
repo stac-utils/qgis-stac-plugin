@@ -266,7 +266,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         return filename
 
-
     def load_asset(self, asset):
         """ Loads asset into QGIS.
             Checks if the asset type is a loadable layer inside QGIS.
