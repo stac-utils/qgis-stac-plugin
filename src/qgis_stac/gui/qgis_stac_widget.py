@@ -22,6 +22,7 @@ from ..gui.collection_dialog import CollectionDialog
 from ..conf import ConnectionSettings, Settings, settings_manager
 
 from ..api.models import (
+    ApiCapability,
     ItemSearch,
     FilterLang,
     ResourceType,
@@ -101,6 +102,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         self.clear_results_btn.clicked.connect(
             self.clear_search_results
         )
+
+        self.load_past_results.clicked.connect(self.load_results)
 
         self.fetch_collections_btn.clicked.connect(
             self.search_collections
@@ -392,13 +395,8 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
             )
             self.model.removeRows(0, self.model.rowCount())
             self.load_collections(collections)
-            items = settings_manager.get_items(
-                current_connection.id
-            )
-            self.load_items(items.get(
-                str(self.page), []),
-                self.page,
-                False
+            self.show_expired_items.setVisible(
+                current_connection.capability == ApiCapability.SUPPORT_SAS_TOKEN
             )
 
         self.search_btn.setEnabled(current_connection is not None)
@@ -440,15 +438,10 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 )
                 self.model.removeRows(0, self.model.rowCount())
                 self.load_collections(collections)
+                self.show_expired_items.setVisible(
+                    current_connection.capability == ApiCapability.SUPPORT_SAS_TOKEN
+                )
 
-                items = settings_manager.get_items(
-                    current_connection.id
-                )
-                self.load_items(
-                    items.get(str(self.page), []),
-                    self.page,
-                    False
-                )
             else:
                 self.connections_box.setCurrentIndex(0)
 
@@ -741,6 +734,20 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
                 page
             )
         self.populate_results(results)
+
+    def load_results(self):
+        """ Load saved items for the current page
+         into the plugin results tab.
+         """
+        current_connection = settings_manager.get_current_connection()
+        items = settings_manager.get_items(
+            current_connection.id
+        )
+        self.load_items(items.get(
+            str(self.page), []),
+            self.page,
+            False
+        )
 
     def display_search_error(self, message):
         """

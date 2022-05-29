@@ -298,7 +298,7 @@ class ItemSettings(Item):
             collection = stac_object.collection_id
             try:
                 item_datetime = parser.parse(
-                    stac_object.get("created_date"),
+                    stac_object.get("datetime"),
                 )
                 properties = ResourceProperties(
                     resource_datetime=item_datetime
