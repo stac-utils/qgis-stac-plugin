@@ -71,7 +71,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
             self.asset,
             auto_asset_loading
         )
-        self.load_btn.setEnabled(self.asset.type in layer_types)
+        self.load_btn.setEnabled(self.asset.type in ''.join(layer_types))
         self.load_btn.clicked.connect(load_asset)
         self.download_btn.clicked.connect(download_asset)
 

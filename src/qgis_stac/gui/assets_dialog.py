@@ -266,7 +266,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         return filename
 
-
     def load_asset(self, asset):
         """ Loads asset into QGIS.
             Checks if the asset type is a loadable layer inside QGIS.
@@ -471,7 +470,7 @@ class LayerLoader(QgsTask):
         else:
             provider_error = tr("error {}").format(
                 self.layer.dataProvider().error()
-            )if self.layer else ""
+            )if self.layer and self.layer.dataProvider() else ""
             self.error = tr(
                 f"Couldn't load layer "
                 f"{self.layer_uri},"
