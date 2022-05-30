@@ -215,7 +215,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
 
         refresh_time_value = settings_manager.get_value(
             Settings.REFRESH_FREQUENCY,
-            1,
+            30,
             setting_type=int
         )
 
@@ -278,7 +278,7 @@ class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
         # Set default refresh period to 8 hours
         refresh_frequency = settings_manager.get_value(
             Settings.REFRESH_FREQUENCY,
-            1,
+            30,
             setting_type=int
         )
 
