@@ -37,6 +37,7 @@ from pystac_client.exceptions import APIError
 from ..utils import log, tr
 
 from ..conf import settings_manager
+from ..definitions.constants import SAS_SUBSCRIPTION_VARIABLE
 
 
 class ContentFetcherTask(QgsTask):
@@ -244,7 +245,7 @@ class ContentFetcherTask(QgsTask):
         properties = None
         items_list = items_collection.items if items_collection else []
 
-        key = os.getenv("PC_SDK_SUBSCRIPTION_KEY")
+        key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
 
         # If the plugin defined connection sas subscription key
         # exists use it instead of the environment one.
