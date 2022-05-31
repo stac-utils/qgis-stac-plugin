@@ -169,6 +169,15 @@ class CollectionSettings(Collection):
 
     @classmethod
     def get_collection_links(cls, collection_settings):
+        """ Fetches links from the passed collection settings and
+        returns a list of resource links.
+
+        :param collection_settings: Collection settings instance
+        :type collection_settings: CollectionSettings
+
+        :returns: Resource links list
+        :rtype: list
+        """
         links = []
         key = "links"
 
@@ -190,6 +199,15 @@ class CollectionSettings(Collection):
 
     @classmethod
     def get_collection_extent(cls, collection_settings):
+        """ Fetches STAC collection extent from
+         the passed collection settings.
+
+        :param collection_settings: Collection settings instance
+        :type collection_settings: CollectionSettings
+
+        :returns: Extent instance that contain temporal and spatial extent
+        :rtype: ResourceExtent
+        """
         spatial_key = "extent/spatial"
         temporal_key = "extent/temporal"
 
@@ -205,6 +223,16 @@ class CollectionSettings(Collection):
 
     @classmethod
     def get_collection_providers(cls, collection_settings):
+        """ Fetches providers instances from the passed
+        collection settings and
+        returns a list of resource links.
+
+        :param collection_settings: Collection settings instance
+        :type collection_settings: CollectionSettings
+
+        :returns: Resource provider list
+        :rtype: list
+        """
         providers = []
 
         with qgis_settings("providers", collection_settings) as settings:
