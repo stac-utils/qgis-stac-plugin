@@ -155,6 +155,16 @@ class RefreshTask(QgsTask):
         connections = settings_manager.list_connections()
 
         key = os.getenv("PC_SDK_SUBSCRIPTION_KEY")
+
+        # If the plugin defined connection sas subscription key
+        # exists use it instead of the environment one.
+        connection = settings_manager.get_current_connection()
+
+        if connection and \
+                connection.capability == ApiCapability.SUPPORT_SAS_TOKEN and \
+                connection.sas_subscription_key:
+            key = connection.sas_subscription_key
+
         if key:
             pc.set_subscription_key(key)
 

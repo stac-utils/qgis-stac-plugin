@@ -40,7 +40,9 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         """
         super().__init__()
         self.setupUi(self)
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
+        self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Ok
+        ).setEnabled(False)
         self.connection = connection
 
         ok_signals = [
@@ -73,11 +75,24 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         self.get_conformances_btn.clicked.connect(self.fetch_conformances)
 
         if connection:
+            self.sas_subscription_key.setText(
+                connection.sas_subscription_key
+            ) if connection.sas_subscription_key else None
+
             self.load_connection_settings(connection)
             self.conformance = connection.conformances
             self.setWindowTitle(tr("Edit Connection"))
         else:
             self.conformance = []
+
+        self.sas_subscription_key_la.setEnabled(
+            connection is not None and
+            connection.capability == ApiCapability.SUPPORT_SAS_TOKEN
+        )
+        self.sas_subscription_key.setEnabled(
+            connection is not None and
+            connection.capability == ApiCapability.SUPPORT_SAS_TOKEN
+        )
 
         self.test_btn.clicked.connect(self.test_connection)
 
@@ -274,6 +289,10 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
         if self.capabilities.currentText() != "":
             capability = ApiCapability(self.capabilities.currentText())
 
+        sas_subscription_key = None
+        if self.sas_subscription_key.text() != "":
+            sas_subscription_key = self.sas_subscription_key.text()
+
         connection_settings = ConnectionSettings(
             id=connection_id,
             name=self.name_edit.text().strip(),
@@ -281,9 +300,11 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             page_size=self.page_size.value(),
             collections=[],
             capability=capability,
+            sas_subscription_key=sas_subscription_key,
             conformances=self.conformance,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
+            search_items=[]
         )
         existing_connection_names = []
         if connection_settings.name in (
