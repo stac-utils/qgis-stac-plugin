@@ -69,6 +69,7 @@ class ConnectionSettings:
     conformances: list
     search_items: list
     capability: ApiCapability
+    sas_subscription_key: str
     created_date: datetime.datetime = datetime.datetime.now()
     auth_config: typing.Optional[str] = None
 
@@ -122,6 +123,7 @@ class ConnectionSettings:
             collections=collections,
             conformances=conformances,
             capability=capability,
+            sas_subscription_key=settings.value("sas_subscription_key"),
             created_date=created_date,
             auth_config=auth_cfg,
             search_items=items,
@@ -541,6 +543,10 @@ class SettingsManager(QtCore.QObject):
             settings.setValue("url", connection_settings.url)
             settings.setValue("page_size", connection_settings.page_size)
             settings.setValue("capability", capability)
+            settings.setValue(
+                "sas_subscription_key",
+                connection_settings.sas_subscription_key
+            )
             settings.setValue("created_date", created_date)
             settings.setValue("auth_config", connection_settings.auth_config)
         self.connections_settings_updated.emit()

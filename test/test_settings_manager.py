@@ -64,6 +64,7 @@ class SettingsManagerTest(unittest.TestCase):
             collections=[],
             conformances=[],
             capability=None,
+            sas_subscription_key=None,
             search_items=None,
         )
 
@@ -105,6 +106,7 @@ class SettingsManagerTest(unittest.TestCase):
             collections=[],
             conformances=[],
             capability=None,
+            sas_subscription_key=None,
             search_items=None,
         )
         settings_manager.save_connection_settings(

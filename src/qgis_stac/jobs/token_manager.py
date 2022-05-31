@@ -26,6 +26,8 @@ from ..api.models import (
 
 from ..utils import log
 
+from ..definitions.constants import SAS_SUBSCRIPTION_VARIABLE
+
 
 class RefreshState(enum.Enum):
     """ Represents time units."""
@@ -154,7 +156,17 @@ class RefreshTask(QgsTask):
 
         connections = settings_manager.list_connections()
 
-        key = os.getenv("PC_SDK_SUBSCRIPTION_KEY")
+        key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+
+        # If the plugin defined connection sas subscription key
+        # exists use it instead of the environment one.
+        connection = settings_manager.get_current_connection()
+
+        if connection and \
+                connection.capability == ApiCapability.SUPPORT_SAS_TOKEN and \
+                connection.sas_subscription_key:
+            key = connection.sas_subscription_key
+
         if key:
             pc.set_subscription_key(key)
 
