@@ -816,7 +816,7 @@ class SettingsManager(QtCore.QObject):
         :type identifier: str
 
         :param connection: Connection that the collection belongs to.
-        :type connection: str
+        :type connection: ConnectionSettings
         """
 
         settings_key = self._get_collection_settings_base(
@@ -828,6 +828,40 @@ class SettingsManager(QtCore.QObject):
                 str(identifier), settings
             )
         return collection_settings
+
+    def get_collection(self, collection_id, connection):
+        """ Retrieves the collection that matched the passed collection id
+
+        :param id: Collection id
+        :type id: str
+
+        :param connection: Connection that the collection belongs to.
+        :type connection: ConnectionSettings
+        """
+
+        connection_identifier = connection.id
+
+        result = []
+        with qgis_settings(
+                f"{self.BASE_GROUP_NAME}/"
+                f"{self.CONNECTION_GROUP_NAME}/"
+                f"{str(connection_identifier)}/"
+                f"{self.COLLECTION_GROUP_NAME}"
+        ) \
+                as settings:
+            for uuid in settings.childGroups():
+                collection_settings_key = self._get_collection_settings_base(
+                    connection_identifier,
+                    uuid
+                )
+                with qgis_settings(collection_settings_key) \
+                        as collection_settings:
+                    collection = CollectionSettings.from_qgs_settings(
+                            uuid, collection_settings
+                    )
+                    if collection.id == collection_id:
+                        return collection
+        return None
 
     def get_collections(self, connection_identifier):
         """ Gets all the available collections settings in the

@@ -242,7 +242,7 @@ class Conformance:
 
 @dataclasses.dataclass
 class Item:
-    """ Represents the STAC API Item"""
+    """ Represents the plugin STAC API Item"""
     id: str = None
     item_uuid: UUID = uuid4()
     type: ResourceType = None

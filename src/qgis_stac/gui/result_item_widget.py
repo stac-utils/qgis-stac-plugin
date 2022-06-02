@@ -76,9 +76,9 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.setupUi(self)
         self.item = item
         self.title_la.setText(item.id)
-        self.collection_name.setText(item.collection)
         self.thumbnail_url = None
-        self.date_format = "%Y-%m-%dT%H:%M:%S"
+        self.date_time_format = "%Y-%m-%dT%H:%M:%S"
+        self.simple_date_format = "%m/%d/%Y"
         self.main_widget = main_widget
         self.layer_loader = None
         self.initialize_ui()
@@ -90,12 +90,26 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
 
         datetime_str = datetime.datetime.strftime(
             self.item.properties.resource_datetime,
-            self.date_format
-        ) if self.item.properties else ""
+            self.simple_date_format
+        ) if self.item.properties else None
 
         self.created_date.setText(
             datetime_str
+        ) if datetime_str else None
+
+        # Get item collection name if catalogs collections have been stored
+        # in the plugin catalog connection settings.
+        current_connection = settings_manager.get_current_connection()
+
+        collection = settings_manager.get_collection(
+            collection_id=self.item.collection,
+            connection=current_connection
         )
+
+        collection_label = collection.title \
+            if collection else self.item.collection
+        self.collection_name.setText(collection_label)
+
         thumbnail_url = None
         overview_url = None
 
