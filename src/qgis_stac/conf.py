@@ -613,6 +613,9 @@ class SettingsManager(QtCore.QObject):
 
         :param identifier: Connection settings identifier
         :type identifier: uuid.UUID
+
+        :returns Connection settings base group
+        :rtype str
         """
         return f"{self.BASE_GROUP_NAME}/" \
                f"{self.CONNECTION_GROUP_NAME}/" \
@@ -630,6 +633,9 @@ class SettingsManager(QtCore.QObject):
 
         :param identifier: Collection settings identifier
         :type identifier: uuid.UUID
+
+        :returns Collection settings base group
+        :rtype str
         """
         return f"{self.BASE_GROUP_NAME}/" \
                f"{self.CONNECTION_GROUP_NAME}/" \
@@ -649,6 +655,9 @@ class SettingsManager(QtCore.QObject):
 
         :param identifier: Conformance settings identifier
         :type identifier: uuid.UUID
+
+        :returns Conformance settings base group
+        :rtype str
         """
         return f"{self.BASE_GROUP_NAME}/" \
                f"{self.CONNECTION_GROUP_NAME}/" \
@@ -662,7 +671,19 @@ class SettingsManager(QtCore.QObject):
             page,
             identifier
     ):
-        """Gets the items settings base url.
+        """Gets the items settings base group.
+
+        :param connection_identifier: Connection settings identifier
+        :type connection_identifier: uuid.UUID
+
+        :param page: The result page that the item was when fetched.
+        :type page: str
+
+        :param identifier: The item settings identifier
+        :type identifier: uuid.UUID
+
+        :returns Items settings base group
+        :rtype str
         """
         return f"{self.BASE_GROUP_NAME}/" \
                f"{self.CONNECTION_GROUP_NAME}/" \
@@ -810,13 +831,16 @@ class SettingsManager(QtCore.QObject):
                 settings.setValue("type", asset.type)
 
     def get_collection(self, identifier, connection):
-        """ Retrieves the collection with the identifier
+        """ Retrieves the collection that matches the passed identifier.
 
         :param identifier: Collection identifier
         :type identifier: str
 
         :param connection: Connection that the collection belongs to.
         :type connection: ConnectionSettings
+
+        :returns Collection settings instance
+        :rtype CollectionSettings
         """
 
         settings_key = self._get_collection_settings_base(
@@ -830,13 +854,16 @@ class SettingsManager(QtCore.QObject):
         return collection_settings
 
     def get_collection(self, collection_id, connection):
-        """ Retrieves the collection that matched the passed collection id
+        """ Retrieves the first collection that matched the passed collection id.
 
-        :param id: Collection id
-        :type id: str
+        :param collection_id: STAC collection id
+        :type collection_id: str
 
         :param connection: Connection that the collection belongs to.
         :type connection: ConnectionSettings
+
+        :returns Collection settings instance
+        :rtype CollectionSettings
         """
 
         connection_identifier = connection.id
@@ -870,6 +897,9 @@ class SettingsManager(QtCore.QObject):
         :param connection_identifier: Connection identifier from which
         to get all the available collections
         :type connection_identifier: uuid.UUID
+
+        :returns List of the collection settings instances
+        :rtype list
         """
         result = []
         with qgis_settings(
@@ -918,6 +948,9 @@ class SettingsManager(QtCore.QObject):
         :param connection_identifier: Connection identifier from which
         to get all the available collections
         :type connection_identifier: uuid.UUID
+
+        :returns List of the conformances settings instances
+        :rtype list
         """
         result = []
         with qgis_settings(
@@ -988,6 +1021,9 @@ class SettingsManager(QtCore.QObject):
 
         :param items_uuids: List of target items ids
         :type items_uuids: []
+
+        :returns List of the item settings instances
+        :rtype list
         """
         result = {}
         with qgis_settings(
