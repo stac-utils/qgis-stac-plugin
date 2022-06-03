@@ -67,7 +67,7 @@
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">font-size: 18px; font-weight: 500;</string>
+           <string notr="true">font-size: 17px; font-weight: 500;</string>
           </property>
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
@@ -95,7 +95,7 @@
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">font-size:16px; font-weight:310;</string>
+           <string notr="true">font-size:15px; font-weight:310;</string>
           </property>
           <property name="text">
            <string>Collection name</string>
