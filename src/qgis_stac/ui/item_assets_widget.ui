@@ -41,6 +41,9 @@
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="1">
       <widget class="QLabel" name="label_2">
+       <property name="toolTip">
+        <string>Asset file type.</string>
+       </property>
        <property name="styleSheet">
         <string notr="true">font-weight:bold;</string>
        </property>
@@ -65,6 +68,12 @@
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Asset name, as defined in the STAC asset.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="statusTip">
+        <string/>
+       </property>
        <property name="styleSheet">
         <string notr="true">font-weight:bold;</string>
        </property>
