@@ -88,22 +88,44 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
     def initialize_ui(self):
         """ Populate UI inputs when loading the widget"""
 
-        datetime_str = datetime.datetime.strftime(
-            self.item.properties.resource_datetime,
-            self.simple_date_format
-        ) if self.item.properties else None
+        datetime_str = None
+        if self.item.properties and \
+            self.item.properties.start_date and \
+            self.item.proerties.end_date:
+
+            start_date = datetime.datetime.strftime(
+                self.item.properties.start_date,
+                self.simple_date_format
+            )
+            end_date = datetime.datetime.strftime(
+                self.item.properties.end_date,
+                self.simple_date_format
+            )
+
+            datetime_str = f"{start_date} - {end_date}"
+
+        elif self.item.properties and \
+                self.item.properties.resource_datetime:
+
+            datetime_str = datetime.datetime.strftime(
+                self.item.properties.resource_datetime,
+                self.simple_date_format
+            )
 
         self.created_date.setText(
             datetime_str
         ) if datetime_str else None
 
         if self.item.properties.eo_cloud_cover:
-            cloud_cover = round(self.item.properties.eo_cloud_cover, 2)
+            cloud_cover = round(
+                self.item.properties.eo_cloud_cover,
+                2)
 
             cloud_cover_integer = int(cloud_cover)
 
             cloud_cover = cloud_cover_integer \
-                if cloud_cover == cloud_cover_integer else cloud_cover
+                if cloud_cover == cloud_cover_integer \
+                else cloud_cover
 
             self.cloud_cover.setText(
                 tr(
@@ -136,12 +158,15 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
 
         if overview_url:
             params = {
-                constants.THUMBNAIL_HEIGHT_PARAM: constants.THUMBNAIL_HEIGHT,
-                constants.THUMBNAIL_WIDTH_PARAM: constants.THUMBNAIL_WIDTH,
+                constants.THUMBNAIL_HEIGHT_PARAM:
+                    constants.THUMBNAIL_HEIGHT,
+                constants.THUMBNAIL_WIDTH_PARAM:
+                    constants.THUMBNAIL_WIDTH,
             }
             overview_url = self.append_url_params(overview_url, params)
 
-        self.thumbnail_url = thumbnail_url if thumbnail_url else overview_url
+        self.thumbnail_url = thumbnail_url \
+            if thumbnail_url else overview_url
 
         self.view_assets_btn.setEnabled(self.item.assets is not None)
         self.view_assets_btn.clicked.connect(self.open_assets_dialog)
