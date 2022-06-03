@@ -76,7 +76,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.assets = item.assets
         self.parent = parent
         self.main_widget = main_widget
-        self.cog_string = '/vsicurl/'
+        self.vis_url_string = '/vsicurl/'
         self.download_result = {}
 
         self.prepare_assets()
@@ -295,8 +295,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         elif assert_type in point_cloud_types:
             layer_type = QgsMapLayer.PointCloudLayer
 
-        if AssetLayerType.COG.value in assert_type:
-            asset_href = f"{self.cog_string}" \
+        if assert_type in ''.join([AssetLayerType.COG.value]) or \
+                assert_type in ''.join([AssetLayerType.NETCDF.value]):
+            asset_href = f"{self.vis_url_string}" \
                          f"{asset.href}"
         else:
             asset_href = f"{asset.href}"
@@ -470,7 +471,7 @@ class LayerLoader(QgsTask):
         else:
             provider_error = tr("error {}").format(
                 self.layer.dataProvider().error()
-            )if self.layer and self.layer.dataProvider() else ""
+            )if self.layer and self.layer.dataProvider() else None
             self.error = tr(
                 f"Couldn't load layer "
                 f"{self.layer_uri},"
