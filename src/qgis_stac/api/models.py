@@ -174,9 +174,10 @@ class ResourceProperties:
     resource_datetime: datetime.datetime = None
     created: datetime.datetime = None
     updated: datetime.datetime = None
-    start_datetime: datetime.datetime = None
-    end_datetime: datetime.datetime = None
+    start_date: datetime.datetime = None
+    end_date: datetime.datetime = None
     license: str = None
+    eo_cloud_cover: float = None
 
 
 @dataclasses.dataclass
@@ -242,7 +243,7 @@ class Conformance:
 
 @dataclasses.dataclass
 class Item:
-    """ Represents the STAC API Item"""
+    """ Represents the plugin STAC API Item"""
     id: str = None
     item_uuid: UUID = uuid4()
     type: ResourceType = None
