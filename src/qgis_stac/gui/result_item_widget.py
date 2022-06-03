@@ -97,6 +97,20 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             datetime_str
         ) if datetime_str else None
 
+        if self.item.properties.eo_cloud_cover:
+            cloud_cover = round(self.item.properties.eo_cloud_cover, 2)
+
+            cloud_cover_integer = int(cloud_cover)
+
+            cloud_cover = cloud_cover_integer \
+                if cloud_cover == cloud_cover_integer else cloud_cover
+
+            self.cloud_cover.setText(
+                tr(
+                    "Cloud cover: {}%"
+                   ).format(cloud_cover)
+            )
+
         # Get item collection name if catalogs collections have been stored
         # in the plugin catalog connection settings.
         current_connection = settings_manager.get_current_connection()

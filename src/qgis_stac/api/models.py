@@ -174,9 +174,10 @@ class ResourceProperties:
     resource_datetime: datetime.datetime = None
     created: datetime.datetime = None
     updated: datetime.datetime = None
-    start_datetime: datetime.datetime = None
-    end_datetime: datetime.datetime = None
+    start_date: datetime.datetime = None
+    end_date: datetime.datetime = None
     license: str = None
+    eo_cloud_cover: float = None
 
 
 @dataclasses.dataclass

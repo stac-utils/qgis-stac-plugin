@@ -252,11 +252,30 @@ class ContentFetcherTask(QgsTask):
             if self.api_capability == ApiCapability.SUPPORT_SAS_TOKEN:
                 item = pc.sign(item)
             try:
+                properties_datetime = item.properties.get("datetime")
+
                 item_datetime = parser.parse(
-                    item.properties.get("datetime"),
-                )
+                    properties_datetime
+                ) if properties_datetime else None
+
+                properties_start_date = item.properties.get("start_date")
+                start_date = parser.parse(
+                    properties_start_date,
+                ) if properties_start_date else None
+
+                properties_end_date = item.properties.get("end_date")
+
+                end_date = parser.parse(
+                    properties_end_date
+                ) if properties_end_date else None
+
+                cloud_cover = item.properties.get("eo:cloud_cover")
+
                 properties = ResourceProperties(
-                    resource_datetime=item_datetime
+                    resource_datetime=item_datetime,
+                    eo_cloud_cover=cloud_cover,
+                    start_date=start_date,
+                    end_date=end_date
                 )
             except Exception as e:
                 log(

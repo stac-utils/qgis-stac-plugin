@@ -67,7 +67,7 @@
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">font-size: 18px; font-weight: bold;</string>
+           <string notr="true">font-size: 18px; font-weight: 500;</string>
           </property>
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
@@ -95,7 +95,7 @@
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">font-size:15px;</string>
+           <string notr="true">font-size:16px; font-weight:310;</string>
           </property>
           <property name="text">
            <string>Collection name</string>
@@ -121,6 +121,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="styleSheet">
+             <string notr="true">font-weight:200;</string>
+            </property>
             <property name="text">
              <string>Date acquired:</string>
             </property>
@@ -134,6 +137,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="styleSheet">
+             <string notr="true">font-weight:200;</string>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -146,6 +152,16 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="cloud_cover">
+          <property name="styleSheet">
+           <string notr="true">font-weight:300;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="verticalSpacer">
