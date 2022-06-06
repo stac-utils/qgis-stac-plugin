@@ -78,8 +78,15 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.main_widget = main_widget
         self.vis_url_string = '/vsicurl/'
         self.download_result = {}
+        self.load_assets = {}
+        self.download_assets = {}
+
+        self.load_btn.clicked.connect(self.load_btn_clicked)
+        self.download_btn.clicked.connect(self.download_btn_clicked)
 
         self.prepare_assets()
+
+        self.layers = {}
 
     def prepare_assets(self):
         """ Loads the dialog with the list of assets.
@@ -87,8 +94,13 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         if len(self.assets) > 0:
             self.title.setText(
-                tr("Item {}, has {} asset(s) available").
+                tr("Item {}").
                 format(self.item.id, len(self.assets))
+            )
+            self.asset_count.setText(
+                tr("{} available asset(s)").
+                format(len(self.assets))
+
             )
         else:
             self.title.setText(
@@ -102,6 +114,32 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         layout.setSpacing(1)
         for asset in self.assets:
             asset_widget = AssetWidget(asset, self)
+
+            load_selected_partial = partial(
+                self.load_asset_selected,
+                asset,
+            )
+
+            download_selected_partial = partial(
+                self.download_asset_selected,
+                asset,
+            )
+
+            load_deselected_partial = partial(
+                self.load_asset_deselected,
+                asset,
+            )
+
+            download_deselected_partial = partial(
+                self.download_asset_deselected,
+                asset,
+            )
+
+            asset_widget.load_selected.connect(load_selected_partial)
+            asset_widget.download_selected.connect(download_selected_partial)
+
+            asset_widget.load_deselected.connect(load_deselected_partial)
+            asset_widget.download_deselected.connect(download_deselected_partial)
 
             layout.addWidget(asset_widget)
             layout.setAlignment(asset_widget, QtCore.Qt.AlignTop)
@@ -119,6 +157,74 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
 
+    def load_asset_selected(self, asset):
+        self.load_assets[asset.title] = asset
+        self.load_btn.setText(
+            f"Add assets as layers ({len(self.load_assets.items())})"
+        )
+
+        self.load_btn.setEnabled(True)
+
+    def download_asset_selected(self, asset):
+        self.download_assets[asset.title] = asset
+        self.download_btn.setText(
+            f"Download the selected assets "
+            f"({len(self.download_assets.items())})"
+        )
+        self.download_btn.setEnabled(True)
+
+    def load_asset_deselected(self, asset):
+        self.load_assets.pop(asset.title)
+        self.load_btn.setText(
+            f"Add selected assets as layers "
+            f"({len(self.load_assets.items())})"
+        ) if self.load_assets else \
+            self.load_btn.setText(
+                "Add selected assets as layers"
+            )
+
+        self.load_btn.setEnabled(len(self.load_assets.items()) > 0)
+
+    def download_asset_deselected(self, asset):
+        self.download_assets.pop(asset.title)
+        self.download_btn.setText(
+            f"Download the selected assets "
+            f"({len(self.download_assets.items())})"
+        ) if self.download_assets else \
+            self.download_btn.setText(
+                "Download the selected assets"
+            )
+
+        self.download_btn.setEnabled(
+            len(self.download_assets.items()) > 0
+        )
+
+    def load_btn_clicked(self):
+        for key, asset in self.load_assets.items():
+            try:
+                QgsTask.fromFunction(
+                    'Load asset function',
+                    self.load_asset(asset)
+                )
+            except Exception as err:
+                log(tr("Error loading assets {}".format(err)))
+
+    def download_btn_clicked(self):
+        auto_asset_loading = settings_manager.get_value(
+            Settings.AUTO_ASSET_LOADING,
+            False,
+            setting_type=bool
+        )
+
+        for key, asset in self.download_assets.items():
+            try:
+                QgsTask.fromFunction(
+                    'Download asset function',
+                    self.download_asset(asset, auto_asset_loading)
+                )
+            except Exception as err:
+                log(tr("Error downloading asset {}, {}".format(asset.title, err)))
+
     def update_inputs(self, enabled):
         """ Updates the inputs widgets state in the main search item widget.
 
@@ -127,6 +233,12 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """
         self.scroll_area.setEnabled(enabled)
         self.parent.update_inputs(enabled)
+        self.load_btn.setEnabled(
+            enabled and len(self.load_assets.items()) > 0
+        )
+        self.download_btn.setEnabled(
+            enabled and len(self.download_assets.items()) > 0
+        )
 
     def download_asset(self, asset, load_asset=False):
         """ Downloads the passed asset into directory defined in the plugin settings.
@@ -137,6 +249,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :param load_asset: Whether to load an asset after download has finished.
         :type load_asset: bool
         """
+        self.update_inputs(False)
         download_folder = settings_manager.get_value(
             Settings.DOWNLOAD_FOLDER
         )
@@ -243,6 +356,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :type value: int
         """
         if value == 100:
+            self.update_inputs(True)
             self.main_widget.show_message(
                 tr("Download for file {} has finished."
                    ).format(
@@ -304,20 +418,26 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         asset_name = asset.title
 
         self.update_inputs(False)
-        self.layer_loader = LayerLoader(
+        layer_loader = LayerLoader(
             asset_href,
             asset_name,
             layer_type
         )
 
+        add_layer_partial = partial(
+            self.add_layer,
+            asset_name,
+            layer_loader
+        )
+
         # Using signal approach to detect the results of the layer loader
         # task as the callback function approach doesn't make the task
         # to recall the assigned callbacks in the provided context.
-        self.layer_loader.taskCompleted.connect(self.add_layer)
-        self.layer_loader.progressChanged.connect(self.main_widget.update_progress_bar)
-        self.layer_loader.taskTerminated.connect(self.layer_loader_terminated)
+        layer_loader.taskCompleted.connect(add_layer_partial)
+        layer_loader.progressChanged.connect(self.main_widget.update_progress_bar)
+        layer_loader.taskTerminated.connect(self.layer_loader_terminated)
 
-        QgsApplication.taskManager().addTask(self.layer_loader)
+        QgsApplication.taskManager().addTask(layer_loader)
 
         self.main_widget.show_progress(
             f"Adding asset \"{asset_name}\" into QGIS",
@@ -327,27 +447,31 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.main_widget.update_progress_bar(0)
         log(tr("Started adding asset into QGIS"))
 
-    def add_layer(self):
+    def add_layer(self, asset_name, layer_loader):
         """ Adds layer into the current QGIS project.
             For the layer to be added successfully, the task for loading
             layer need to exist and the corresponding layer need to be
             available.
         """
-        if self.layer_loader and self.layer_loader.layer:
-            layer = self.layer_loader.layer
+        if layer_loader and layer_loader.layer:
+            layer = layer_loader.layer
             QgsProject.instance().addMapLayer(layer)
 
-            message = tr("Sucessfully added asset as a map layer")
+            message = tr(
+                "Sucessfully added asset {} as a map layer "
+            ).format(
+                asset_name
+            )
             level = Qgis.Info
-        elif self.layer_loader and self.layer_loader.layers:
-            layers = self.layer_loader.layers
+        elif layer_loader and layer_loader.layers:
+            layers = layer_loader.layers
             for layer in layers:
                 QgsProject.instance().addMapLayer(layer)
 
             message = tr("Sucessfully added asset as a map layer(s)")
             level = Qgis.Info
-        elif self.layer_loader and self.layer_loader.error:
-            message = self.layer_loader.error
+        elif layer_loader and layer_loader.error:
+            message = layer_loader.error
             level = Qgis.Critical
         else:
             message = tr("Problem fetching asset and loading it, into QGIS")

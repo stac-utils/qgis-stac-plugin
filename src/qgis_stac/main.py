@@ -13,9 +13,9 @@ import re
 import os.path
 
 from qgis.core import QgsSettings
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QDockWidget, QMainWindow
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -48,6 +48,11 @@ class QgisStac:
         self.main_widget = QgisStacWidget()
         self.toolbar = self.iface.addToolBar("Open STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
+
+        self.main_window = QMainWindow()
+        self.main_window.setWindowTitle("STAC API Browser")
+        self.main_window.resize(850, 1000)
+        self.main_window.setCentralWidget(self.main_widget)
 
         # Add default catalogs, first check if they have already
         # been set.
@@ -182,6 +187,6 @@ class QgisStac:
             self.iface.removeToolBarIcon(action)
 
     def run(self):
-        self.main_widget.show()
+        self.main_window.show()
         if not self.pluginIsActive:
             self.pluginIsActive = True

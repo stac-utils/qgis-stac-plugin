@@ -50,7 +50,7 @@ WidgetUi, _ = loadUiType(
 )
 
 
-class QgisStacWidget(QtWidgets.QDialog, WidgetUi):
+class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     """ Main plugin widget that contains tabs for search, results and settings
     functionalities"""
 
