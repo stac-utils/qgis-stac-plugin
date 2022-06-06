@@ -31,6 +31,12 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
     assets loading and downloading functionalities
     """
 
+    load_selected = QtCore.pyqtSignal()
+    download_selected = QtCore.pyqtSignal()
+
+    load_deselected = QtCore.pyqtSignal()
+    download_deselected = QtCore.pyqtSignal()
+
     def __init__(
         self,
         asset,
@@ -56,28 +62,26 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         self.title_la.setText(self.asset.title)
         self.type_la.setText(self.asset.type)
-        load_asset = partial(
-            self.asset_dialog.load_asset,
-            self.asset
-        )
-        auto_asset_loading = settings_manager.get_value(
-            Settings.AUTO_ASSET_LOADING,
-            False,
-            setting_type=bool
-        )
 
-        download_asset = partial(
-            self.asset_dialog.download_asset,
-            self.asset,
-            auto_asset_loading
-        )
-        self.load_btn.setEnabled(self.asset.type in ''.join(layer_types))
-        self.load_btn.clicked.connect(load_asset)
-        self.download_btn.clicked.connect(download_asset)
+        self.load_box.setEnabled(self.asset.type in ''.join(layer_types))
+        self.load_box.toggled.connect(self.asset_load_selected)
+        self.download_box.toggled.connect(self.asset_download_selected)
 
         if self.asset.type not in layer_types:
-            self.load_btn.setToolTip(
+            self.load_box.setToolTip(
                 tr("Asset contains a {} media type which "
                    "cannot be loaded as a map layer in QGIS"
                    ).format(self.asset.type)
             )
+
+    def asset_load_selected(self):
+        if self.load_box.isChecked():
+            self.load_selected.emit()
+        else:
+            self.load_deselected.emit()
+
+    def asset_download_selected(self):
+        if self.download_box.isChecked():
+            self.download_selected.emit()
+        else:
+            self.download_deselected.emit()
