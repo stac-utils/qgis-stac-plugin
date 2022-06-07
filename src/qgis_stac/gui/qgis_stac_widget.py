@@ -1,6 +1,7 @@
 import os
 
-import setuptools
+from functools import partial
+
 from qgis.PyQt import (
     QtCore,
     QtGui,
@@ -10,7 +11,7 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
-from qgis.core import Qgis, QgsCoordinateReferenceSystem
+from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsTask
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
@@ -43,7 +44,7 @@ from ..utils import (
     tr,
 )
 
-from .result_item_widget import ResultItemWidget
+from .result_item_widget import add_footprint_helper, ResultItemWidget
 
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/qgis_stac_widget.ui")
@@ -75,6 +76,11 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.connections_box.currentIndexChanged.connect(
             self.update_connection_buttons
+        )
+
+        self.footprint_items = {}
+        self.footprint_btn.clicked.connect(
+            self.footprint_btn_clicked
         )
 
         self.search_btn.clicked.connect(
@@ -713,6 +719,9 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                         )
                 self.next_btn.setEnabled(len(results) > 0)
                 self.prev_btn.setEnabled(self.page > 1)
+                self.footprint_btn.setEnabled(
+                    len(self.footprint_items.items()) > 0
+                )
             self.container.setCurrentIndex(1)
 
         else:
@@ -784,6 +793,21 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 main_widget=self,
                 parent=self
             )
+            footprint_selected_partial = partial(
+                self.footprint_selected,
+                result
+            )
+            footprint_deselected_partial = partial(
+                self.footprint_deselected,
+                result
+            )
+            search_result_widget.footprint_selected.connect(
+                footprint_selected_partial
+            )
+            search_result_widget.footprint_deselected.connect(
+                footprint_deselected_partial
+            )
+
             layout.addWidget(search_result_widget)
             layout.setAlignment(search_result_widget, QtCore.Qt.AlignTop)
         vertical_spacer = QtWidgets.QSpacerItem(
@@ -797,6 +821,47 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
+
+    def footprint_selected(self, item):
+        """ Adds the passed item to the list of the
+        footprints to be added.
+        """
+        self.footprint_items[item.id] = item
+        self.footprint_btn.setText(
+            f"Add footprint(s) ({len(self.footprint_items.items())})"
+        )
+        self.footprint_btn.setEnabled(
+            len(self.footprint_items.items()) > 0
+        )
+
+    def footprint_deselected(self, item):
+        """ Removes the passed item from the  list of the
+        footprints to be added.
+        """
+        self.footprint_items.pop(item.id)
+        self.footprint_btn.setText(
+            f"Add footprint(s) ({len(self.footprint_items.items())})"
+        ) if self.footprint_items else \
+            self.footprint_btn.setText(
+                "Add footprint(s)"
+            )
+        self.footprint_btn.setEnabled(
+            len(self.footprint_items.items()) > 0
+        )
+
+    def footprint_btn_clicked(self):
+        """ Adds selected footprints as map layers."""
+        for key, item in self.footprint_items.items():
+            try:
+                QgsTask.fromFunction(
+                    'Add footprints',
+                    add_footprint_helper(item, self)
+                )
+            except Exception as err:
+                log(
+                    tr("Error loading item footprint {}, {}".
+                       format(item.id, err))
+                )
 
     def clear_search_results(self):
         """ Clear current search results from the UI"""

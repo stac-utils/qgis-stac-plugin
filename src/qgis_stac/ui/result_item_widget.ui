@@ -179,12 +179,12 @@
         <item>
          <layout class="QHBoxLayout" name="action_buttons_layout">
           <item>
-           <widget class="QToolButton" name="footprint_box">
+           <widget class="QCheckBox" name="footprint_box">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add an item footprint as a layer, the resulting layer will contain all available STAC item properties in map layer attribute table.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Select footprint and add it to the list of footprints to be added.</string>
             </property>
             <property name="text">
-             <string>Add footprint</string>
+             <string>Select footprint</string>
             </property>
            </widget>
           </item>
