@@ -66,6 +66,9 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
      a layer into QGIS.
     """
 
+    footprint_selected = QtCore.pyqtSignal()
+    footprint_deselected = QtCore.pyqtSignal()
+
     def __init__(
         self,
         item,
@@ -172,7 +175,14 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.view_assets_btn.clicked.connect(self.open_assets_dialog)
 
         self.footprint_box.setEnabled(self.item.stac_object is not None)
-        self.footprint_box.clicked.connect(self.add_footprint)
+        self.footprint_box.toggled.connect(self.footprint_box_toggled)
+
+    def footprint_box_toggled(self):
+        """ Handles logic after the footprint checkbox has been toggled"""
+        if self.footprint_box.isChecked():
+            self.footprint_selected.emit()
+        else:
+            self.footprint_deselected.emit()
 
     def append_url_params(self, url, params):
         """ Appends the passed params into the url.
@@ -371,3 +381,47 @@ class ThumbnailLoader(QgsTask):
         else:
             log(tr("Couldn't load thumbnail"))
 
+
+def add_footprint_helper(item, main_widget):
+    """ Adds the item footprint inside QGIS as a map layer
+
+    :param item: STAC item whose footprint is going to be added
+    :type item: Item
+
+    :param main_widget: Parent widget that the function is called from
+    :type main_widget: QWidget
+    """
+    layer_file = tempfile.NamedTemporaryFile(
+        mode="w+",
+        suffix='.geojson',
+        delete=False
+    )
+    layer_name = f"{item.id}_footprint"
+    json.dump(item.stac_object.to_dict(), layer_file)
+
+    layer_file.flush()
+
+    layer = QgsVectorLayer(
+        layer_file.name,
+        layer_name,
+        AssetLayerType.VECTOR.value
+    )
+    if layer.isValid():
+        QgsProject.instance().addMapLayer(layer)
+        main_widget.show_message(
+            tr(
+                "Successfully loaded footprint layer for item {}."
+            ).format(
+                item.id
+            ),
+            level=Qgis.Info
+        )
+
+    else:
+        main_widget.show_message(
+            tr(
+                "Couldn't load footprint into QGIS for item {},"
+                " its layer is not valid."
+            ).format(item.id),
+            level=Qgis.Critical
+        )
