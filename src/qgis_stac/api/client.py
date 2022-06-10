@@ -77,6 +77,17 @@ class Client(BaseClient):
         """
         self.conformance_received.emit(conformance, pagination)
 
+    def handle_queryable(
+            self,
+            queryable
+    ):
+        """Emits the fetched queryable properties classes from the API.
+
+        :param queryable: Queryable properties
+        :type queryable: dict
+        """
+        self.queryable_received.emit(queryable)
+
     def handle_error(
             self,
             message: str

@@ -1,14 +1,24 @@
 import os
 import typing
 import uuid
+import json
 
 from dateutil import parser
+from functools import partial
 
 from json.decoder import JSONDecodeError
 
 from qgis.core import (
     QgsApplication,
+    QgsNetworkContentFetcherTask,
     QgsTask,
+)
+
+from qgis.PyQt import (
+    QtGui,
+    QtCore,
+    QtWidgets,
+    QtNetwork
 )
 
 from .models import (
@@ -26,7 +36,10 @@ from .models import (
     ResourceProvider,
     ResourceType,
     SpatialExtent,
-    TemporalExtent
+    TemporalExtent,
+    Queryable,
+    QueryableProperty,
+    QueryableFetchType
 )
 
 from ..lib import planetary_computer as pc
@@ -356,3 +369,158 @@ class ContentFetcherTask(QgsTask):
             message = tr("Problem in fetching content for {}."
                          "Error details, {}").format(self.url, self.error)
             self.error_handler(message)
+
+
+class NetworkFetcher(QtCore.QObject):
+    """
+    Handles fetching of STAC API resources that are not available
+    via the pystac_client library
+    """
+
+    url: str
+    response_handler: typing.Callable
+    error_handler: typing.Callable
+
+    def __init__(
+            self,
+            url,
+            response_handler,
+            error_handler
+    ):
+        self.url = url
+        self.response_handler = response_handler
+        self.error_handler = error_handler
+        self.response_data = None
+
+    def get_queryable(self, fetch_type, resource):
+        """ Fetches the catalog queryable properties"""
+
+        if fetch_type == QueryableFetchType.CATALOG:
+            endpoint = "queryables"
+        elif fetch_type == QueryableFetchType.COLLECTION:
+            endpoint = f"collections/{resource}/queryables"
+        else:
+            raise NotImplementedError
+
+        url = f"{self.url.strip('/')}/{endpoint}"
+        request = QtNetwork.QNetworkRequest(
+            QtCore.QUrl(
+                url
+            )
+        )
+        self.network_task(
+            request,
+            self.queryable_response,
+            self.error_handler
+        )
+
+    def queryable_response(self, content):
+        """ Callback to handle the queryable properties
+        network response.
+
+        :param content: Network response data
+        :type content: QByteArray
+        """
+        self.response_handler(content)
+
+    def network_task(
+            self,
+            request,
+            handler,
+            error_handler,
+            auth_config=""
+    ):
+        """Fetches the response from the given request.
+
+        :param request: Network request
+        :type request: QNetworkRequest
+
+        :param handler: Callback function to handle the response
+        :type handler: Callable
+
+        :param auth_config: Authentication configuration string
+        :type auth_config: str
+        """
+        task = QgsNetworkContentFetcherTask(
+            request,
+            authcfg=auth_config
+        )
+        response_handler = partial(
+            self.response,
+            task,
+            handler,
+            error_handler
+
+        )
+        task.fetched.connect(response_handler)
+        task.run()
+
+    def response(
+            self,
+            task,
+            handler,
+            error_handler
+    ):
+        """ Handles the returned response
+
+        :param task: QGIS task that fetches network content
+        :type task:  QgsNetworkContentFetcherTask
+        """
+        reply = task.reply()
+        error = reply.error()
+        if error == QtNetwork.QNetworkReply.NoError:
+            contents: QtCore.QByteArray = reply.readAll()
+            try:
+                data = json.loads(
+                    contents.data().decode()
+                )
+                queryable = self.prepare_queryable(data)
+                handler(queryable)
+            except json.decoder.JSONDecodeError as err:
+                log(tr("Problem parsing network response"))
+        else:
+            error_handler(tr("Problem fetching response from network"))
+
+            log(tr("Problem fetching response from network"))
+
+    def prepare_queryable(self, data):
+        """ Prepares the passed data dict into a plugin Queryable instance.
+
+        :param data: Response data
+        :type data:  dict
+
+        :returns: STAC queryable properties
+        :rtype: Queryable
+        """
+        properties = []
+
+        queryable_properties = data.get('properties', {})
+
+        for key, value in queryable_properties.items():
+            enum_value = value.get('enum')
+            property_type = value.get('type')
+            if enum_value:
+                property_type = 'enum'
+
+            queryable_property = QueryableProperty(
+                name=key,
+                title=value.get('title'),
+                description=value.get('description'),
+                ref=value.get('$ref'),
+                type=property_type,
+                minimum=value.get('minimum'),
+                maximum=value.get('maximum'),
+                values=value.get('enum')
+            )
+            properties.append(queryable_property)
+
+        queryable = Queryable(
+            schema=data.get('$schema'),
+            id=data.get('id'),
+            type=data.get('type'),
+            title=data.get('title'),
+            description=data.get('description'),
+            properties=properties,
+        )
+
+        return queryable

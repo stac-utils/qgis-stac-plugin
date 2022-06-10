@@ -51,7 +51,7 @@ class QgisStac:
 
         self.main_window = QMainWindow()
         self.main_window.setWindowTitle("STAC API Browser")
-        self.main_window.resize(850, 1000)
+        self.main_window.resize(850, 800)
         self.main_window.setCentralWidget(self.main_widget)
 
         # Add default catalogs, first check if they have already
