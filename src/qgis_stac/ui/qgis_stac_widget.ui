@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>911</width>
-    <height>842</height>
+    <width>906</width>
+    <height>781</height>
    </rect>
   </property>
   <property name="font">
@@ -234,7 +234,7 @@
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
@@ -413,7 +413,7 @@
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use queryable properties to filter the catalog when searching.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="title">
-          <string>Data driven queryable</string>
+          <string>Data driven queryables</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -422,7 +422,7 @@
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
@@ -501,8 +501,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>847</width>
-               <height>68</height>
+               <width>853</width>
+               <height>94</height>
               </rect>
              </property>
             </widget>
@@ -558,6 +558,16 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="clear_properties_btn">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear the list of the current queryable properties, should be used when new properties are needed to replace the current properties.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

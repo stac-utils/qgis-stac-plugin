@@ -211,6 +211,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.populate_queryable_field()
 
         self.fetch_queryable_btn.clicked.connect(self.fetch_queryable)
+        self.clear_properties_btn.clicked.connect(self.clear_properties)
+
         self.queryable_property_widgets = []
         self.queryable_properties = []
 
@@ -408,6 +410,15 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             # self.handle_queryable(Queryable())
 
         self.search_btn.setEnabled(current_connection is not None)
+
+    def clear_properties(self):
+        """ Removes all the current queryable properties from the
+        queryable group box
+        """
+
+        self.queryable_properties = []
+        self.queryable_property_widgets = []
+        self.queryable_area.setWidget(QtWidgets.QWidget())
 
     def fetch_queryable(self):
         """ Gets the queryable property using the plugin API."""
@@ -739,6 +750,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
 
     def collections_tree_double_clicked(self, index):
+        """ Opens the collection dialog when an entry from the
+        collections view tree has been double clicked.
+
+        :param index: Index of the double clicked item.
+        :type index: int
+
+        """
         collection = self.collections_tree.model().data(index, 1)
         collection_dialog = CollectionDialog(collection)
         collection_dialog.exec_()
