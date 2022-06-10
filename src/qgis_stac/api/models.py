@@ -400,9 +400,6 @@ class ItemSearch:
             }
         ] if self.sortby else []
 
-        from ..utils import log
-        log(f'Sent filter {filter_text}')
-
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
