@@ -212,6 +212,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         self.fetch_queryable_btn.clicked.connect(self.fetch_queryable)
         self.queryable_property_widgets = []
+        self.queryable_properties = []
 
     def prepare_plugin_settings(self):
         """ Initializes all the plugin related settings"""
@@ -409,6 +410,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.search_btn.setEnabled(current_connection is not None)
 
     def fetch_queryable(self):
+        """ Gets the queryable property using the plugin API."""
         self.current_progress_message = tr(
             "Fetching queryable properties..."
         )
@@ -420,16 +422,32 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         if queryable_fetch_type == QueryableFetchType.COLLECTION:
             for collection in self.get_selected_collections():
-                self.api_client.get_queryable(
-                    fetch_type=queryable_fetch_type,
-                    resource=collection
-                )
+                try:
+                    QgsTask.fromFunction(
+                        'Queryable plugin API function',
+                        self.api_client.get_queryable(
+                            fetch_type=queryable_fetch_type,
+                            resource=collection
+                        )
+                    )
+                except Exception as err:
+                    log(tr("Error in getting queryables properties for"
+                           " {}, {}".
+                           format(collection, err))
+                        )
+
         else:
             self.api_client.get_queryable(
                 fetch_type=queryable_fetch_type
             )
 
     def handle_queryable(self, queryable):
+        """ Adds response queryable properties from the plugin API to the
+        plugin UI.
+
+        :param queryable: Queryable properties
+        :type queryable: Queryable
+        """
 
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
@@ -438,7 +456,15 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
 
         scroll_container.setLayout(layout)
 
-        for property in queryable.properties:
+        # Combine current properties with new properties
+        # while removing duplicates
+
+        self.queryable_properties.extend(
+            queryable for queryable in queryable.properties
+            if queryable not in self.queryable_properties
+        )
+
+        for property in self.queryable_properties:
             property_widget = QueryablePropertyWidget(
                 property
             )
@@ -455,8 +481,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             layout.addWidget(label)
 
         self.search_completed.emit()
-
-        log(f"returned {vars(queryable)}")
 
     def update_api_client(self):
         """
@@ -550,12 +574,10 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         if self.queryable_box.isChecked():
             filter_texts = []
             for property_widget in self.queryable_property_widgets:
-                filter_texts.append(property_widget.filter_text())
+                filter_texts.append(property_widget.filter_text()) \
+                if property_widget.filter_text() else None
             filter_text = ' and '.join(filter_texts)
             filter_lang = FilterLang.CQL2_TEXT
-
-            log(f"filter text - {filter_text}")
-            log(f"filter lang {filter_lang}")
 
         sort_field = self.sort_cmb.itemData(
             self.sort_cmb.currentIndex()
@@ -1072,7 +1094,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 tr(
                     'Download folder has not been set, '
                     'a system temporary folder will be used'
-                   ),
+                ),
                 level=Qgis.Warning
             )
 
@@ -1169,4 +1191,3 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.reverse_order_box.setChecked(
             filters.sort_order == SortOrder.DESCENDING
         )
-

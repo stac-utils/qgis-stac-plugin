@@ -497,10 +497,12 @@ class NetworkFetcher(QtCore.QObject):
         queryable_properties = data.get('properties', {})
 
         for key, value in queryable_properties.items():
-            enum_value = value.get('enum')
+            enum_values = value.get('enum')
             property_type = value.get('type')
-            if enum_value:
+            if enum_values:
                 property_type = 'enum'
+            if key == 'datetime':
+                property_type = 'datetime'
 
             queryable_property = QueryableProperty(
                 name=key,
@@ -510,7 +512,7 @@ class NetworkFetcher(QtCore.QObject):
                 type=property_type,
                 minimum=value.get('minimum'),
                 maximum=value.get('maximum'),
-                values=value.get('enum')
+                values=enum_values
             )
             properties.append(queryable_property)
 

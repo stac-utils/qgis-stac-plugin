@@ -79,13 +79,23 @@ class FilterLang(enum.Enum):
     STAC_QUERY = 'STAC_QUERY'
 
 
+class FilterOperator(enum.Enum):
+    """ Filter text operators.
+    """
+    LESS_THAN = '<'
+    GREATER_THAN = '>'
+    LESS_THAN_EQUAL = '<='
+    GREATER_THAN_EQUAL = '>='
+    EQUAL = '='
+
+
 class QueryablePropertyType(enum.Enum):
     """ Represents STAC queryable property types."""
     INTEGER = 'integer'
     STRING = 'string'
     OBJECT = 'object'
     ENUM = 'enum'
-
+    DATETIME = 'datetime'
 
 class SortField(enum.Enum):
     """ Holds the field value used when sorting items results."""
