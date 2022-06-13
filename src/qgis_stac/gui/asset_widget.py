@@ -75,12 +75,18 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
             )
 
     def asset_load_selected(self):
+        """ Emits the needed signal when an asset has been selected
+        for loading.
+        """
         if self.load_box.isChecked():
             self.load_selected.emit()
         else:
             self.load_deselected.emit()
 
     def asset_download_selected(self):
+        """ Emits the needed signal when an asset has been selected
+            for downloading.
+            """
         if self.download_box.isChecked():
             self.download_selected.emit()
         else:

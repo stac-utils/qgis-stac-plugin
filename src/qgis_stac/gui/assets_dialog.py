@@ -158,6 +158,11 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.scroll_area.setWidget(scroll_container)
 
     def load_asset_selected(self, asset):
+        """ Handles operations after an asset load box has been selected.
+
+        :param asset: STAC item asset
+        :type asset: ResourceAsset
+        """
         self.load_assets[asset.title] = asset
         self.load_btn.setText(
             f"Add assets as layers ({len(self.load_assets.items())})"
@@ -166,6 +171,11 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.load_btn.setEnabled(True)
 
     def download_asset_selected(self, asset):
+        """ Handles operations after an asset download box has been selected.
+
+        :param asset: STAC item asset
+        :type asset: ResourceAsset
+        """
         self.download_assets[asset.title] = asset
         self.download_btn.setText(
             f"Download the selected assets "
@@ -174,7 +184,15 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.download_btn.setEnabled(True)
 
     def load_asset_deselected(self, asset):
-        self.load_assets.pop(asset.title)
+        """ Handles operations after an asset load box has been deselected.
+
+        :param asset: STAC item asset
+        :type asset: ResourceAsset
+        """
+
+        self.load_assets.pop(asset.title) \
+            if self.load_assets.get(asset.title, None) else None
+
         self.load_btn.setText(
             f"Add selected assets as layers "
             f"({len(self.load_assets.items())})"
@@ -186,7 +204,15 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.load_btn.setEnabled(len(self.load_assets.items()) > 0)
 
     def download_asset_deselected(self, asset):
-        self.download_assets.pop(asset.title)
+        """ Handles operations after an asset download box has been deselected.
+
+        :param asset: STAC item asset
+        :type asset: ResourceAsset
+        """
+
+        self.download_assets.pop(asset.title) \
+            if self.download_assets.get(asset.title) else None
+
         self.download_btn.setText(
             f"Download the selected assets "
             f"({len(self.download_assets.items())})"
@@ -200,6 +226,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         )
 
     def load_btn_clicked(self):
+        """ Runs logic after the asset load button has been clicked.
+        """
         for key, asset in self.load_assets.items():
             try:
                 QgsTask.fromFunction(
@@ -210,6 +238,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 log(tr("Error loading assets {}".format(err)))
 
     def download_btn_clicked(self):
+        """
+        Runs logic after the asset download button has been clicked.
+        """
         auto_asset_loading = settings_manager.get_value(
             Settings.AUTO_ASSET_LOADING,
             False,
@@ -218,12 +249,21 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         for key, asset in self.download_assets.items():
             try:
-                QgsTask.fromFunction(
+                download_task = QgsTask.fromFunction(
                     'Download asset function',
                     self.download_asset(asset, auto_asset_loading)
                 )
+                QgsApplication.taskManager().addTask(download_task)
+
             except Exception as err:
-                log(tr("Error downloading asset {}, {}".format(asset.title, err)))
+                self.update_inputs(True)
+                self.main_widget.show_message(
+                    tr("Error running task for"
+                       " downloading asset {}, {}").format(asset.title, str(err)),
+                    Qgis.Critical
+                )
+                log(tr("Error running task for"
+                       " downloading asset {}, {}").format(asset.title, str(err)))
 
     def update_inputs(self, enabled):
         """ Updates the inputs widgets state in the main search item widget.
@@ -262,12 +302,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         except FileExistsError as fe:
             pass
         except FileNotFoundError as fn:
+            self.update_inputs(True)
             self.main_widget.show_message(
                 tr("Folder {} is not found").format(download_folder),
                 Qgis.Critical
             )
             return
         except PermissionError as pe:
+            self.update_inputs(True)
             self.main_widget.show_message(
                 tr("Permission error writing in download folder"),
                 Qgis.Critical
@@ -331,6 +373,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
 
         except Exception as e:
+            self.update_inputs(True)
             self.main_widget.show_message(
                 tr("Error in downloading file, {}").format(str(e))
             )
@@ -388,7 +431,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :type asset: models.ResourceAsset
         """
 
-        assert_type = asset.type
+        asset_type = asset.type
         raster_types = ','.join([
             AssetLayerType.COG.value,
             AssetLayerType.GEOTIFF.value,
@@ -402,15 +445,19 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             AssetLayerType.COPC.value,
         ])
 
-        if assert_type in raster_types:
+        if asset_type in raster_types:
             layer_type = QgsMapLayer.RasterLayer
-        elif assert_type in vector_types:
+        elif asset_type in vector_types:
             layer_type = QgsMapLayer.VectorLayer
-        elif assert_type in point_cloud_types:
+        elif asset_type in point_cloud_types:
             layer_type = QgsMapLayer.PointCloudLayer
 
-        if assert_type in ''.join([AssetLayerType.COG.value]) or \
-                assert_type in ''.join([AssetLayerType.NETCDF.value]):
+
+        if asset_type in ''.join(
+                [AssetLayerType.COG.value,
+                 AssetLayerType.NETCDF.value]
+        ) and \
+                asset_type != AssetLayerType.GEOTIFF.value:
             asset_href = f"{self.vis_url_string}" \
                          f"{asset.href}"
         else:
