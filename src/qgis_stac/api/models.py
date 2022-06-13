@@ -356,13 +356,15 @@ class ItemSearch:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                            f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
-        method = 'GET'
-        text = self.filter_text
+        method = 'POST'
+        text = None
 
-        if self.filter_text and \
-            self.filter_lang != FilterLang.CQL2_TEXT:
-            text = json.loads(self.filter_text)
-            method = 'POST'
+        if self.filter_text:
+            if self.filter_lang == FilterLang.CQL2_TEXT:
+                method = 'GET'
+                text = self.filter_text
+            else:
+                text = json.loads(self.filter_text)
 
         filter_lang_values = {
             FilterLang.CQL_JSON: 'cql-json',
