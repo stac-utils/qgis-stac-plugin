@@ -13,9 +13,10 @@ from .models import (
     ItemSearch,
     ResourcePagination,
     ResourceType,
+    Queryable
 )
 
-from .network import ContentFetcherTask
+from .network import ContentFetcherTask, NetworkFetcher
 from ..conf import ConnectionSettings
 
 from ..lib.pystac import ItemCollection
@@ -47,6 +48,9 @@ class BaseClient(QtCore.QObject):
     item_collections_received = QtCore.pyqtSignal(
         ItemCollection
     )
+
+    queryable_received = QtCore.pyqtSignal(Queryable)
+
     error_received = QtCore.pyqtSignal([str], [str, int, str])
 
     def __init__(
@@ -137,6 +141,23 @@ class BaseClient(QtCore.QObject):
 
         QgsApplication.taskManager().addTask(self.content_task)
 
+    def get_queryable(
+        self,
+        fetch_type,
+        resource=None
+    ):
+        """Fetches the queryable properties in the STAC API.
+        """
+        network_fetcher = NetworkFetcher(
+            url=self.url,
+            response_handler=self.handle_queryable,
+            error_handler=self.handle_error,
+        )
+        network_fetcher.get_queryable(
+            fetch_type=fetch_type,
+            resource=resource
+        )
+
     def handle_conformance(
             self,
             conformance,
@@ -164,8 +185,16 @@ class BaseClient(QtCore.QObject):
     ):
         raise NotImplementedError
 
+    def handle_queryable(
+            self,
+            queryable
+    ):
+        raise NotImplementedError
+
     def handle_error(
             self,
             message: str
     ):
         raise NotImplementedError
+
+

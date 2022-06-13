@@ -19,6 +19,7 @@ from ..resources import *
 
 from ..gui.connection_dialog import ConnectionDialog
 from ..gui.collection_dialog import CollectionDialog
+from ..gui.queryable_property import QueryablePropertyWidget
 
 from ..conf import ConnectionSettings, Settings, settings_manager
 
@@ -30,6 +31,7 @@ from ..api.models import (
     SortField,
     SortOrder,
     TimeUnits,
+    QueryableFetchType
 )
 from ..api.client import Client
 
@@ -206,6 +208,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
 
         self.update_sas_frequency()
+        self.populate_queryable_field()
+
+        self.fetch_queryable_btn.clicked.connect(self.fetch_queryable)
+        self.clear_properties_btn.clicked.connect(self.clear_properties)
+
+        self.queryable_property_widgets = []
+        self.queryable_properties = []
 
     def prepare_plugin_settings(self):
         """ Initializes all the plugin related settings"""
@@ -398,8 +407,91 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             )
             self.model.removeRows(0, self.model.rowCount())
             self.load_collections(collections)
+            # self.handle_queryable(Queryable())
 
         self.search_btn.setEnabled(current_connection is not None)
+
+    def clear_properties(self):
+        """ Removes all the current queryable properties from the
+        queryable group box
+        """
+
+        self.queryable_properties = []
+        self.queryable_property_widgets = []
+        self.queryable_area.setWidget(QtWidgets.QWidget())
+
+    def fetch_queryable(self):
+        """ Gets the queryable property using the plugin API."""
+        self.current_progress_message = tr(
+            "Fetching queryable properties..."
+        )
+        self.search_started.emit()
+
+        queryable_fetch_type = self.queryable_fetch_cmb.itemData(
+            self.queryable_fetch_cmb.currentIndex()
+        )
+
+        if queryable_fetch_type == QueryableFetchType.COLLECTION:
+            for collection in self.get_selected_collections():
+                try:
+                    QgsTask.fromFunction(
+                        'Queryable plugin API function',
+                        self.api_client.get_queryable(
+                            fetch_type=queryable_fetch_type,
+                            resource=collection
+                        )
+                    )
+                except Exception as err:
+                    log(tr("Error in getting queryables properties for"
+                           " {}, {}".
+                           format(collection, err))
+                        )
+
+        else:
+            self.api_client.get_queryable(
+                fetch_type=queryable_fetch_type
+            )
+
+    def handle_queryable(self, queryable):
+        """ Adds response queryable properties from the plugin API to the
+        plugin UI.
+
+        :param queryable: Queryable properties
+        :type queryable: Queryable
+        """
+
+        scroll_container = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(1, 1, 1, 1)
+        layout.setSpacing(1)
+
+        scroll_container.setLayout(layout)
+
+        # Combine current properties with new properties
+        # while removing duplicates
+
+        self.queryable_properties.extend(
+            queryable for queryable in queryable.properties
+            if queryable not in self.queryable_properties
+        )
+
+        for property in self.queryable_properties:
+            property_widget = QueryablePropertyWidget(
+                property
+            )
+            layout.addWidget(property_widget)
+            layout.setAlignment(property_widget, QtCore.Qt.AlignTop)
+            self.queryable_property_widgets.append(property_widget)
+
+        self.queryable_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.queryable_area.setWidgetResizable(True)
+        self.queryable_area.setWidget(scroll_container)
+
+        if len(queryable.properties) < 0:
+            label = QtWidgets.QLabel(tr("No queryable properties found."))
+            layout.addWidget(label)
+
+        self.search_completed.emit()
 
     def update_api_client(self):
         """
@@ -414,6 +506,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             if self.api_client:
                 self.api_client.items_received.connect(self.display_results)
                 self.api_client.collections_received.connect(self.display_results)
+                self.api_client.queryable_received.connect(self.handle_queryable)
                 self.api_client.error_received.connect(self.display_search_error)
 
     def update_connections_box(self):
@@ -488,6 +581,14 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         filter_lang = self.filter_lang_cmb.itemData(
             self.filter_lang_cmb.currentIndex()
         ) if self.advanced_box.isChecked() else None
+
+        if self.queryable_box.isChecked():
+            filter_texts = []
+            for property_widget in self.queryable_property_widgets:
+                filter_texts.append(property_widget.filter_text()) \
+                if property_widget.filter_text() else None
+            filter_text = ' and '.join(filter_texts)
+            filter_lang = FilterLang.CQL2_TEXT
 
         sort_field = self.sort_cmb.itemData(
             self.sort_cmb.currentIndex()
@@ -591,7 +692,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     def update_search_inputs(self, enabled):
         """ Sets the search inputs state using the provided enabled status
 
-        :param enabled: Whether to enable the inputs
+        :param enabled: Whether to enable the widgets.
         :type enabled: bool
         """
         self.connections_group.setEnabled(enabled)
@@ -599,6 +700,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.date_filter_group.setEnabled(enabled)
         self.extent_box.setEnabled(enabled)
         self.advanced_box.setEnabled(enabled)
+        self.queryable_box.setEnabled(enabled)
         self.search_btn.setEnabled(enabled)
         self.sort_by_la.setEnabled(enabled)
         self.sort_cmb.setEnabled(enabled)
@@ -648,6 +750,13 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
 
     def collections_tree_double_clicked(self, index):
+        """ Opens the collection dialog when an entry from the
+        collections view tree has been double clicked.
+
+        :param index: Index of the double clicked item.
+        :type index: int
+
+        """
         collection = self.collections_tree.model().data(index, 1)
         collection_dialog = CollectionDialog(collection)
         collection_dialog.exec_()
@@ -891,7 +1000,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         :param filter_text: Filter text
         :type: str
         """
-        # TODO update to user QtCore.QRegExp, QRegularExpression will be
+        # TODO update to use QtCore.QRegExp, QRegularExpression will be
         # deprecated.
         options = QtCore.QRegularExpression.NoPatternOption
         options |= QtCore.QRegularExpression.CaseInsensitiveOption
@@ -915,6 +1024,17 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         for ordering_type, item_text in labels.items():
             self.sort_cmb.addItem(item_text, ordering_type)
         self.sort_cmb.setCurrentIndex(0)
+
+    def populate_queryable_field(self):
+        """" Initializes queryable field combo box list items"""
+        labels = {
+            QueryableFetchType.CATALOG: tr("Fetch from Catalog"),
+            QueryableFetchType.COLLECTION:
+                tr("Fetch from current selected collections"),
+        }
+        for queryable_type, item_text in labels.items():
+            self.queryable_fetch_cmb.addItem(item_text, queryable_type)
+        self.queryable_fetch_cmb.setCurrentIndex(0)
 
     def get_selected_collections(self, title=False):
         """ Gets the currently selected collections from the collection
@@ -992,7 +1112,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                 tr(
                     'Download folder has not been set, '
                     'a system temporary folder will be used'
-                   ),
+                ),
                 level=Qgis.Warning
             )
 
@@ -1089,4 +1209,3 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.reverse_order_box.setChecked(
             filters.sort_order == SortOrder.DESCENDING
         )
-

@@ -7,7 +7,6 @@ https://github.com/radiantearth/stac-api-spec/tree/master/stac-spec
 
 """
 
-
 import dataclasses
 import datetime
 import enum
@@ -74,10 +73,29 @@ class FilterLang(enum.Enum):
     STAC API item search
     """
     CQL_TEXT = 'CQL_TEXT'
+    CQL2_TEXT = 'CQL_TEXT'
     CQL_JSON = 'CQL_JSON'
     CQL2_JSON = 'CQL2_JSON'
     STAC_QUERY = 'STAC_QUERY'
 
+
+class FilterOperator(enum.Enum):
+    """ Filter text operators.
+    """
+    LESS_THAN = '<'
+    GREATER_THAN = '>'
+    LESS_THAN_EQUAL = '<='
+    GREATER_THAN_EQUAL = '>='
+    EQUAL = '='
+
+
+class QueryablePropertyType(enum.Enum):
+    """ Represents STAC queryable property types."""
+    INTEGER = 'integer'
+    STRING = 'string'
+    OBJECT = 'object'
+    ENUM = 'enum'
+    DATETIME = 'datetime'
 
 class SortField(enum.Enum):
     """ Holds the field value used when sorting items results."""
@@ -123,6 +141,13 @@ class ResourceType(enum.Enum):
     FEATURE = "Feature"
     CATALOG = "Catalog"
     CONFORMANCE = "Conformance"
+
+
+class QueryableFetchType(enum.Enum):
+    """Queryable fetch types"""
+    CATALOG = "Catalog"
+    COLLECTION = "Collection"
+    COLLECTIONS = "Collections"
 
 
 @dataclasses.dataclass
@@ -198,6 +223,36 @@ class ResourceGeometry:
     """The GeoJSON geometry footprint STAC API assets"""
     type: GeometryType
     coordinates: typing.List[typing.List[int]]
+
+
+@dataclasses.dataclass
+class QueryableProperty:
+    """Represents the STAC API queryable properties, from
+    https://github.com/radiantearth/stac-api-spec/blob/master/
+    fragments/filter/README.md#queryables
+    """
+    name: str
+    title: str
+    type: str
+    ref: str
+    description: str
+    minimum: str
+    maximum: str
+    values: list
+
+
+@dataclasses.dataclass
+class Queryable:
+    """Represents the STAC API queryable properties, defined from
+    https://github.com/radiantearth/stac-api-spec/blob/master/
+    fragments/filter/README.md#queryables
+    """
+    schema: str = None
+    id: str = None
+    type: str = None
+    title: str = None
+    description: str = None
+    properties: typing.List[QueryableProperty] = None
 
 
 @dataclasses.dataclass
@@ -301,12 +356,20 @@ class ItemSearch:
             datetime_str = f"{self.start_datetime.toString(QtCore.Qt.ISODate)}/" \
                            f"{self.end_datetime.toString(QtCore.Qt.ISODate)}"
 
-        text = json.loads(self.filter_text) if self.filter_text else None
+        method = 'POST'
+        text = None
+
+        if self.filter_text:
+            if self.filter_lang == FilterLang.CQL2_TEXT:
+                method = 'GET'
+                text = self.filter_text
+            else:
+                text = json.loads(self.filter_text)
 
         filter_lang_values = {
             FilterLang.CQL_JSON: 'cql-json',
             FilterLang.CQL2_JSON: 'cql2-json',
-            FilterLang.CQL_TEXT: 'cql-text'
+            FilterLang.CQL2_TEXT: 'cql2-text'
         }
 
         filter_lang_text = filter_lang_values[self.filter_lang] \
@@ -314,7 +377,11 @@ class ItemSearch:
 
         filter_text = text \
             if self.filter_lang in \
-               [FilterLang.CQL_JSON, FilterLang.CQL2_JSON] else None
+               [FilterLang.CQL_JSON,
+                FilterLang.CQL2_JSON,
+                FilterLang.CQL2_TEXT
+                ] else None
+
         query_text = text \
             if self.filter_lang == FilterLang.STAC_QUERY else None
 
@@ -338,6 +405,7 @@ class ItemSearch:
         parameters = {
             "ids": self.ids,
             "collections": self.collections or None,
+            "method": method,
             "limit": self.page_size,
             "bbox": bbox,
             "datetime": datetime_str,
