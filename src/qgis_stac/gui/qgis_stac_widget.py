@@ -692,11 +692,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                         settings_manager.get_current_connection(),
                         self.page
                     )
-                    # settings_manager.save_items(
-                    #     settings_manager.get_current_connection(),
-                    #     results,
-                    #     self.page
-                    # )
                     self.populate_results(results)
                 else:
                     self.clear_search_results()
