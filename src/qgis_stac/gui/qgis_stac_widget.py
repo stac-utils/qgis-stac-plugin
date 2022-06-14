@@ -99,7 +99,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
 
         self.fetch_collections_btn.clicked.connect(
-            self.search_collections
+            self.fetch_collections
         )
         self.update_current_connection(self.connections_box.currentIndex())
         settings_manager.connections_settings_updated.connect(
@@ -613,8 +613,8 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         )
         self.search_started.emit()
 
-    def search_collections(self):
-        """ Searches for the collections available on the current
+    def fetch_collections(self):
+        """ Fetches the collections available on the current
             STAC API connection.
         """
         self.search_type = ResourceType.COLLECTION
@@ -799,11 +799,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                     self.result_items = results
                     settings_manager.delete_all_items(
                         settings_manager.get_current_connection(),
-                        self.page
-                    )
-                    settings_manager.save_items(
-                        settings_manager.get_current_connection(),
-                        results,
                         self.page
                     )
                     self.populate_results(results)
