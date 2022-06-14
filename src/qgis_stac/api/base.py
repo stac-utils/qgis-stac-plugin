@@ -10,6 +10,7 @@ from qgis.core import QgsApplication
 
 from .models import (
     ApiCapability,
+    Collection,
     ItemSearch,
     ResourcePagination,
     ResourceType,
@@ -36,10 +37,15 @@ class BaseClient(QtCore.QObject):
         ResourcePagination
     )
 
+    collection_received = QtCore.pyqtSignal(
+        Collection
+    )
+
     collections_received = QtCore.pyqtSignal(
         list,
         ResourcePagination
     )
+
     items_received = QtCore.pyqtSignal(
         list,
         ResourcePagination
@@ -121,6 +127,27 @@ class BaseClient(QtCore.QObject):
 
         QgsApplication.taskManager().addTask(self.content_task)
 
+    def get_collection(
+        self,
+        collection_id
+    ):
+        """Fetches collection that matches the passed collection id
+         in the STAC API defined in this
+        base client.
+        """
+        search_params = {
+            'collection_id': collection_id
+        }
+        self.content_task = ContentFetcherTask(
+            url=self.url,
+            search_params=search_params,
+            resource_type=ResourceType.COLLECTION,
+            response_handler=self.handle_collection,
+            error_handler=self.handle_error,
+        )
+
+        QgsApplication.taskManager().addTask(self.content_task)
+
     def get_conformance(
         self
     ):
@@ -140,6 +167,14 @@ class BaseClient(QtCore.QObject):
     def handle_conformance(
             self,
             conformance,
+            pagination
+    ):
+        raise NotImplementedError
+
+
+    def handle_collection(
+            self,
+            collection,
             pagination
     ):
         raise NotImplementedError

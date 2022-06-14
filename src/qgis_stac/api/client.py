@@ -42,6 +42,22 @@ class Client(BaseClient):
             pagination
         )
 
+    def handle_collection(
+            self,
+            collection_response,
+            pagination
+    ):
+        """Emits the search results collections.
+
+        :param collections_response: Search results collections
+        :type collections_response: List[models.Collection]
+
+        :param pagination: Collection results pagination details
+        :type pagination: ResourcePagination
+        """
+
+        self.collection_received.emit(collection_response)
+
     def handle_collections(
             self,
             collections_response,

@@ -153,20 +153,20 @@ class CollectionSettings(Collection):
         :rtype: CollectionSettings
         """
 
-        links = cls.get_collection_links(settings)
-        extent = cls.get_collection_extent(settings)
-        providers = cls.get_collection_providers(settings)
+        # links = cls.get_collection_links(settings)
+        # extent = cls.get_collection_extent(settings)
+        # providers = cls.get_collection_providers(settings)
         return cls(
             uuid=uuid.UUID(identifier),
             title=settings.value("title", None),
             id=settings.value("id", None),
-            description=settings.value("description", None),
-            keywords=settings.value("keywords", None),
-            license=settings.value("license", None),
-            stac_version=settings.value("stac_version", None),
-            links=links,
-            providers=providers,
-            extent=extent
+            # description=settings.value("description", None),
+            # keywords=settings.value("keywords", None),
+            # license=settings.value("license", None),
+            # stac_version=settings.value("stac_version", None),
+            # links=links,
+            # providers=providers,
+            # extent=extent
         )
 
     @classmethod
@@ -743,13 +743,13 @@ class SettingsManager(QtCore.QObject):
         with qgis_settings(settings_key) as settings:
             settings.setValue("title", collection_settings.title)
             settings.setValue("id", collection_settings.id)
-            settings.setValue("description", collection_settings.description)
-            settings.setValue("keywords", collection_settings.keywords)
-            settings.setValue("license", collection_settings.license)
-            settings.setValue("stac_version", collection_settings.stac_version)
-        self.save_collection_links(collection_settings.links, settings_key)
-        self.save_collection_extent(collection_settings.extent, settings_key)
-        self.save_collection_providers(collection_settings.providers, settings_key)
+        #     settings.setValue("description", collection_settings.description)
+        #     settings.setValue("keywords", collection_settings.keywords)
+        #     settings.setValue("license", collection_settings.license)
+        #     settings.setValue("stac_version", collection_settings.stac_version)
+        # self.save_collection_links(collection_settings.links, settings_key)
+        # self.save_collection_extent(collection_settings.extent, settings_key)
+        # self.save_collection_providers(collection_settings.providers, settings_key)
 
     def save_collection_links(self, links, key):
         """ Saves the collection links into plugin settings
@@ -1177,13 +1177,13 @@ class SettingsManager(QtCore.QObject):
                     uuid=uuid.uuid4(),
                     id=collection.id,
                     title=collection.title,
-                    description=collection.description,
-                    keywords=collection.keywords,
-                    license=collection.license,
-                    stac_version=collection.stac_version,
-                    links=collection.links,
-                    providers=collection.providers,
-                    extent=collection.extent,
+                    # description=collection.description,
+                    # keywords=collection.keywords,
+                    # license=collection.license,
+                    # stac_version=collection.stac_version,
+                    # links=collection.links,
+                    # providers=collection.providers,
+                    # extent=collection.extent,
                 )
                 self.save_collection(
                     current_connection,
@@ -1208,13 +1208,13 @@ class SettingsManager(QtCore.QObject):
                 collection_instance = Collection(
                     id=collection.id,
                     title=collection.title,
-                    description=collection.description,
-                    keywords=collection.keywords,
-                    license=collection.license,
-                    stac_version=collection.stac_version,
-                    links=collection.links,
-                    providers=collection.providers,
-                    extent=collection.extent,
+                    # description=collection.description,
+                    # keywords=collection.keywords,
+                    # license=collection.license,
+                    # stac_version=collection.stac_version,
+                    # links=collection.links,
+                    # providers=collection.providers,
+                    # extent=collection.extent,
                 )
                 collections.append(collection_instance)
 
