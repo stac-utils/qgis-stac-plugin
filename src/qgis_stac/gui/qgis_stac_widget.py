@@ -425,6 +425,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.current_progress_message = tr(
             "Fetching queryable properties..."
         )
+        self.clear_properties()
         self.search_started.emit()
 
         queryable_fetch_type = self.queryable_fetch_cmb.itemData(
@@ -446,6 +447,12 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                            " {}, {}".
                            format(collection, err))
                         )
+            else:
+                self.show_message(
+                    tr("No collection has been selected"),
+                    level=Qgis.Info
+                )
+                self.update_search_inputs(True)
 
         else:
             self.api_client.get_queryable(

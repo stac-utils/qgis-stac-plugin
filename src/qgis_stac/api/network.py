@@ -225,7 +225,6 @@ class ContentFetcherTask(QgsTask):
 
         return collection_result
 
-
     def prepare_collections_results(
             self,
             collections_response
