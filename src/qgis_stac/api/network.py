@@ -302,19 +302,19 @@ class ContentFetcherTask(QgsTask):
         # exists use it instead of the environment one.
         connection = settings_manager.get_current_connection()
 
-        if connection and \
-            connection.capability == ApiCapability.SUPPORT_SAS_TOKEN and \
-                connection.sas_subscription_key:
-            key = connection.sas_subscription_key
+        # if connection and \
+        #     connection.capability == ApiCapability.SUPPORT_SAS_TOKEN and \
+        #         connection.sas_subscription_key:
+        #     key = connection.sas_subscription_key
 
-        if key:
-            pc.set_subscription_key(key)
+        # if key:
+        #     pc.set_subscription_key(key)
 
         for item in items_list:
             # For APIs that support usage of SAS token we sign the whole item
             # so that the item assets can be accessed.
-            if self.api_capability == ApiCapability.SUPPORT_SAS_TOKEN:
-                item = pc.sign(item)
+            # if self.api_capability == ApiCapability.SUPPORT_SAS_TOKEN:
+            #     item = pc.sign(item)
             try:
                 properties_datetime = item.properties.get("datetime")
 

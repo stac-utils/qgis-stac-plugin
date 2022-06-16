@@ -29,12 +29,16 @@ from qgis.core import (
     QgsVectorLayer,
 
 )
+from ..lib import planetary_computer as pc
 
 from ..resources import *
 
 from ..api.models import (
     AssetLayerType,
+    ApiCapability
 )
+
+from ..definitions.constants import SAS_SUBSCRIPTION_VARIABLE
 
 from ..conf import (
     Settings,
@@ -230,10 +234,11 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """
         for key, asset in self.load_assets.items():
             try:
-                QgsTask.fromFunction(
+                load_task = QgsTask.fromFunction(
                     'Load asset function',
                     self.load_asset(asset)
                 )
+                QgsApplication.taskManager().addTask(load_task)
             except Exception as err:
                 log(tr("Error loading assets {}".format(err)))
 
@@ -316,7 +321,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
             return
 
-        url = asset.href
+        url = self.sign_asset_href(asset.href)
         extension = Path(url).suffix
         extension_suffix = extension.split('?')[0] if extension else ""
         title = f"{asset.title}{extension_suffix}"
@@ -377,6 +382,33 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             self.main_widget.show_message(
                 tr("Error in downloading file, {}").format(str(e))
             )
+
+    def sign_asset_href(self, asset_href):
+        """ Signs the SAS based asset href.
+
+        :param asset_href: Asset resource href
+        :type asset_href: str
+
+        :returns Signed href or same href if not signing is required
+        :rtype str
+        """
+
+        # If the plugin defined connection sas subscription key
+        # exists use it instead of the environment one.
+        sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+        connection = settings_manager.get_current_connection()
+
+        if connection and \
+            connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+            sas_key = connection.sas_subscription_key \
+                if connection.sas_subscription_key else sas_key
+
+            pc.set_subscription_key(sas_key) if sas_key else None
+
+            signed_href = pc.sign(asset_href)
+            return signed_href
+
+        return asset_href
 
     def load_file_asset(self, asset, value):
         """Loads the passed asset into QGIS map canvas if the
@@ -462,9 +494,10 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                          f"{asset.href}"
         else:
             asset_href = f"{asset.href}"
+
+        asset_href = self.sign_asset_href(asset_href)
         asset_name = asset.title
 
-        self.update_inputs(False)
         layer_loader = LayerLoader(
             asset_href,
             asset_name,
@@ -486,6 +519,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         QgsApplication.taskManager().addTask(layer_loader)
 
+        self.update_inputs(False)
         self.main_widget.show_progress(
             f"Adding asset \"{asset_name}\" into QGIS",
             minimum=0,
