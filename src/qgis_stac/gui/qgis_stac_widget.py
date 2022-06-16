@@ -206,8 +206,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
         self.sas_manager.token_refresh_error.connect(
             self.sas_token_refresh_error
         )
-
-        self.update_sas_frequency()
         self.populate_queryable_field()
 
         self.fetch_queryable_btn.clicked.connect(self.fetch_queryable)
@@ -286,8 +284,6 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             Settings.REFRESH_FREQUENCY_UNIT,
             refresh_unit
         )
-
-        self.update_sas_frequency()
 
     def update_sas_frequency(self):
         # Set default refresh period to 8 hours
@@ -447,7 +443,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
                            " {}, {}".
                            format(collection, err))
                         )
-            else:
+            if not self.get_selected_collections():
                 self.show_message(
                     tr("No collection has been selected"),
                     level=Qgis.Info
