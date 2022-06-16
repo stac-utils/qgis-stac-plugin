@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>906</width>
-    <height>781</height>
+    <width>716</width>
+    <height>694</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="font">
    <font>
@@ -164,6 +170,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <widget class="QTreeView" name="collections_tree">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="toolTip">
                <string>Click on an item to select the collection.</string>
               </property>
@@ -298,7 +310,7 @@
           <bool>true</bool>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -422,7 +434,7 @@
           <bool>false</bool>
          </property>
          <property name="collapsed">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
@@ -501,8 +513,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>853</width>
-               <height>94</height>
+               <width>652</width>
+               <height>21</height>
               </rect>
              </property>
             </widget>
@@ -643,17 +655,14 @@
         </layout>
        </item>
        <item>
-        <spacer name="verticalSpacer">
+        <spacer name="horizontalSpacer_10">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
         </spacer>
@@ -712,6 +721,32 @@
           </spacer>
          </item>
         </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -789,8 +824,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>869</width>
-            <height>647</height>
+            <width>674</width>
+            <height>499</height>
            </rect>
           </property>
          </widget>
