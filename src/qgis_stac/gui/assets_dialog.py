@@ -241,7 +241,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 QgsApplication.taskManager().addTask(load_task)
             except Exception as err:
                 log(tr("An error occurred when running task for "
-                       "loading an asseet, error message \"{}\" ".format(err))
+                       "loading an asset, error message \"{}\" ".format(err))
                     )
 
     def download_btn_clicked(self):
@@ -264,7 +264,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
             except Exception as err:
                 self.update_inputs(True)
-                log(tr("An qerror occured when running task for"
+                log(tr("An error occured when running task for"
                        " downloading asset {}, error message \"{}\" ").format(
                     asset.title,
                     str(err))
