@@ -49,12 +49,6 @@ class QgisStac:
         self.toolbar = self.iface.addToolBar("Open STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
 
-        # self.main_window = QMainWindow()
-        # self.main_window.setWindowTitle("STAC API Browser")
-        # self.main_widget.resize(778, 779)
-        # self.main_window.setCentralWidget(self.main_widget)
-
-
         # Add default catalogs, first check if they have already
         # been set.
         if not settings_manager.get_value(
