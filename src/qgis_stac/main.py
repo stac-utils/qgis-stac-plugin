@@ -49,10 +49,10 @@ class QgisStac:
         self.toolbar = self.iface.addToolBar("Open STAC API Browser")
         self.toolbar.setObjectName("QGISStac")
 
-        self.main_window = QMainWindow()
-        self.main_window.setWindowTitle("STAC API Browser")
-        self.main_window.resize(825, 875)
-        self.main_window.setCentralWidget(self.main_widget)
+        # self.main_window = QMainWindow()
+        # self.main_window.setWindowTitle("STAC API Browser")
+        # self.main_widget.resize(778, 779)
+        # self.main_window.setCentralWidget(self.main_widget)
 
 
         # Add default catalogs, first check if they have already
@@ -188,6 +188,6 @@ class QgisStac:
             self.iface.removeToolBarIcon(action)
 
     def run(self):
-        self.main_window.show()
+        self.main_widget.show()
         if not self.pluginIsActive:
             self.pluginIsActive = True

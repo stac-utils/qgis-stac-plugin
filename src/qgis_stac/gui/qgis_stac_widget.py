@@ -49,12 +49,12 @@ from ..utils import (
 from .result_item_widget import add_footprint_helper, ResultItemWidget
 
 WidgetUi, _ = loadUiType(
-    os.path.join(os.path.dirname(__file__), "../ui/qgis_stac_widget.ui")
+    os.path.join(os.path.dirname(__file__), "../ui/qgis_stac_main.ui")
 )
 
 
-class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
-    """ Main plugin widget that contains tabs for search, results and settings
+class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
+    """ Main plugin UI that contains tabs for search, results and settings
     functionalities"""
 
     search_started = QtCore.pyqtSignal()
@@ -70,6 +70,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
     ):
         super().__init__(parent)
         self.setupUi(self)
+
         self.new_connection_btn.clicked.connect(self.add_connection)
         self.edit_connection_btn.clicked.connect(self.edit_connection)
         self.remove_connection_btn.clicked.connect(self.remove_connection)
@@ -724,7 +725,7 @@ class QgisStacWidget(QtWidgets.QWidget, WidgetUi):
             0, 0, 1, 1,
             alignment=QtCore.Qt.AlignTop
         )
-        self.layout().insertLayout(0, self.grid_layout)
+        self.central_widget.layout().insertLayout(0, self.grid_layout)
 
     def prepare_extent_box(self):
         """ Configure the spatial extent box with the initial settings. """
