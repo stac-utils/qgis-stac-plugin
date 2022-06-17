@@ -240,7 +240,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 )
                 QgsApplication.taskManager().addTask(load_task)
             except Exception as err:
-                log(tr("Error loading assets {}".format(err)))
+                log(tr("An error occurred when running task for "
+                       "loading an asseet, error message \"{}\" ".format(err))
+                    )
 
     def download_btn_clicked(self):
         """
@@ -262,13 +264,11 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
             except Exception as err:
                 self.update_inputs(True)
-                self.main_widget.show_message(
-                    tr("Error running task for"
-                       " downloading asset {}, {}").format(asset.title, str(err)),
-                    Qgis.Critical
+                log(tr("An qerror occured when running task for"
+                       " downloading asset {}, error message \"{}\" ").format(
+                    asset.title,
+                    str(err))
                 )
-                log(tr("Error running task for"
-                       " downloading asset {}, {}").format(asset.title, str(err)))
 
     def update_inputs(self, enabled):
         """ Updates the inputs widgets state in the main search item widget.
@@ -399,7 +399,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         connection = settings_manager.get_current_connection()
 
         if connection and \
-            connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+                connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
             sas_key = connection.sas_subscription_key \
                 if connection.sas_subscription_key else sas_key
 
@@ -484,7 +484,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         elif asset_type in point_cloud_types:
             layer_type = QgsMapLayer.PointCloudLayer
 
-
         if asset_type in ''.join(
                 [AssetLayerType.COG.value,
                  AssetLayerType.NETCDF.value]
@@ -497,6 +496,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         asset_href = self.sign_asset_href(asset_href)
         asset_name = asset.title
+
+        self.update_inputs(False)
 
         layer_loader = LayerLoader(
             asset_href,
@@ -519,7 +520,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         QgsApplication.taskManager().addTask(layer_loader)
 
-        self.update_inputs(False)
         self.main_widget.show_progress(
             f"Adding asset \"{asset_name}\" into QGIS",
             minimum=0,
@@ -590,11 +590,12 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
 class LayerLoader(QgsTask):
     """ Prepares and loads items as assets inside QGIS as layers."""
+
     def __init__(
-        self,
-        layer_uri,
-        layer_name,
-        layer_type
+            self,
+            layer_uri,
+            layer_name,
+            layer_type
     ):
 
         super().__init__()
@@ -676,7 +677,7 @@ class LayerLoader(QgsTask):
         else:
             provider_error = tr("error {}").format(
                 self.layer.dataProvider().error()
-            )if self.layer and self.layer.dataProvider() else None
+            ) if self.layer and self.layer.dataProvider() else None
             self.error = tr(
                 f"Couldn't load layer "
                 f"{self.layer_uri},"
