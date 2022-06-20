@@ -196,13 +196,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :type asset: ResourceAsset
         """
 
-        log(f"popping our {asset.title}")
-        log(f"current add assets {self.load_assets}")
-
         self.load_assets.pop(asset.title) \
             if self.load_assets.get(asset.title, None) else None
-
-        log(f"POPPED -  {len(self.load_assets.items()) > 0}")
 
         self.load_btn.setText(
             f"Add selected assets as layers "
