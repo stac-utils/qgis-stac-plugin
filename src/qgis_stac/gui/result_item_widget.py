@@ -29,6 +29,7 @@ from qgis.core import (
     QgsTask,
     QgsVectorLayer,
 )
+from ..lib import planetary_computer as pc
 
 try:
     import urlparse
@@ -40,8 +41,10 @@ except: # For Python 3
 
 from ..resources import *
 from ..utils import log, tr
+from ..definitions.constants import SAS_SUBSCRIPTION_VARIABLE
 
 from ..api.models import (
+    ApiCapability,
     AssetLayerType,
     AssetRoles,
     ResourceAsset
@@ -154,10 +157,10 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
 
         for asset in self.item.assets:
             if AssetRoles.THUMBNAIL.value in asset.roles:
-                thumbnail_url = asset.href
+                thumbnail_url = self.sign_asset_href(asset.href)
 
             elif AssetRoles.OVERVIEW.value in asset.roles:
-                overview_url = asset.href
+                overview_url = self.sign_asset_href(asset.href)
 
         if overview_url:
             params = {
@@ -183,6 +186,33 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             self.footprint_selected.emit()
         else:
             self.footprint_deselected.emit()
+
+    def sign_asset_href(self, asset_href):
+        """ Signs the SAS based asset href.
+
+        :param asset_href: Asset resource href
+        :type asset_href: str
+
+        :returns Signed href or same href if not signing is required
+        :rtype str
+        """
+
+        # If the plugin defined connection sas subscription key
+        # exists use it instead of the environment one.
+        sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+        connection = settings_manager.get_current_connection()
+
+        if connection and \
+                connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+            sas_key = connection.sas_subscription_key \
+                if connection.sas_subscription_key else sas_key
+
+            pc.set_subscription_key(sas_key) if sas_key else None
+
+            signed_href = pc.sign(asset_href)
+            return signed_href
+
+        return asset_href
 
     def append_url_params(self, url, params):
         """ Appends the passed params into the url.
