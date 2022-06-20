@@ -364,23 +364,20 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
             feedback.progressChanged.connect(self.download_progress)
 
-            # After asset download has finished, load the asset
-            # if it can be loaded as a QGIS map layer.
-            if load_asset and asset.type in ''.join(layer_types):
-                asset.href = self.download_result["file"]
-                asset.name = title
-                asset.type = AssetLayerType.GEOTIFF.value \
-                    if AssetLayerType.COG.value in asset.type else asset.type
-
             results = processing.run(
                 "qgis:filedownloader",
                 params,
                 feedback=feedback
             )
 
-            if results:
+            # After asset download has finished, load the asset
+            # if it can be loaded as a QGIS map layer.
+            if results and load_asset and asset.type in ''.join(layer_types):
+                asset.href = self.download_result["file"]
+                asset.name = title
+                asset.type = AssetLayerType.GEOTIFF.value \
+                    if AssetLayerType.COG.value in asset.type else asset.type
                 self.load_asset(asset)
-
 
         except Exception as e:
             self.update_inputs(True)
@@ -519,20 +516,10 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
                         asset_href = file_uris
                 except RuntimeError as err:
+                    asset_href = asset.href
                     log(
                         tr("Runtime error when adding a NETCDF asset, {}").format(str(err))
                     )
-
-                    sub_layers = QgsProviderRegistry.instance().\
-                        providerMetadata("gdal").querySublayers(
-                        asset.href,
-                        Qgis.SublayerQueryFlag.IncludeSystemTables
-                    )
-
-                    asset_href = [sub_layer.uri() for sub_layer in sub_layers] \
-                        if sub_layers else asset.href
-
-                    log(tr("Used PROVIDER REGISTRY"))
             else:
                 asset.href = current_asset_href
                 self.download_asset(asset, True)
@@ -551,7 +538,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             self.add_layer_task(asset_href, asset_name, layer_type)
 
     def add_layer_task(self, asset_href, asset_name, layer_type):
-        """ Helps in spinning up task for loading the required asset
+        """ Helps in spinning up a QGIS task for loading the required asset
 
         :param asset_href: URI of the asset
         :type asset_href: str
