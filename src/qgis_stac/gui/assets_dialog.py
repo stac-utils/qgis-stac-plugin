@@ -23,9 +23,10 @@ from qgis.core import (
     QgsMapLayer,
     QgsNetworkContentFetcherTask,
     QgsPointCloudLayer,
-    QgsProject,
     QgsProcessing,
     QgsProcessingFeedback,
+    QgsProject,
+    QgsProviderRegistry,
     QgsRasterLayer,
     QgsTask,
     QgsVectorLayer,
@@ -370,14 +371,16 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 asset.name = title
                 asset.type = AssetLayerType.GEOTIFF.value \
                     if AssetLayerType.COG.value in asset.type else asset.type
-                load_file = partial(self.load_file_asset, asset)
-                feedback.progressChanged.connect(load_file)
 
-            processing.run(
+            results = processing.run(
                 "qgis:filedownloader",
                 params,
                 feedback=feedback
             )
+
+            if results:
+                self.load_asset(asset)
+
 
         except Exception as e:
             self.update_inputs(True)
@@ -516,10 +519,20 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
                         asset_href = file_uris
                 except RuntimeError as err:
-                    asset_href = asset.href
                     log(
                         tr("Runtime error when adding a NETCDF asset, {}").format(str(err))
                     )
+
+                    sub_layers = QgsProviderRegistry.instance().\
+                        providerMetadata("gdal").querySublayers(
+                        asset.href,
+                        Qgis.SublayerQueryFlag.IncludeSystemTables
+                    )
+
+                    asset_href = [sub_layer.uri() for sub_layer in sub_layers] \
+                        if sub_layers else asset.href
+
+                    log(tr("Used PROVIDER REGISTRY"))
             else:
                 asset.href = current_asset_href
                 self.download_asset(asset, True)
