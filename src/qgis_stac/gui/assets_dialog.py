@@ -41,7 +41,11 @@ from ..api.models import (
     ApiCapability
 )
 
-from ..definitions.constants import SAS_SUBSCRIPTION_VARIABLE
+from ..definitions.constants import (
+    GDAL_METADATA_NAME,
+    GDAL_SUBDATASETS_KEY,
+    SAS_SUBSCRIPTION_VARIABLE
+)
 
 from ..conf import (
     Settings,
@@ -395,8 +399,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :rtype str
         """
 
-        # If the plugin defined connection sas subscription key
-        # exists use it instead of the environment one.
+        # If the plugin current connection has a sas subscription key
+        # use it instead of the environment one.
         sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
         connection = settings_manager.get_current_connection()
 
@@ -502,23 +506,27 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             # variables on the file to load the layer.
 
             asset.downloaded = os.path.exists(asset.href)
+
+            asset_href = asset.href
             if asset.downloaded:
                 try:
                     gdal.UseExceptions()
                     open_file = gdal.Open(asset.href)
-                    asset_href = asset.href
                     if open_file is not None:
-                        file_metadata = open_file.GetMetadata("SUBDATASETS")
+                        file_metadata = open_file.GetMetadata(
+                            GDAL_SUBDATASETS_KEY
+                        )
                         file_uris = []
                         for key, value in file_metadata.items():
-                            if 'NAME' in key:
+                            if GDAL_METADATA_NAME in key:
                                 file_uris.append(value)
 
                         asset_href = file_uris
                 except RuntimeError as err:
                     asset_href = asset.href
                     log(
-                        tr("Runtime error when adding a NETCDF asset, {}").format(str(err))
+                        tr("Runtime error when adding a NETCDF asset,"
+                           " {}").format(str(err))
                     )
             else:
                 asset.href = current_asset_href
