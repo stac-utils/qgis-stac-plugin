@@ -226,6 +226,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.asset_loading.setChecked(auto_asset_loading)
 
         self.asset_loading.toggled.connect(self.update_plugin_settings)
+        self.asset_loading.stateChanged.connect(self.update_plugin_settings)
 
         refresh_time_value = settings_manager.get_value(
             Settings.REFRESH_FREQUENCY,
