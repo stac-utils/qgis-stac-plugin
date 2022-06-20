@@ -170,6 +170,8 @@ class ResourceAsset:
     description: str
     type: str
     roles: typing.List[str]
+    name: str = None
+    downloaded: bool = False
 
 
 @dataclasses.dataclass

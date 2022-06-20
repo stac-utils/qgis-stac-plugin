@@ -4,6 +4,8 @@
 """
 
 import os
+import os.path
+import gdal
 
 from pathlib import Path
 from osgeo import ogr
@@ -21,9 +23,10 @@ from qgis.core import (
     QgsMapLayer,
     QgsNetworkContentFetcherTask,
     QgsPointCloudLayer,
-    QgsProject,
     QgsProcessing,
     QgsProcessingFeedback,
+    QgsProject,
+    QgsProviderRegistry,
     QgsRasterLayer,
     QgsTask,
     QgsVectorLayer,
@@ -169,7 +172,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         """
         self.load_assets[asset.title] = asset
         self.load_btn.setText(
-            f"Add assets as layers ({len(self.load_assets.items())})"
+            f"Add selected assets as layers ({len(self.load_assets.items())})"
         )
 
         self.load_btn.setEnabled(True)
@@ -200,9 +203,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.load_btn.setText(
             f"Add selected assets as layers "
             f"({len(self.load_assets.items())})"
-        ) if self.load_assets else \
+        ) if len(self.load_assets.items()) > 0 else \
             self.load_btn.setText(
-                "Add selected assets as layers"
+                "Add assets as layers"
             )
 
         self.load_btn.setEnabled(len(self.load_assets.items()) > 0)
@@ -220,7 +223,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.download_btn.setText(
             f"Download the selected assets "
             f"({len(self.download_assets.items())})"
-        ) if self.download_assets else \
+        ) if len(self.download_assets.items()) > 0 else \
             self.download_btn.setText(
                 "Download the selected assets"
             )
@@ -322,7 +325,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             return
 
         url = self.sign_asset_href(asset.href)
-        extension = Path(url).suffix
+        extension = Path(asset.href).suffix
         extension_suffix = extension.split('?')[0] if extension else ""
         title = f"{asset.title}{extension_suffix}"
 
@@ -361,21 +364,20 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
             feedback.progressChanged.connect(self.download_progress)
 
-            # After asset download has finished, load the asset
-            # if it can be loaded as a QGIS map layer.
-            if load_asset and asset.type in layer_types:
-                asset.href = self.download_result["file"]
-                asset.title = title
-                asset.type = AssetLayerType.GEOTIFF.value \
-                    if AssetLayerType.COG.value in asset.type else asset.type
-                load_file = partial(self.load_file_asset, asset)
-                feedback.progressChanged.connect(load_file)
-
-            processing.run(
+            results = processing.run(
                 "qgis:filedownloader",
                 params,
                 feedback=feedback
             )
+
+            # After asset download has finished, load the asset
+            # if it can be loaded as a QGIS map layer.
+            if results and load_asset and asset.type in ''.join(layer_types):
+                asset.href = self.download_result["file"]
+                asset.name = title
+                asset.type = AssetLayerType.GEOTIFF.value \
+                    if AssetLayerType.COG.value in asset.type else asset.type
+                self.load_asset(asset)
 
         except Exception as e:
             self.update_inputs(True)
@@ -421,6 +423,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :type value: int
         """
         if value == 100:
+            asset.downloaded = True
             self.load_asset(asset)
 
     def download_progress(self, value):
@@ -476,6 +479,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         point_cloud_types = ','.join([
             AssetLayerType.COPC.value,
         ])
+        current_asset_href = asset.href
+        asset.href = self.sign_asset_href(asset.href)
 
         if asset_type in raster_types:
             layer_type = QgsMapLayer.RasterLayer
@@ -485,19 +490,65 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             layer_type = QgsMapLayer.PointCloudLayer
 
         if asset_type in ''.join(
-                [AssetLayerType.COG.value,
-                 AssetLayerType.NETCDF.value]
+                [AssetLayerType.COG.value]
         ) and \
                 asset_type != AssetLayerType.GEOTIFF.value:
             asset_href = f"{self.vis_url_string}" \
                          f"{asset.href}"
+        elif asset_type in ''.join([
+            AssetLayerType.NETCDF.value]):
+            # For NETCDF assets type we need to download the intended asset first,
+            # then we read from the downloaded file and use all the available NETCDF
+            # variables on the file to load the layer.
+
+            asset.downloaded = os.path.exists(asset.href)
+            if asset.downloaded:
+                try:
+                    gdal.UseExceptions()
+                    open_file = gdal.Open(asset.href)
+                    asset_href = asset.href
+                    if open_file is not None:
+                        file_metadata = open_file.GetMetadata("SUBDATASETS")
+                        file_uris = []
+                        for key, value in file_metadata.items():
+                            if 'NAME' in key:
+                                file_uris.append(value)
+
+                        asset_href = file_uris
+                except RuntimeError as err:
+                    asset_href = asset.href
+                    log(
+                        tr("Runtime error when adding a NETCDF asset, {}").format(str(err))
+                    )
+            else:
+                asset.href = current_asset_href
+                self.download_asset(asset, True)
+                return
         else:
             asset_href = f"{asset.href}"
-
-        asset_href = self.sign_asset_href(asset_href)
-        asset_name = asset.title
-
+        asset_name = asset.name or asset.title
         self.update_inputs(False)
+
+        # Assets that will require more than one URI to be loaded,
+        # will register the respective URIs in a list.
+        if isinstance(asset_href, list):
+            for asset_uri in asset_href:
+                self.add_layer_task(asset_uri, asset_name, layer_type)
+        else:
+            self.add_layer_task(asset_href, asset_name, layer_type)
+
+    def add_layer_task(self, asset_href, asset_name, layer_type):
+        """ Helps in spinning up a QGIS task for loading the required asset
+
+        :param asset_href: URI of the asset
+        :type asset_href: str
+
+        :param asset_name: Name of the asset
+        :type asset_name: str
+
+        :param layer_type: Layer type of the asset
+        :type layer_type: str
+        """
 
         layer_loader = LayerLoader(
             asset_href,
@@ -533,6 +584,13 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             For the layer to be added successfully, the task for loading
             layer need to exist and the corresponding layer need to be
             available.
+
+        :param asset_name: Name of the asset
+        :type asset_name: str
+
+        :param layer_loader: Plugin QGIS task responsible for loading assets
+        as layers.
+        :type layer_loader: LayerLoader
         """
         if layer_loader and layer_loader.layer:
             layer = layer_loader.layer
@@ -589,7 +647,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
 
 class LayerLoader(QgsTask):
-    """ Prepares and loads items as assets inside QGIS as layers."""
+    """ Prepares and loads items assets inside QGIS as layers."""
 
     def __init__(
             self,

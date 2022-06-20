@@ -65,16 +65,18 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         self.load_box.setEnabled(self.asset.type in ''.join(layer_types))
         self.load_box.toggled.connect(self.asset_load_selected)
+        self.load_box.stateChanged.connect(self.asset_load_selected)
         self.download_box.toggled.connect(self.asset_download_selected)
+        self.download_box.stateChanged.connect(self.asset_download_selected)
 
         if self.asset.type not in layer_types:
             self.load_box.setToolTip(
-                tr("Asset contains a {} media type which "
+                tr("Asset contains {} media type which "
                    "cannot be loaded as a map layer in QGIS"
                    ).format(self.asset.type)
             )
 
-    def asset_load_selected(self):
+    def asset_load_selected(self, state=None):
         """ Emits the needed signal when an asset has been selected
         for loading.
         """
@@ -83,7 +85,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         else:
             self.load_deselected.emit()
 
-    def asset_download_selected(self):
+    def asset_download_selected(self, state=None):
         """ Emits the needed signal when an asset has been selected
             for downloading.
             """

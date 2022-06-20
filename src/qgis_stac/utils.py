@@ -2,11 +2,13 @@
 """
     Plugin utilities
 """
-import os
-import sys
-import subprocess
-import uuid
+
 import datetime
+import gdal
+import os
+import subprocess
+import sys
+import uuid
 
 from qgis.PyQt import QtCore, QtGui
 from qgis.core import Qgis, QgsMessageLog
@@ -136,3 +138,16 @@ def open_documentation():
     QtGui.QDesktopServices.openUrl(
         QtCore.QUrl(SITE)
     )
+
+
+def check_gdal_version():
+    """ Checks if the installed gdal version matches the
+    required version by the plugin
+    """
+    gdal_version = gdal.VersionInfo("RELEASE_NAME")
+    if int(gdal.VersionInfo("VERSION_NUM")) < 1000000:
+        msg = tr(
+            "Make sure you are using GDAL >= 1.10 "
+            "You seem to have gdal {} installed".format(gdal_version))
+        log(msg)
+
