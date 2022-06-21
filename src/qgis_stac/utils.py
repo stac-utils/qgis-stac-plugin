@@ -4,11 +4,12 @@
 """
 
 import datetime
-import gdal
 import os
 import subprocess
 import sys
 import uuid
+
+from osgeo import gdal
 
 from qgis.PyQt import QtCore, QtGui
 from qgis.core import Qgis, QgsMessageLog
