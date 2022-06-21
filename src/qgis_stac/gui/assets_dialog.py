@@ -5,10 +5,9 @@
 
 import os
 import os.path
-import gdal
 
 from pathlib import Path
-from osgeo import ogr
+from osgeo import ogr, gdal
 
 from functools import partial
 
