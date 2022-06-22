@@ -196,17 +196,6 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.get_filters()
         self.prepare_plugin_settings()
 
-        self.sas_manager = SASManager()
-        self.sas_manager.token_refresh_started.connect(
-            self.sas_token_refresh_started
-        )
-        self.sas_manager.token_refresh_finished.connect(
-            self.sas_token_refresh_finished
-        )
-
-        self.sas_manager.token_refresh_error.connect(
-            self.sas_token_refresh_error
-        )
         self.populate_queryable_field()
 
         self.fetch_queryable_btn.clicked.connect(self.fetch_queryable)
@@ -228,88 +217,13 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.asset_loading.toggled.connect(self.update_plugin_settings)
         self.asset_loading.stateChanged.connect(self.update_plugin_settings)
 
-        refresh_time_value = settings_manager.get_value(
-            Settings.REFRESH_FREQUENCY,
-            30,
-            setting_type=int
-        )
-
-        refresh_time_unit = settings_manager.get_value(
-            Settings.REFRESH_FREQUENCY_UNIT,
-            TimeUnits.MINUTES,
-        )
-
-        self.sas_refresh_time_value.setValue(refresh_time_value)
-
-        labels = {
-            TimeUnits.MINUTES: tr("Minutes"),
-            TimeUnits.HOURS: tr("Hours"),
-            TimeUnits.DAYS: tr("Days"),
-        }
-        for unit, unit_text in labels.items():
-            self.sas_refresh_time_units.addItem(
-                unit_text,
-                unit
-            )
-        self.sas_refresh_time_units.setCurrentIndex(
-            self.sas_refresh_time_units.findData(
-                refresh_time_unit
-            )
-        )
-
-        self.sas_refresh_time_value.valueChanged.connect(
-            self.update_plugin_settings
-        )
-
-        self.sas_refresh_time_units.currentIndexChanged.connect(
-            self.update_plugin_settings
-        )
-
     def update_plugin_settings(self):
         """ Makes updates to all the plugin settings
-         defined in the settings tab
+         defined in the settings tab.
          """
         settings_manager.set_value(
             Settings.AUTO_ASSET_LOADING,
             self.asset_loading.isChecked(),
-        )
-
-        refresh_unit = self.sas_refresh_time_units.currentData()
-
-        refresh_time_value = self.sas_refresh_time_value.value()
-
-        settings_manager.set_value(
-            Settings.REFRESH_FREQUENCY,
-            refresh_time_value
-        )
-        settings_manager.set_value(
-            Settings.REFRESH_FREQUENCY_UNIT,
-            refresh_unit
-        )
-
-    def update_sas_frequency(self):
-        # Set default refresh period to 8 hours
-        refresh_frequency = settings_manager.get_value(
-            Settings.REFRESH_FREQUENCY,
-            30,
-            setting_type=int
-        )
-
-        unit = settings_manager.get_value(
-            Settings.REFRESH_FREQUENCY_UNIT,
-            TimeUnits.MINUTES
-        )
-
-        refresh_time_count = {
-            TimeUnits.MINUTES: 60000,
-            TimeUnits.HOURS: 60 * 6000,
-            TimeUnits.DAYS: 24 * 60 * 6000,
-        }
-
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.sas_manager.run_refresh_task)
-        self.timer.start(
-            refresh_frequency * refresh_time_count[unit]
         )
 
     def prepare_filter_box(self):
