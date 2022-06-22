@@ -3,19 +3,19 @@
     Result item widget, used as a template for each search result item.
 """
 
-import os
 
-import json
-import tempfile
 import datetime
+import json
+import os
+import tempfile
 
 from functools import partial
 
 from qgis.PyQt import (
-    QtGui,
     QtCore,
+    QtGui,
+    QtNetwork,
     QtWidgets,
-    QtNetwork
 )
 from qgis.PyQt.uic import loadUiType
 
@@ -376,40 +376,6 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             handler(contents)
         else:
             log(tr("Problem fetching response from network"))
-
-
-class ThumbnailLoader(QgsTask):
-    """ Prepares and loads the passed thumbnail into the item widget."""
-    def __init__(
-        self,
-        thumbnail_reply: QtCore.QByteArray,
-        label: QtWidgets.QLabel
-    ):
-
-        super().__init__()
-        self.content = thumbnail_reply
-        self.label = label
-        self.thumbnail_image = None
-
-    def run(self):
-        """ Operates the main logic of loading the thumbnail data in
-        background.
-        """
-        self.thumbnail_image = QtGui.QImage.fromData(self.content)
-        return True
-
-    def finished(self, result: bool):
-        """ Loads the thumbnail into the widget, if its image data has
-        been successfully loaded.
-
-        :param result: Whether the run() operation finished successfully
-        :type result: bool
-        """
-        if result:
-            thumbnail_pixmap = QtGui.QPixmap.fromImage(self.thumbnail_image)
-            self.label.setPixmap(thumbnail_pixmap)
-        else:
-            log(tr("Couldn't load thumbnail"))
 
 
 def add_footprint_helper(item, main_widget):

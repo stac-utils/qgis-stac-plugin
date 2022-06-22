@@ -8,14 +8,15 @@ import os
 from qgis.gui import QgsDateTimeEdit
 
 from qgis.PyQt import (
-    QtGui,
     QtCore,
+    QtGui,
+    QtNetwork,
     QtWidgets,
-    QtNetwork
 )
 from qgis.PyQt.uic import loadUiType
 
 from ..api.models import FilterOperator, QueryablePropertyType
+from ..definitions.constants import STAC_QUERYABLE_TIMESTAMP
 
 
 from ..utils import tr
@@ -113,12 +114,17 @@ class QueryablePropertyWidget(QtWidgets.QWidget, WidgetUi):
 
     def filter_text(self):
         """ Returns a cql-text representation of the property and the
-        available value."""
+        available value.
+
+        :returns CQL-Text that can be used to filter STAC catalog
+        :rtype: str
+        """
 
         try:
             current_operator = self.operator_cmb.itemData(
                 self.operator_cmb.currentIndex()
-            ) if self.operator_cmb.currentIndex() != 0 else FilterOperator.EQUAL
+            ) if self.operator_cmb.currentIndex() != 0 \
+                else FilterOperator.EQUAL
 
             if isinstance(self.input_widget, QtWidgets.QSpinBox) and \
                     self.input_widget.value() != "":
@@ -144,12 +150,10 @@ class QueryablePropertyWidget(QtWidgets.QWidget, WidgetUi):
                     toString(QtCore.Qt.ISODate)
                 text = f"{self.queryable_property.name} " \
                        f"{current_operator.value} " \
-                       f"TIMESTAMP('{datetime_str}')"
+                       f"{STAC_QUERYABLE_TIMESTAMP}('{datetime_str}')"
             else:
                 raise NotImplementedError
         except RuntimeError as e:
             text = None
 
         return text
-
-

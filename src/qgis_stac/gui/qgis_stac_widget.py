@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+"""
+ The plugin main window class file
+"""
+
 import os
 
 from functools import partial
@@ -24,18 +30,15 @@ from ..gui.queryable_property import QueryablePropertyWidget
 from ..conf import ConnectionSettings, Settings, settings_manager
 
 from ..api.models import (
-    ItemSearch,
     FilterLang,
+    ItemSearch,
     ResourceType,
     SearchFilters,
     SortField,
     SortOrder,
-    TimeUnits,
     QueryableFetchType
 )
 from ..api.client import Client
-
-from ..jobs.token_manager import SASManager
 
 from .result_item_model import ItemsModel, ItemsSortFilterProxyModel
 from .json_highlighter import JsonHighlighter
@@ -454,6 +457,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
                 self.connections_box.setCurrentIndex(0)
 
     def search_items_api(self):
+        """ Sets the current progress message, initiliaze search page
+        and calls the plugin function for searching current catalog items.
+        """
         self.current_progress_message = tr(
             "Searching items..."
         )
@@ -461,6 +467,8 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.search_items()
 
     def previous_items(self):
+        """ Sets the items search to go on the previous page.
+        """
         self.page -= 1
         self.current_progress_message = tr(
             "Retrieving previous page..."
@@ -468,6 +476,8 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.search_items()
 
     def next_items(self):
+        """ Sets the items search to go on the next page.
+       """
         self.page += 1
         self.current_progress_message = tr(
             "Retrieving next page..."
@@ -476,7 +486,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
 
     def search_items(self):
         """ Uses the filters available on the search tab to
-        search the STAC API server defined by the current connection details.
+        search the STAC Catalog defined by the current connection details.
         Emits the search started signal to alert UI about the
         search operation.
         """
@@ -765,33 +775,6 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.search_error_message = message
         self.search_completed.emit()
 
-    def sas_token_refresh_started(self):
-        """ Handles logic for when the token manager is updating the plugin
-         SAS Token based connections
-        """
-        self.show_progress(
-            tr("Refreshing the SAS based connections...")
-        )
-        log(tr("Refreshing SAS based connections..."))
-        self.update_search_inputs(False)
-
-    def sas_token_refresh_finished(self):
-        """ Handles logic for when the token manager has finished updating the plugin
-         SAS Token based connections
-        """
-        self.show_message(
-            tr("Finished refreshing SAS based connections.")
-        )
-        log(tr("Finished refreshing SAS based connections."))
-        self.update_search_inputs(True)
-
-    def sas_token_refresh_error(self):
-        """ Handles logic for when the token refresh result into an error
-        """
-        log(tr("Encountered error while refreshing SAS based connections."))
-        self.message_bar.clearWidgets()
-        self.update_search_inputs(True)
-
     def update_refreshed_items(self, connection, items):
         """ Refreshes the current SAS token connection results items """
 
@@ -799,7 +782,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
             self.display_results(items)
 
     def populate_results(self, results):
-        """ Add the found results into the widget scroll area
+        """ Add the found results into the widget scroll area.
 
         :param results: List of items results
         :type results: list

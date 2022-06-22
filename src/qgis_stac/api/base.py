@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+""" QGIS STAC API plugin base API client
+
+The base class that interact with plugin content fetch and network tasks in
+fetching STAC resources.
+"""
+
 import typing
 
 from qgis.PyQt import (
