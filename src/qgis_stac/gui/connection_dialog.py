@@ -1,7 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""
+ Connection dialog class file
+"""
+
+import datetime
 import os
 import uuid
-import datetime
-import re
 
 from functools import partial
 

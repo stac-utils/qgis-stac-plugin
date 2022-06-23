@@ -74,7 +74,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :param item: Item object with assets that are to be shown.
         :type item: model.Item
 
-        :param parent Parent widget
+        :param parent: Parent widget
         :type parent: QWidget
 
         :param main_widget: Plugin main widget
@@ -251,8 +251,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                     )
 
     def download_btn_clicked(self):
-        """
-        Runs logic after the asset download button has been clicked.
+        """ Runs logic after the asset download button has been clicked.
         """
         auto_asset_loading = settings_manager.get_value(
             Settings.AUTO_ASSET_LOADING,
@@ -415,20 +414,6 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         return asset_href
 
-    def load_file_asset(self, asset, value):
-        """Loads the passed asset into QGIS map canvas if the
-        progress value indicates the download has finished.
-
-        param asset: Item asset
-        :type asset: models.ResourceAsset
-
-        :param value: Download progress value
-        :type value: int
-        """
-        if value == 100:
-            asset.downloaded = True
-            self.load_asset(asset)
-
     def download_progress(self, value):
         """Tracks the download progress of value and updates
         the info message when the download has finished
@@ -452,6 +437,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         :param filename: File name
         :type filename: str
+
+        :returns A clean file name
+        :rtype str
         """
         characters = " %:/,\[]<>*?"
 

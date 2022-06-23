@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+""" QGIS STAC API plugin API client
+
+Definition of plugin base client subclass that deals
+with post network response handling.
+"""
+
 from .base import BaseClient
 from .models import (
     ResourcePagination,
@@ -7,7 +15,8 @@ from .models import (
 class Client(BaseClient):
     """ API client class that provides implementation of the
     STAC API querying operations.
-        """
+    """
+
     def handle_items(
             self,
             items_response,
@@ -47,10 +56,10 @@ class Client(BaseClient):
             collection_response,
             pagination
     ):
-        """Emits the search results collections.
+        """Emits the search response collection.
 
-        :param collections_response: Search results collections
-        :type collections_response: List[models.Collection]
+        :param collection_response: Search result collection
+        :type collection_response: models.Collection
 
         :param pagination: Collection results pagination details
         :type pagination: ResourcePagination
@@ -100,7 +109,7 @@ class Client(BaseClient):
         """Emits the fetched queryable properties classes from the API.
 
         :param queryable: Queryable properties
-        :type queryable: dict
+        :type queryable: models.Queryable
         """
         self.queryable_received.emit(queryable)
 
@@ -108,7 +117,7 @@ class Client(BaseClient):
             self,
             message: str
     ):
-        """Emits the found error message.
+        """Emits the found error message from the network response.
 
         :param message: Error message
         :type message: str

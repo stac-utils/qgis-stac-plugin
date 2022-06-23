@@ -8,8 +8,6 @@ from qgis.PyQt import (
     QtWidgets
 )
 
-from ..api.models import SortField
-
 
 class ItemsModel(QtCore.QAbstractItemModel):
     """ Stores the search result items"""

@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+"""
+ Collection dialog class file
+"""
+
 import os
 
 from qgis.PyQt import QtCore, QtGui, QtWidgets
@@ -8,7 +14,7 @@ from qgis.gui import QgsMessageBar
 
 from ..conf import settings_manager
 from ..api.client import Client
-from ..utils import log, tr
+from ..utils import tr
 
 from qgis.PyQt.uic import loadUiType
 

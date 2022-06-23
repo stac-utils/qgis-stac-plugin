@@ -5,19 +5,15 @@
 
 import os
 
-from functools import partial
-
 from qgis.PyQt import (
-    QtGui,
     QtCore,
+    QtGui,
+    QtNetwork,
     QtWidgets,
-    QtNetwork
 )
 from qgis.PyQt.uic import loadUiType
 
 from ..api.models import AssetLayerType
-
-from ..conf import Settings, settings_manager
 
 from ..utils import tr
 
