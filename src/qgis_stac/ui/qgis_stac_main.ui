@@ -900,6 +900,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="all_footprints_btn">
+            <property name="toolTip">
+             <string>Add all current items footprints at once as separate layers</string>
+            </property>
             <property name="text">
              <string>Add all footprints</string>
             </property>
