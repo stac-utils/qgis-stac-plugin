@@ -17,7 +17,12 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
-from qgis.core import Qgis, QgsCoordinateReferenceSystem, QgsTask
+from qgis.core import (
+    Qgis,
+    QgsApplication,
+    QgsCoordinateReferenceSystem,
+    QgsTask
+)
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
 
@@ -87,6 +92,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.footprint_items = {}
         self.footprint_btn.clicked.connect(
             self.footprint_btn_clicked
+        )
+        self.all_footprints_btn.clicked.connect(
+            self.all_footprints_btn_clicked
         )
 
         self.search_btn.clicked.connect(
@@ -834,7 +842,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         """
         self.footprint_items[item.id] = item
         self.footprint_btn.setText(
-            f"Add footprint(s) ({len(self.footprint_items.items())})"
+            f"Add the selected footprint(s) ({len(self.footprint_items.items())})"
         )
         self.footprint_btn.setEnabled(
             len(self.footprint_items.items()) > 0
@@ -846,10 +854,10 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         """
         self.footprint_items.pop(item.id)
         self.footprint_btn.setText(
-            f"Add footprint(s) ({len(self.footprint_items.items())})"
+            f"Add the selected footprint(s) ({len(self.footprint_items.items())})"
         ) if self.footprint_items else \
             self.footprint_btn.setText(
-                "Add footprint(s)"
+                "Add the selected footprint(s)"
             )
         self.footprint_btn.setEnabled(
             len(self.footprint_items.items()) > 0
@@ -859,10 +867,26 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         """ Adds selected footprints as map layers."""
         for key, item in self.footprint_items.items():
             try:
-                QgsTask.fromFunction(
+                footprint_task = QgsTask.fromFunction(
                     'Add footprints',
                     add_footprint_helper(item, self)
                 )
+                QgsApplication.taskManager().addTask(footprint_task)
+            except Exception as err:
+                log(
+                    tr("Error loading item footprint {}, {}".
+                       format(item.id, err))
+                )
+
+    def all_footprints_btn_clicked(self):
+        """ Adds all footprints for the current page items as map layers."""
+        for item in self.items_results:
+            try:
+                footprint_task = QgsTask.fromFunction(
+                    'Add footprint',
+                    add_footprint_helper(item, self)
+                )
+                QgsApplication.taskManager().addTask(footprint_task)
             except Exception as err:
                 log(
                     tr("Error loading item footprint {}, {}".
