@@ -96,6 +96,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.all_footprints_btn.clicked.connect(
             self.all_footprints_btn_clicked
         )
+        self.all_footprints_btn.setEnabled(
+            len(self.result_items) > 0
+        )
 
         self.search_btn.clicked.connect(
             self.search_items_api
@@ -733,13 +736,13 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
                     )
                     self.item_model = ItemsModel(results)
                     self.items_proxy_model.setSourceModel(self.item_model)
-                    self.result_items = results
                     settings_manager.delete_all_items(
                         settings_manager.get_current_connection(),
                         self.page
                     )
                     self.populate_results(results)
                 else:
+
                     self.clear_search_results()
                     if self.page > 1:
                         self.page -= 1
@@ -762,6 +765,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
                 self.prev_btn.setEnabled(self.page > 1)
                 self.footprint_btn.setEnabled(
                     False
+                )
+                self.all_footprints_btn.setEnabled(
+                    len(self.result_items) > 0
                 )
                 self.footprint_items = {}
             self.container.setCurrentIndex(1)
@@ -797,7 +803,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         :type results: list
         """
 
-        self.items_results = results
+        self.result_items = results
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins(1, 1, 1, 1)
@@ -881,7 +887,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
 
     def all_footprints_btn_clicked(self):
         """ Adds all footprints for the current page items as map layers."""
-        for item in self.items_results:
+        for item in self.result_items:
             try:
                 footprint_task = QgsTask.fromFunction(
                     'Add footprint',
@@ -898,6 +904,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         """ Clear current search results from the UI"""
         self.scroll_area.setWidget(QtWidgets.QWidget())
         self.result_items_la.clear()
+        self.result_items = []
 
     def filter_changed(self, filter_text):
         """
