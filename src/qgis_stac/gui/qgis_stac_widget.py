@@ -761,8 +761,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
                 self.next_btn.setEnabled(len(results) > 0)
                 self.prev_btn.setEnabled(self.page > 1)
                 self.footprint_btn.setEnabled(
-                    len(self.footprint_items.items()) > 0
+                    False
                 )
+                self.footprint_items = {}
             self.container.setCurrentIndex(1)
 
         else:
