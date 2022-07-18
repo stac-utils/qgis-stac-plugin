@@ -1,0 +1,42 @@
+Version 1.1.0 2022-07-18
+- Fix for footprints layer loading workflow.
+- Data driven filtering using STAC Queryables.
+- Multiple assets and footprints loading and downloading.
+- Minimizeable plugin main window.
+- Subscription key usage for SAS based connections.
+- Support for COPC layers.
+- Support for netCDF layers.
+- New collection dialog.
+- Auto assets loading after downloading assets.
+- Fixed connection dialog window title when in edit mode.
+- Fallback to overview when item thumbnail asset is not available.
+- Display selected collections.
+- Upgraded pystac-client library to 0.3.2.
+- Support for CQL2-JSON filter language.
+- Moved sort and order buttons to search tab.
+
+Version 1.0.0 2022-01-19
+- Fix for plugin UI lagging bug.
+- Updates to loading and downloading assets workflow.
+- Support for adding vector based assets eg. GeoJSON, GeoPackage
+- Fix connection page size now default is 10 items.
+- Include extension in the downloaded files.
+- Update UI with more descriptive tooltips.
+
+Version 1.0.0-pre 2022-01-11
+- Changed loading and downloading assets workflow.
+- Implemented testing connection functionality.
+- Reworked filter and sort features on the search item results.
+- Fetch for STAC API conformance classes.
+- Added STAC API signing using SAS token.
+- Support for downloading assets and loading item footprints in QGIS.
+- Enabled adding STAC item assets as map layers in QGIS.
+- Added plugin documentation in GitHub pages.
+
+Version 1.0.0-beta 2021-12-11
+- Fixed slow item search.
+- Updated plugin search result to include pagination.
+- Support for search result filtering and sorting.
+- Implemented search.
+- Added default configured STAC API catalogs.
+- Basic STAC API support.
