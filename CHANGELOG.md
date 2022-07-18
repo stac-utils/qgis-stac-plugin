@@ -2,6 +2,23 @@
 
 ## Released
 
+### 1.1.0 2022-07-18
+- Fix for footprints layer loading workflow
+- Data driven filtering using STAC Queryables
+- Multiple assets and footprints loading and downloading
+- Minimizeable plugin main window
+- Subscription key usage for SAS based connections
+- Support for COPC layers
+- Support for netCDF layers
+- New collection dialog
+- Auto assets loading after downloading assets
+- Fixed connection dialog window title when in edit mode
+- Fallback to overview when item thumbnail asset is not available
+- Display selected collections
+- Upgraded pystac-client library to 0.3.2
+- Support for CQL2-JSON filter language
+- Moved sort and order buttons to search tab
+
 ### 1.0.0 2022-01-13
 - Fix for plugin UI lagging bug.
 - Updates to loading and downloading assets workflow.

@@ -39,6 +39,7 @@ category = "plugins, web"
 hasProcessingProvider = "no"
 about = """\
 Adds functionality to search, load and manage STAC API resources inside QGIS.
+Sponsored by Microsoft.
 """
 # changelog: dynamically pulled from the docs/plugin/changelog.txt file
 # description: dynamically pulled from the tool.poetry.description section
