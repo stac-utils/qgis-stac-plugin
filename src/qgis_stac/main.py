@@ -179,6 +179,7 @@ class QgisStac:
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginMenu(self.tr(u"&STAC API Browser Plugin"), action)
+            self.iface.removePluginWebMenu(self.tr(u"&STAC API Browser Plugin"), action)
             self.iface.removeToolBarIcon(action)
 
     def run(self):
