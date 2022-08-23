@@ -249,6 +249,9 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
 
         connection_id = uuid.uuid4()
         capability = None
+        search_items = []
+
+        sas_subscription_key = self.sas_subscription_key.text()
 
         if self.capabilities.currentText() != "":
             capability = ApiCapability(self.capabilities.currentText())
@@ -263,6 +266,8 @@ class ConnectionDialog(QtWidgets.QDialog, DialogUi):
             conformances=self.conformance,
             created_date=datetime.datetime.now(),
             auth_config=self.auth_config.configId(),
+            search_items=search_items,
+            sas_subscription_key=sas_subscription_key,
         )
 
         return connection_settings
