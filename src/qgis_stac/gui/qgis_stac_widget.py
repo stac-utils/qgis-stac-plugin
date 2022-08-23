@@ -604,11 +604,11 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         """Sets the value of the progress bar
 
         :param value: Value to be set on the progress bar
-        :type value: int
+        :type value: float
         """
         if self.progress_bar:
             try:
-                self.progress_bar.setValue(value)
+                self.progress_bar.setValue(int(value))
             except RuntimeError:
                 log(
                     tr("Error setting value to a progress bar"),
