@@ -412,6 +412,18 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             signed_href = pc.sign(asset_href)
             return signed_href
 
+        if asset_href.startswith("s3://"):
+            signed_href = gdal.GetSignedURL(f"/vsis3/{asset_href[5:]}")
+            return signed_href
+
+        if asset_href.startswith("gs://"):
+            signed_href = gdal.GetSignedURL(f"/vsigs/{asset_href[5:]}")
+            return signed_href
+
+        if asset_href.startswith("/vsi"):
+            signed_href = gdal.GetSignedURL(asset_href)
+            return signed_href
+
         return asset_href
 
     def download_progress(self, value):
