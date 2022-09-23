@@ -487,8 +487,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         point_cloud_types = ','.join([
             AssetLayerType.COPC.value,
         ])
-        current_asset_href = asset.href
-        asset.href = self.sign_asset_href(asset.href)
+        asset_href = self.sign_asset_href(asset.href)
 
         if asset_type in raster_types:
             layer_type = QgsMapLayer.RasterLayer
@@ -502,20 +501,19 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         ) and \
                 asset_type != AssetLayerType.GEOTIFF.value:
             asset_href = f"{self.vis_url_string}" \
-                         f"{asset.href}"
+                         f"{asset_href}"
         elif asset_type in ''.join([
             AssetLayerType.NETCDF.value]):
             # For NETCDF assets type we need to download the intended asset first,
             # then we read from the downloaded file and use all the available NETCDF
             # variables on the file to load the layer.
 
-            asset.downloaded = os.path.exists(asset.href)
+            asset.downloaded = os.path.exists(asset_href)
 
-            asset_href = asset.href
             if asset.downloaded:
                 try:
                     gdal.UseExceptions()
-                    open_file = gdal.Open(asset.href)
+                    open_file = gdal.Open(asset_href)
                     if open_file is not None:
                         file_metadata = open_file.GetMetadata(
                             GDAL_SUBDATASETS_KEY
@@ -527,17 +525,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
                         asset_href = file_uris
                 except RuntimeError as err:
-                    asset_href = asset.href
                     log(
                         tr("Runtime error when adding a NETCDF asset,"
                            " {}").format(str(err))
                     )
             else:
-                asset.href = current_asset_href
                 self.download_asset(asset, True)
                 return
-        else:
-            asset_href = f"{asset.href}"
+
         asset_name = asset.name or asset.title
         self.update_inputs(False)
 
