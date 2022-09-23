@@ -387,8 +387,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 tr("Error in downloading file, {}").format(str(e))
             )
 
-    def sign_asset_href(self, asset_href):
-        """ Signs the SAS based asset href.
+    def sign_asset_href(self, asset_href: str):
+        """ Signs the asset href if signing is required.
 
         :param asset_href: Asset resource href
         :type asset_href: str
@@ -397,13 +397,18 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :rtype str
         """
 
-        # If the plugin current connection has a sas subscription key
-        # use it instead of the environment one.
-        sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+        if not asset_href:
+            return asset_href
+
         connection = settings_manager.get_current_connection()
 
         if connection and \
                 connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+
+            # If the plugin current connection has a sas subscription key
+            # use it instead of the environment one.
+            sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+
             sas_key = connection.sas_subscription_key \
                 if connection.sas_subscription_key else sas_key
 
