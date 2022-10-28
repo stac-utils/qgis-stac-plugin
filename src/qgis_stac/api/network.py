@@ -10,6 +10,7 @@ from json.decoder import JSONDecodeError
 
 from qgis.core import (
     QgsApplication,
+    QgsAuthMethodConfig,
     QgsNetworkContentFetcherTask,
     QgsTask,
 )
@@ -80,6 +81,7 @@ class ContentFetcherTask(QgsTask):
             api_capability: ApiCapability = None,
             response_handler: typing.Callable = None,
             error_handler: typing.Callable = None,
+            auth_config = None,
     ):
         super().__init__()
         self.url = url
@@ -88,6 +90,7 @@ class ContentFetcherTask(QgsTask):
         self.api_capability = api_capability
         self.response_handler = response_handler
         self.error_handler = error_handler
+        self.auth_config = auth_config
 
     def run(self):
         """
@@ -96,8 +99,15 @@ class ContentFetcherTask(QgsTask):
         :returns: Whether the task completed successfully
         :rtype: bool
         """
+        pystac_auth = {}
+        if self.auth_config:
+            auth_mgr = QgsApplication.authManager()
+            auth_cfg = QgsAuthMethodConfig()
+            auth_mgr.loadAuthenticationConfig(self.auth_config, auth_cfg, True)
+            if auth_cfg.method() == "APIHeader":
+                pystac_auth["headers"] = auth_cfg.configMap()
         try:
-            self.client = Client.open(self.url)
+            self.client = Client.open(self.url, **pystac_auth)
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
