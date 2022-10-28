@@ -10,6 +10,7 @@ from json.decoder import JSONDecodeError
 
 from qgis.core import (
     QgsApplication,
+    QgsAuthMethodConfig,
     QgsNetworkContentFetcherTask,
     QgsTask,
 )
@@ -40,7 +41,7 @@ from .models import (
     QgsAuthMethods,
     Queryable,
     QueryableProperty,
-    QueryableFetchType,
+    QueryableFetchType
 )
 
 from ..lib import planetary_computer as pc
@@ -81,6 +82,7 @@ class ContentFetcherTask(QgsTask):
             api_capability: ApiCapability = None,
             response_handler: typing.Callable = None,
             error_handler: typing.Callable = None,
+            auth_config = None,
     ):
         super().__init__()
         self.url = url
@@ -89,6 +91,7 @@ class ContentFetcherTask(QgsTask):
         self.api_capability = api_capability
         self.response_handler = response_handler
         self.error_handler = error_handler
+        self.auth_config = auth_config
 
     def run(self):
         """
@@ -103,7 +106,7 @@ class ContentFetcherTask(QgsTask):
                 self.auth_config
             )
         try:
-            self.client = Client.open(self.url)
+            self.client = Client.open(self.url, **pystac_auth)
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
@@ -151,7 +154,7 @@ class ContentFetcherTask(QgsTask):
     def prepare_auth_properties(self, auth_config_id):
         """ Fetches the required headers and parameters
          from the QGIS Authentication method with the passed configuration id
-         and return their values in dict
+         and return their values in a dictionary
 
          :param auth_config_id: Authentication method configuration id
          :type auth_config_id: str
