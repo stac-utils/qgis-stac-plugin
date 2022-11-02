@@ -43,14 +43,22 @@ official plugin repository.
 To use the plugin for development purposes, clone the repository locally,
 install poetry, a python dependencies management tool see https://python-poetry.org/docs/#installation
 then using the poetry tool, update the poetry lock file and install plugin dependencies by running 
-``` 
+```sh
 poetry update --lock
 poetry install --no-dev
 ```
 
 To install the plugin into the QGIS application use the below command
-```
+```sh
 poetry run python admin.py install
 ```
+
+#### Testing
+To run the unit tests, run the `run-tests.sh` script. This will spin up the QGIS
+docker container for several versions of QGIS and execute the unit tests.
+```sh
+./run-tests.sh
+```
+
 
 
