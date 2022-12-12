@@ -750,7 +750,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
                             or self.extent_box.isChecked():
                         self.result_items_la.setText(
                             tr(
-                                "No items were found,"
+                                "No items were found, "
                                 "try to expand the date filter or "
                                 "the spatial extent filter used."
                             )
