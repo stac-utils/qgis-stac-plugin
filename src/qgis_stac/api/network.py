@@ -47,6 +47,8 @@ from ..lib import planetary_computer as pc
 from pystac_client import Client
 from pystac_client.exceptions import APIError
 
+from pystac.errors import STACTypeError
+
 from ..utils import log, tr
 
 from ..conf import settings_manager
@@ -136,7 +138,12 @@ class ContentFetcherTask(QgsTask):
                 self.pagination = ResourcePagination()
             else:
                 raise NotImplementedError
-        except (APIError, NotImplementedError, JSONDecodeError) as err:
+        except (
+                APIError,
+                NotImplementedError,
+                JSONDecodeError,
+                STACTypeError
+        ) as err:
             log(str(err))
             self.error = str(err)
 
