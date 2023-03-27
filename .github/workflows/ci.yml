@@ -53,7 +53,7 @@ jobs:
           WITH_PYTHON_PEP=${WITH_PYTHON_PEP}
           EOF
       - name: Install poetry
-        uses: Gr1N/setup-poetry@v4
+        uses: Gr1N/setup-poetry@v8
         with:
           poetry-version: 1.1.0
 
