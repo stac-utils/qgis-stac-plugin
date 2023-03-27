@@ -7,14 +7,20 @@ from flask import jsonify, request
 from threading import Thread
 
 from .stac_api_server_app import app
+from .stac_api_auth_server_app import app as auth_app
 
 
 class MockSTACApiServer(Thread):
     """ Mock a live """
-    def __init__(self, port=5000):
+    def __init__(self, port=5000, auth=False):
         super().__init__()
         self.port = port
-        self.app = app
+
+        if not auth:
+            self.app = app
+        else:
+            self.app = auth_app
+
         self.url = "http://localhost:%s" % self.port
 
         try:

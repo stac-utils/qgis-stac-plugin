@@ -143,6 +143,11 @@ class ResourceType(enum.Enum):
     CONFORMANCE = "Conformance"
 
 
+class QgsAuthMethods(enum.Enum):
+    """ Represents the QGIS authentication method names."""
+    API_HEADER = 'APIHeader'
+
+
 class QueryableFetchType(enum.Enum):
     """Queryable fetch types"""
     CATALOG = "Catalog"

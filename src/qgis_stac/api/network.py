@@ -37,9 +37,10 @@ from .models import (
     ResourceType,
     SpatialExtent,
     TemporalExtent,
+    QgsAuthMethods,
     Queryable,
     QueryableProperty,
-    QueryableFetchType
+    QueryableFetchType,
 )
 
 from ..lib import planetary_computer as pc
@@ -96,6 +97,11 @@ class ContentFetcherTask(QgsTask):
         :returns: Whether the task completed successfully
         :rtype: bool
         """
+        pystac_auth = {}
+        if self.auth_config:
+            pystac_auth = self.prepare_auth_properties(
+                self.auth_config
+            )
         try:
             self.client = Client.open(self.url)
             if self.resource_type == \
@@ -141,6 +147,31 @@ class ContentFetcherTask(QgsTask):
             self.error = str(err)
 
         return self.response is not None
+
+    def prepare_auth_properties(self, auth_config_id):
+        """ Fetches the required headers and parameters
+         from the QGIS Authentication method with the passed configuration id
+         and return their values in dict
+
+         :param auth_config_id: Authentication method configuration id
+         :type auth_config_id: str
+
+         :returns: Authentication properties
+         :rtype: dict
+         """
+        auth_props = {}
+        auth_mgr = QgsApplication.authManager()
+        auth_cfg = QgsAuthMethodConfig()
+        auth_mgr.loadAuthenticationConfig(
+            auth_config_id,
+            auth_cfg,
+            True
+        )
+        if auth_cfg.method() == QgsAuthMethods.API_HEADER.value:
+            auth_props["headers"] = auth_cfg.configMap()
+            auth_props["parameters"] = auth_cfg.configMap()
+
+        return auth_props
 
     def prepare_collection_result(
             self,
