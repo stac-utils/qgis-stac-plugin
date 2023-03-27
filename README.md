@@ -1,6 +1,6 @@
 # qgis-stac-plugin
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/stac-utils/qgis-stac-plugin/Continuous%20Integration)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/stac-utils/qgis-stac-plugin/ci.yml?branch=main)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/stac-utils/qgis-stac-plugin?include_prereleases)
 ![GitHub](https://img.shields.io/github/license/stac-utils/qgis-stac-plugin)
 
