@@ -197,7 +197,7 @@ class ContentFetcherTask(QgsTask):
             links.append(resource_link)
 
         providers = []
-        for provider in collection_response.providers:
+        for provider in collection_response.providers or []:
             resource_provider = ResourceProvider(
                 name=provider.name,
                 description=provider.description,
