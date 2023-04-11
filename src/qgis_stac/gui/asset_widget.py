@@ -5,9 +5,6 @@
 
 import os
 
-import requests
-import mimetypes
-
 from qgis.PyQt import (
     QtCore,
     QtGui,
@@ -16,9 +13,11 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
+from qgis.core import QgsNetworkAccessManager
+
 from ..api.models import AssetLayerType
 
-from ..utils import tr
+from ..utils import log, tr
 
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/asset_widget.ui")
@@ -52,13 +51,6 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
     def initialize_ui(self):
         """ Populate UI inputs when loading the widget"""
 
-        layer_types = [
-            AssetLayerType.COG.value,
-            AssetLayerType.COPC.value,
-            AssetLayerType.GEOTIFF.value,
-            AssetLayerType.NETCDF.value,
-        ]
-
         self.title_la.setText(self.asset.title)
         self.type_la.setText(self.asset.type)
 
@@ -88,10 +80,32 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         if self.asset.type is not None:
             return self.asset.type in ''.join(layer_types)
         else:
-            response = requests.get(self.asset.href)
-            content_type = response.headers['content-type']
+            try:
+                request = QtNetwork.QNetworkRequest(
+                    QtCore.QUrl(self.asset.href)
+                )
+                response = QgsNetworkAccessManager().\
+                    instance().blockingGet(request)
+                content_type = response.rawHeader(
+                    QtCore.QByteArray(
+                        'content-type'.encode()
+                    )
+                )
+                content_type = str(content_type, 'utf-8')
 
-            return content_type in ''.join(layer_types)
+                for layer_type in layer_types:
+                    layer_type_values = layer_type.split(' ')
+                    for value in layer_type_values:
+                        if value in content_type:
+                            return True
+
+            except Exception as e:
+                log(f"Problem fetching asset "
+                    f"type from the asset url {self.asset.href},"
+                    f" error {e}"
+                    )
+
+            return False
 
     def asset_load_selected(self, state=None):
         """ Emits the needed signal when an asset has been selected
