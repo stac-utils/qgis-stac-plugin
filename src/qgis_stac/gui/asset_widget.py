@@ -53,14 +53,15 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         self.title_la.setText(self.asset.title)
         self.type_la.setText(self.asset.type)
+        asset_load = self.asset_loadable()
 
-        self.load_box.setEnabled(self.asset_loadable())
+        self.load_box.setEnabled(asset_load)
         self.load_box.toggled.connect(self.asset_load_selected)
         self.load_box.stateChanged.connect(self.asset_load_selected)
         self.download_box.toggled.connect(self.asset_download_selected)
         self.download_box.stateChanged.connect(self.asset_download_selected)
 
-        if self.asset_loadable():
+        if asset_load:
             self.load_box.setToolTip(
                 tr("Asset contains {} media type which "
                    "cannot be loaded as a map layer in QGIS"
