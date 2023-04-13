@@ -119,6 +119,7 @@ class BaseClient(QtCore.QObject):
             api_capability=self.capability,
             response_handler=self.handle_items,
             error_handler=self.handle_error,
+            auth_config=self.auth_config,
         )
 
         QgsApplication.taskManager().addTask(self.content_task)
@@ -135,6 +136,7 @@ class BaseClient(QtCore.QObject):
             resource_type=ResourceType.COLLECTION,
             response_handler=self.handle_collections,
             error_handler=self.handle_error,
+            auth_config=self.auth_config,
         )
 
         QgsApplication.taskManager().addTask(self.content_task)
@@ -156,6 +158,7 @@ class BaseClient(QtCore.QObject):
             resource_type=ResourceType.COLLECTION,
             response_handler=self.handle_collection,
             error_handler=self.handle_error,
+            auth_config=self.auth_config,
         )
 
         QgsApplication.taskManager().addTask(self.content_task)
@@ -172,6 +175,7 @@ class BaseClient(QtCore.QObject):
             resource_type=ResourceType.CONFORMANCE,
             response_handler=self.handle_conformance,
             error_handler=self.handle_error,
+            auth_config=self.auth_config,
         )
 
         QgsApplication.taskManager().addTask(self.content_task)
