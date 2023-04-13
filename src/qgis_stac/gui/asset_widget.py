@@ -13,9 +13,11 @@ from qgis.PyQt import (
 )
 from qgis.PyQt.uic import loadUiType
 
+from qgis.core import QgsNetworkAccessManager
+
 from ..api.models import AssetLayerType
 
-from ..utils import tr
+from ..utils import log, tr
 
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/asset_widget.ui")
@@ -49,6 +51,26 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
     def initialize_ui(self):
         """ Populate UI inputs when loading the widget"""
 
+        self.title_la.setText(self.asset.title)
+        self.type_la.setText(self.asset.type)
+        asset_load = self.asset_loadable()
+
+        self.load_box.setEnabled(asset_load)
+        self.load_box.toggled.connect(self.asset_load_selected)
+        self.load_box.stateChanged.connect(self.asset_load_selected)
+        self.download_box.toggled.connect(self.asset_download_selected)
+        self.download_box.stateChanged.connect(self.asset_download_selected)
+
+        if asset_load:
+            self.load_box.setToolTip(
+                tr("Asset contains {} media type which "
+                   "cannot be loaded as a map layer in QGIS"
+                   ).format(self.asset.type)
+            )
+
+    def asset_loadable(self):
+        """ Returns if asset can be added into QGIS"""
+
         layer_types = [
             AssetLayerType.COG.value,
             AssetLayerType.COPC.value,
@@ -56,21 +78,35 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
             AssetLayerType.NETCDF.value,
         ]
 
-        self.title_la.setText(self.asset.title)
-        self.type_la.setText(self.asset.type)
+        if self.asset.type is not None:
+            return self.asset.type in ''.join(layer_types)
+        else:
+            try:
+                request = QtNetwork.QNetworkRequest(
+                    QtCore.QUrl(self.asset.href)
+                )
+                response = QgsNetworkAccessManager().\
+                    instance().blockingGet(request)
+                content_type = response.rawHeader(
+                    QtCore.QByteArray(
+                        'content-type'.encode()
+                    )
+                )
+                content_type = str(content_type, 'utf-8')
 
-        self.load_box.setEnabled(self.asset.type in ''.join(layer_types))
-        self.load_box.toggled.connect(self.asset_load_selected)
-        self.load_box.stateChanged.connect(self.asset_load_selected)
-        self.download_box.toggled.connect(self.asset_download_selected)
-        self.download_box.stateChanged.connect(self.asset_download_selected)
+                for layer_type in layer_types:
+                    layer_type_values = layer_type.split(' ')
+                    for value in layer_type_values:
+                        if value in content_type:
+                            return True
 
-        if self.asset.type not in layer_types:
-            self.load_box.setToolTip(
-                tr("Asset contains {} media type which "
-                   "cannot be loaded as a map layer in QGIS"
-                   ).format(self.asset.type)
-            )
+            except Exception as e:
+                log(f"Problem fetching asset "
+                    f"type from the asset url {self.asset.href},"
+                    f" error {e}"
+                    )
+
+            return False
 
     def asset_load_selected(self, state=None):
         """ Emits the needed signal when an asset has been selected
