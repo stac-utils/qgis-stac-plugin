@@ -268,25 +268,21 @@ class ContentFetcherTask(QgsTask):
         :rtype: list
         """
         self.pagination = ResourcePagination()
-        count = 1
-        items_generator = response.get_item_collections()
-        prev_collection = None
-        items_collection = None
         page = self.search_params.page \
-            if self.search_params else Constants.PAGE_SIZE
-        while True:
-            try:
-                collection = next(items_generator)
-                prev_collection = collection
-                if page == count:
-                    items_collection = collection
-                    break
-                count += 1
-            except StopIteration:
-                self.pagination.total_pages = count
-                items_collection = prev_collection
-                break
-        items = self.get_items_list(items_collection)
+            if self.search_params else None
+
+        page_res = response.page(token=page)
+
+        if page_res.extra_fields:
+            for link in page_res.extra_fields.get('links', []):
+                if link['rel'] == 'next':
+                    next_page = link.get('body', {}).get('token', None)
+                    self.pagination.next_page = next_page
+                if link['rel'] == 'previous':
+                    previous_page = link.get('body', {}).get('token', None)
+                    self.pagination.previous_page = previous_page
+
+        items = self.get_items_list(page_res)
         return items
 
     def get_items_list(self, items_collection):
