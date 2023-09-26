@@ -4,6 +4,9 @@ version = "1.1.0"
 description = "QGIS plugin for reading STAC API catalogs"
 authors = ["Kartoza <info@kartoza.com>"]
 license = "GPL v3.0"
+packages = [
+    { include = "qgis_stac", from="src" },
+]
 
 [tool.poetry.dependencies]
 mkdocs = "^1.2.3"
