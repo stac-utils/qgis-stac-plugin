@@ -105,7 +105,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         if len(self.assets) > 0:
             self.title.setText(
                 tr("Item {}").
-                format(self.item.id, len(self.assets))
+                format(self.item.id)
             )
             self.asset_count.setText(
                 tr("{} available asset(s)").
@@ -115,7 +115,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         else:
             self.title.setText(
                 tr("Item {} has no assets").
-                format(len(self.item.id))
+                format(self.item.id)
             )
 
         scroll_container = QtWidgets.QWidget()
