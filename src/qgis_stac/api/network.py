@@ -10,6 +10,7 @@ from json.decoder import JSONDecodeError
 
 from qgis.core import (
     QgsApplication,
+    QgsAuthMethodConfig,
     QgsNetworkContentFetcherTask,
     QgsTask,
 )
@@ -37,6 +38,7 @@ from .models import (
     ResourceType,
     SpatialExtent,
     TemporalExtent,
+    QgsAuthMethods,
     Queryable,
     QueryableProperty,
     QueryableFetchType
@@ -82,6 +84,7 @@ class ContentFetcherTask(QgsTask):
             api_capability: ApiCapability = None,
             response_handler: typing.Callable = None,
             error_handler: typing.Callable = None,
+            auth_config = None,
     ):
         super().__init__()
         self.url = url
@@ -90,6 +93,7 @@ class ContentFetcherTask(QgsTask):
         self.api_capability = api_capability
         self.response_handler = response_handler
         self.error_handler = error_handler
+        self.auth_config = auth_config
 
     def run(self):
         """
@@ -98,8 +102,13 @@ class ContentFetcherTask(QgsTask):
         :returns: Whether the task completed successfully
         :rtype: bool
         """
+        pystac_auth = {}
+        if self.auth_config:
+            pystac_auth = self.prepare_auth_properties(
+                self.auth_config
+            )
         try:
-            self.client = Client.open(self.url)
+            self.client = Client.open(self.url, **pystac_auth)
             if self.resource_type == \
                     ResourceType.FEATURE:
                 if self.search_params:
@@ -148,6 +157,31 @@ class ContentFetcherTask(QgsTask):
             self.error = str(err)
 
         return self.response is not None
+
+    def prepare_auth_properties(self, auth_config_id):
+        """ Fetches the required headers and parameters
+         from the QGIS Authentication method with the passed configuration id
+         and return their values in a dictionary
+
+         :param auth_config_id: Authentication method configuration id
+         :type auth_config_id: str
+
+         :returns: Authentication properties
+         :rtype: dict
+         """
+        auth_props = {}
+        auth_mgr = QgsApplication.authManager()
+        auth_cfg = QgsAuthMethodConfig()
+        auth_mgr.loadAuthenticationConfig(
+            auth_config_id,
+            auth_cfg,
+            True
+        )
+        if auth_cfg.method() == QgsAuthMethods.API_HEADER.value:
+            auth_props["headers"] = auth_cfg.configMap()
+            auth_props["parameters"] = auth_cfg.configMap()
+
+        return auth_props
 
     def prepare_collection_result(
             self,
