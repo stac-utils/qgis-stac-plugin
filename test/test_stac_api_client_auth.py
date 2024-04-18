@@ -55,7 +55,7 @@ class STACApiClientAuthTest(unittest.TestCase):
         cfg_id = self.set_auth_method(
             "STAC_API_AUTH_TEST",
             "APIHeader",
-            {"API_HEADER_KEY": "test_api_header_key"}
+            {"APIHeaderKey": "test_api_header_key"}
         )
 
         api_client = Client(
@@ -78,7 +78,7 @@ class STACApiClientAuthTest(unittest.TestCase):
         cfg_id = self.set_auth_method(
             "STAC_API_AUTH_TEST",
             "APIHeader",
-            {"API_HEADER_KEY": "unauthorized_api_header_key"}
+            {"APIHeaderKey": "unauthorized_api_header_key"}
         )
 
         api_client = Client(
