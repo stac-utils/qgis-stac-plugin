@@ -163,7 +163,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.search_error_message = None
 
         # initialize page
-        self.page = 1
+        self.page = None
+        self.previous_page = None
+        self.next_page = None
         self.total_pages = 0
 
         self.current_collections = []
@@ -474,13 +476,12 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.current_progress_message = tr(
             "Searching items..."
         )
-        self.page = 1
         self.search_items()
 
     def previous_items(self):
         """ Sets the items search to go on the previous page.
         """
-        self.page -= 1
+        self.page = self.previous_page
         self.current_progress_message = tr(
             "Retrieving previous page..."
         )
@@ -489,7 +490,7 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
     def next_items(self):
         """ Sets the items search to go on the next page.
        """
-        self.page += 1
+        self.page = self.next_page
         self.current_progress_message = tr(
             "Retrieving next page..."
         )
@@ -720,49 +721,48 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
 
         elif self.search_type == ResourceType.FEATURE:
 
-            if pagination and pagination.total_pages > 0:
+            if pagination:
+                self.previous_page = pagination.previous_page
+                self.next_page = pagination.next_page
+
+            if len(results) > 0:
+                self.result_items_la.setText(
+                    tr(
+                        "Displaying page {} of results, {} item(s)"
+                    ).format(
+                        self.page,
+                        len(results)
+                    )
+                )
+                self.item_model = ItemsModel(results)
+                self.items_proxy_model.setSourceModel(self.item_model)
+                settings_manager.delete_all_items(
+                    settings_manager.get_current_connection(),
+                    self.page
+                )
+                self.populate_results(results)
+            else:
+
+                self.clear_search_results()
                 if self.page > 1:
                     self.page -= 1
-                self.next_btn.setEnabled(False)
-            else:
-                if len(results) > 0:
+                if self.date_filter_group.isChecked() \
+                        or self.extent_box.isChecked():
                     self.result_items_la.setText(
                         tr(
-                            "Displaying page {} of results, {} item(s)"
-                        ).format(
-                            self.page,
-                            len(results)
+                            "No items were found, "
+                            "try to expand the date filter or "
+                            "the spatial extent filter used."
                         )
                     )
-                    self.item_model = ItemsModel(results)
-                    self.items_proxy_model.setSourceModel(self.item_model)
-                    settings_manager.delete_all_items(
-                        settings_manager.get_current_connection(),
-                        self.page
-                    )
-                    self.populate_results(results)
                 else:
-
-                    self.clear_search_results()
-                    if self.page > 1:
-                        self.page -= 1
-                    if self.date_filter_group.isChecked() \
-                            or self.extent_box.isChecked():
-                        self.result_items_la.setText(
-                            tr(
-                                "No items were found, "
-                                "try to expand the date filter or "
-                                "the spatial extent filter used."
-                            )
+                    self.result_items_la.setText(
+                        tr(
+                            "No items were found"
                         )
-                    else:
-                        self.result_items_la.setText(
-                            tr(
-                                "No items were found"
-                            )
-                        )
-                self.next_btn.setEnabled(len(results) > 0)
-                self.prev_btn.setEnabled(self.page > 1)
+                    )
+                self.next_btn.setEnabled(self.next_page is not None)
+                self.prev_btn.setEnabled(self.previous_page is not None)
                 self.footprint_btn.setEnabled(
                     False
                 )
