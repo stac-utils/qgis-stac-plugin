@@ -1,3 +1,8 @@
+Version 1.1.1 2022-08-23
+- Fixed bug on progress bar percentage value setting.
+- Remove all plugin action entries once the plugin has been uninstalled.
+- Fix for testing connection error when adding a connection for the first time.
+
 Version 1.1.0 2022-07-18
 - Fix for footprints layer loading workflow.
 - Data driven filtering using STAC Queryables.
