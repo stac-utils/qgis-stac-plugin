@@ -21,7 +21,7 @@ def catalog():
 @app.route("/collections")
 def collections():
     headers = request.headers
-    auth = headers.get("API_HEADER_KEY")
+    auth = headers.get("APIHeaderKey")
     if auth == 'test_api_header_key':
         collections = DATA_PATH / "collections.json"
         with collections.open() as fl:
