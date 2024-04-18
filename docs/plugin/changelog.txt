@@ -1,3 +1,6 @@
+Version 1.1.2 2024-04-18
+- Fixed issue in the item assets dialog title when the item doesn't have assets.
+- Added support for API header authentication.
 Version 1.1.1 2022-08-23
 - Fixed bug on progress bar percentage value setting.
 - Remove all plugin action entries once the plugin has been uninstalled.
