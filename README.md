@@ -8,6 +8,12 @@ QGIS plugin for reading STAC APIs
 
 Site https://stac-utils.github.io/qgis-stac-plugin
 
+**The QGIS STAC API Browser currently lacks funding for maintenance,
+bug fixes and new features; therefore development will be slow for now.
+However we’re dedicated to maintaining the project. 
+For assistance or if you have funding to contribute 
+please reach out to Kartoza ([info@kartoza.com](mailto:info@kartoza.com))**
+
 ### Installation
 
 During the development phase the plugin is available to install via 
