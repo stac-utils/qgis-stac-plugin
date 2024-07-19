@@ -16,7 +16,7 @@ CATALOGS = [
     {
         "id": "d74817bf-da1f-44d7-a464-b87d4009c8a3",
         "name": "Earth Search",
-        "url": "https://earth-search.aws.element84.com/v0",
+        "url": "https://earth-search.aws.element84.com/v1",
         "selected": False,
         "capability": None,
     },
