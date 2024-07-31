@@ -387,8 +387,8 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 tr("Error in downloading file, {}").format(str(e))
             )
 
-    def sign_asset_href(self, asset_href):
-        """ Signs the SAS based asset href.
+    def sign_asset_href(self, asset_href: str):
+        """ Signs the asset href if signing is required.
 
         :param asset_href: Asset resource href
         :type asset_href: str
@@ -397,19 +397,36 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :rtype str
         """
 
-        # If the plugin current connection has a sas subscription key
-        # use it instead of the environment one.
-        sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+        if not asset_href:
+            return asset_href
+
         connection = settings_manager.get_current_connection()
 
         if connection and \
                 connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+
+            # If the plugin current connection has a sas subscription key
+            # use it instead of the environment one.
+            sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
+
             sas_key = connection.sas_subscription_key \
                 if connection.sas_subscription_key else sas_key
 
             pc.set_subscription_key(sas_key) if sas_key else None
 
             signed_href = pc.sign(asset_href)
+            return signed_href
+
+        if asset_href.startswith("s3://"):
+            signed_href = gdal.GetSignedURL(f"/vsis3/{asset_href[5:]}")
+            return signed_href
+
+        if asset_href.startswith("gs://"):
+            signed_href = gdal.GetSignedURL(f"/vsigs/{asset_href[5:]}")
+            return signed_href
+
+        if asset_href.startswith("/vsi"):
+            signed_href = gdal.GetSignedURL(asset_href)
             return signed_href
 
         return asset_href
@@ -470,8 +487,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         point_cloud_types = ','.join([
             AssetLayerType.COPC.value,
         ])
-        current_asset_href = asset.href
-        asset.href = self.sign_asset_href(asset.href)
+        asset_href = self.sign_asset_href(asset.href)
 
         if asset_type in raster_types:
             layer_type = QgsMapLayer.RasterLayer
@@ -485,20 +501,19 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         ) and \
                 asset_type != AssetLayerType.GEOTIFF.value:
             asset_href = f"{self.vis_url_string}" \
-                         f"{asset.href}"
+                         f"{asset_href}"
         elif asset_type in ''.join([
             AssetLayerType.NETCDF.value]):
             # For NETCDF assets type we need to download the intended asset first,
             # then we read from the downloaded file and use all the available NETCDF
             # variables on the file to load the layer.
 
-            asset.downloaded = os.path.exists(asset.href)
+            asset.downloaded = os.path.exists(asset_href)
 
-            asset_href = asset.href
             if asset.downloaded:
                 try:
                     gdal.UseExceptions()
-                    open_file = gdal.Open(asset.href)
+                    open_file = gdal.Open(asset_href)
                     if open_file is not None:
                         file_metadata = open_file.GetMetadata(
                             GDAL_SUBDATASETS_KEY
@@ -510,17 +525,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
                         asset_href = file_uris
                 except RuntimeError as err:
-                    asset_href = asset.href
                     log(
                         tr("Runtime error when adding a NETCDF asset,"
                            " {}").format(str(err))
                     )
             else:
-                asset.href = current_asset_href
                 self.download_asset(asset, True)
                 return
-        else:
-            asset_href = f"{asset.href}"
+
         asset_name = asset.name or asset.title
         self.update_inputs(False)
 
