@@ -324,7 +324,7 @@ class Item:
 class ItemSearch:
     """ Definition for the pystac-client item search parameters"""
     ids: typing.Optional[list] = None
-    page: typing.Optional[int] = 1
+    page: typing.Optional[int] = None
     page_size: typing.Optional[int] = 10
     collections: typing.Optional[list] = None
     datetime: typing.Optional[QtCore.QDateTime] = None

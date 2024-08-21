@@ -435,6 +435,20 @@ class ItemSearch:
         for page in self._stac_io.get_pages(self.url, self.method, self.get_parameters()):
             yield ItemCollection.from_dict(page, preserve_dict=False, root=self.client)
 
+    def page(self, page=None, token=None) -> Dict:
+        if isinstance(self._stac_io, StacApiIO):
+            page = self._stac_io.get_page(
+                self.url,
+                self.method,
+                self.get_parameters(),
+                page=page,
+                token=token,
+            )
+            page_collection = ItemCollection.from_dict(
+                page, preserve_dict=False, root=self.client
+            ) if page is not None else None
+            return page_collection
+
     def get_items(self) -> Iterator[Item]:
         """Iterator that yields :class:`pystac.Item` instances for each item matching the given search parameters. Calls
         :meth:`ItemSearch.item_collections()` internally and yields from
