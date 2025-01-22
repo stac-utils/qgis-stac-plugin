@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import Optional
-import pydantic
+import pydantic_settings
 
 SETTINGS_ENV_FILE = "~/.planetarycomputer/settings.env"
 SETTINGS_ENV_PREFIX = "PC_SDK_"
@@ -8,7 +8,7 @@ SETTINGS_ENV_PREFIX = "PC_SDK_"
 DEFAULT_SAS_TOKEN_ENDPOINT = "https://planetarycomputer.microsoft.com/api/sas/v1/token"
 
 
-class Settings(pydantic.BaseSettings):
+class Settings(pydantic_settings.BaseSettings):
     """PC SDK configuration settings
 
     Settings defined here are attempted to be read in two ways, in this order:
