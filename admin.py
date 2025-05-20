@@ -88,13 +88,18 @@ def install(
     built_directory = build(context, clean=True) \
         if build_src else LOCAL_ROOT_DIR / "build" / SRC_NAME
 
-    root_directory = Path.home() / \
-                     f".local/share/QGIS/QGIS3/profiles/" \
-                     f"{context.obj['qgis_profile']}"
+    if os.name != "posix":
+        root_directory = Path.home() / \
+                        f"AppData/Roaming/QGIS/QGIS3/profiles/" \
+                        f"{context.obj['qgis_profile']}"
+    else:
+        root_directory = Path.home() / \
+                        f".local/share/QGIS/QGIS3/profiles/" \
+                        f"{context.obj['qgis_profile']}"
 
     base_target_directory = root_directory / "python/plugins" / SRC_NAME
     _log(f"Copying built plugin to {base_target_directory}...", context=context)
-    shutil.copytree(built_directory, base_target_directory)
+    shutil.copytree(built_directory, base_target_directory, dirs_exist_ok=True)
     _log(
         f"Installed {str(built_directory)!r}"
         f" into {str(base_target_directory)!r}",
@@ -273,7 +278,8 @@ def compile_resources(
     target_path = output_directory / "resources.py"
     target_path.parent.mkdir(parents=True, exist_ok=True)
     _log(f"compile_resources target_path: {target_path}", context=context)
-    subprocess.run(shlex.split(f"pyrcc5 -o {target_path} {resources_path}"))
+    is_posix = os.name == "posix"
+    subprocess.run(shlex.split(f"pyrcc5 -o {target_path} {resources_path}", posix=is_posix))
 
 
 @app.command()

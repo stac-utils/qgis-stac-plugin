@@ -537,6 +537,8 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         sort_order = SortOrder.DESCENDING \
             if self.reverse_order_box.isChecked() else SortOrder.ASCENDING
 
+        self.cancel_loading_thumbnails()
+
         self.api_client.get_items(
             ItemSearch(
                 collections=collections,
@@ -902,10 +904,16 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
 
     def clear_search_results(self):
         """ Clear current search results from the UI"""
+        self.cancel_loading_thumbnails()
         self.scroll_area.setWidget(QtWidgets.QWidget())
         self.result_items_la.clear()
         self.result_items = []
 
+    def cancel_loading_thumbnails(self):
+        """ Cancel any thumbnails which are still loading"""
+        for riw in self.scroll_area.findChildren(ResultItemWidget): 
+            riw.cancel_thumbnail()
+            
     def filter_changed(self, filter_text):
         """
         Sets the filter on the collections proxy model and trigger

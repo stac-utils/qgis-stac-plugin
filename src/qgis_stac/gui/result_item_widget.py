@@ -83,6 +83,8 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         self.item = item
         self.title_la.setText(item.id)
         self.thumbnail_url = None
+        self.thumbnail_task = None
+        self.thumbnail_task_id = None
         self.date_time_format = "%Y-%m-%dT%H:%M:%S"
         self.simple_date_format = "%m/%d/%Y"
         self.main_widget = main_widget
@@ -317,6 +319,12 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
             self.thumbnail_response
         )
 
+    def cancel_thumbnail(self):
+        """ Cancel loading thumbnail if it's still in progress"""
+        task = QgsApplication.taskManager().task(self.thumbnail_task_id)
+        if self.thumbnail_task_id and task:
+            task.cancel()
+
     def thumbnail_response(self, content):
         """ Callback to handle the thumbnail network response.
             Sets the thumbnail image data into the widget thumbnail label.
@@ -347,17 +355,20 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         :param auth_config: Authentication configuration string
         :type auth_config: str
         """
-        task = QgsNetworkContentFetcherTask(
+        self.thumbnail_task = QgsNetworkContentFetcherTask(
             request,
-            authcfg=auth_config
+            authcfg=auth_config,
+            flags=QgsTask.CanCancel|QgsTask.CancelWithoutPrompt|QgsTask.Silent
         )
         response_handler = partial(
             self.response,
-            task,
+            self.thumbnail_task,
             handler
         )
-        task.fetched.connect(response_handler)
-        task.run()
+
+        self.thumbnail_task.fetched.connect(response_handler)
+        self.thumbnail_task_id = QgsApplication.taskManager().addTask(self.thumbnail_task)
+
 
     def response(
             self,
@@ -369,13 +380,14 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         :param task: QGIS task that fetches network content
         :type task:  QgsNetworkContentFetcherTask
         """
-        reply = task.reply()
-        error = reply.error()
-        if error == QtNetwork.QNetworkReply.NoError:
-            contents: QtCore.QByteArray = reply.readAll()
-            handler(contents)
-        else:
-            log(tr("Problem fetching response from network"))
+        if not task.isCanceled():
+            reply = task.reply()
+            error = reply.error()
+            if error == QtNetwork.QNetworkReply.NoError:
+                contents: QtCore.QByteArray = reply.readAll()
+                handler(contents)
+            else:
+                log(tr("Problem fetching response from network"))
 
 
 def add_footprint_helper(item, main_widget):

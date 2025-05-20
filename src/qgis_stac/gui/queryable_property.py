@@ -89,6 +89,7 @@ class QueryablePropertyWidget(QtWidgets.QWidget, WidgetUi):
             QueryablePropertyType.DATETIME.value:
 
             datetime_edit = QgsDateTimeEdit()
+            datetime_edit.clear()
             datetime_edit.setSizePolicy(size_policy)
 
             input_layout.addWidget(datetime_edit)
