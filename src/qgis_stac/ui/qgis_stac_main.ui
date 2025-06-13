@@ -896,15 +896,47 @@
             <property name="text">
              <string>Add the selected footprints</string>
             </property>
+            <property name="toolTip">
+             <string>Add the footprint of the selected items in a vector layer</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="items_btn">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Add the selected items</string>
+            </property>
+            <property name="toolTip">
+             <string>Add assets of the selected items as new layers</string>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QPushButton" name="all_footprints_btn">
             <property name="toolTip">
-             <string>Add all current items footprints at once as separate layers</string>
+             <string>Add the footprint of all current items in a vector layer</string>
             </property>
             <property name="text">
              <string>Add all footprints</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="items_assets_btn">
+            <property name="toolTip">
+             <string>Add assets of all current items</string>
+            </property>
+            <property name="text">
+             <string>Add all items assets</string>
             </property>
            </widget>
           </item>

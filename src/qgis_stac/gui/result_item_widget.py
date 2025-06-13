@@ -421,3 +421,46 @@ def add_footprint_helper(item, main_widget):
             ).format(item.id),
             level=Qgis.Critical
         )
+
+from ..lib.pystac import ItemCollection
+def add_footprints_helper(items, main_widget):
+    """ Adds the item footprint inside QGIS as a map layer
+
+    :param item: STAC item whose footprint is going to be added
+    :type item: Item
+
+    :param main_widget: Parent widget that the function is called from
+    :type main_widget: QWidget
+    """
+    layer_file = tempfile.NamedTemporaryFile(
+        mode="w+",
+        suffix='.geojson',
+        delete=False
+    )
+    layer_name = "stac_footprints"
+    ItemCollection([item.stac_object for item in items]).save_object(layer_file.name)
+    
+    layer = QgsVectorLayer(
+        layer_file.name,
+        layer_name,
+        AssetLayerType.VECTOR.value
+    )
+    if layer.isValid():
+        QgsProject.instance().addMapLayer(layer)
+        main_widget.show_message(
+            tr(
+                "Successfully loaded footprint layer for item {}."
+            ).format(
+                ", ".join([item.id for item in items])
+            ),
+            level=Qgis.Info
+        )
+
+    else:
+        main_widget.show_message(
+            tr(
+                "Couldn't load footprint into QGIS for items {},"
+                " its layer is not valid."
+            ).format(", ".join([item.id for item in items])),
+            level=Qgis.Critical
+        )

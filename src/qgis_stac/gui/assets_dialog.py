@@ -37,7 +37,8 @@ from ..resources import *
 
 from ..api.models import (
     AssetLayerType,
-    ApiCapability
+    ApiCapability,
+    ResourceAsset
 )
 
 from ..definitions.constants import (
@@ -640,7 +641,211 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             message
         )
 
+class ItemsAssetsDialog(AssetsDialog):
+    def __init__(
+            self,
+            item,
+            parent,
+            main_widget,
+            items,
+    ):
+        super().__init__(item, parent, main_widget)
+        self.items = items
+    
+    def prepare_assets(self):
+        """ Loads the dialog with the list of assets.
+        """
+        super().prepare_assets()
+        if len(self.assets) > 0:
+            self.title.setText(
+                tr("Collection {}").
+                format(self.item.id)
+            )
+            self.asset_count.setText(
+                tr("{} available asset(s)").
+                format(len(self.assets))
 
+            )
+        else:
+            self.title.setText(
+                tr("Collection {} has no assets").
+                format(self.item.id)
+            )
+
+
+    def load_btn_clicked(self):
+        """ Runs logic after the asset load button has been clicked.
+        """
+        for key, asset in self.load_assets.items():
+            for item in self.items:
+                if key in item.stac_object.assets:
+                    asset = item.stac_object.assets[key]
+                    rasset = ResourceAsset(
+                        href=asset.href,
+                        title=asset.title or key,
+                        description=asset.description,
+                        type=asset.media_type or asset.type,
+                        roles=asset.roles or []
+                    )
+
+                    try:
+                        load_task = QgsTask.fromFunction(
+                            'Load asset function',
+                            self.load_asset(rasset)
+                        )
+                        QgsApplication.taskManager().addTask(load_task)
+                    except Exception as err:
+                        log(tr("An error occurred when running task for "
+                            "loading an asset, error message \"{}\" ".format(err))
+                            )
+    
+    def download_btn_clicked(self):
+        """ Runs logic after the asset download button has been clicked.
+        """
+        auto_asset_loading = settings_manager.get_value(
+            Settings.AUTO_ASSET_LOADING,
+            False,
+            setting_type=bool
+        )
+
+        for key, asset in self.download_assets.items():
+            for item in self.items:
+                if key in item.stac_object.assets:
+                    asset = item.stac_object.assets[key]
+                    rasset = ResourceAsset(
+                        href=asset.href,
+                        title=asset.title or key,
+                        description=asset.description,
+                        type=asset.media_type or asset.type,
+                        roles=asset.roles or []
+                    )
+
+                    try:
+                        download_task = QgsTask.fromFunction(
+                            'Download asset function',
+                            self.download_asset(rasset, item.id, auto_asset_loading)
+                        )
+                        QgsApplication.taskManager().addTask(download_task)
+
+                    except Exception as err:
+                        self.update_inputs(True)
+                        log(tr("An error occured when running task for"
+                            " downloading asset {}, error message \"{}\" ").format(
+                            asset.title,
+                            str(err))
+                        )
+
+    def download_asset(self, asset, item_id, load_asset=False):
+        """ Downloads the passed asset into directory defined in the plugin settings.
+
+        :param asset: Item asset
+        :type asset: models.ResourceAsset
+
+        :param load_asset: Whether to load an asset after download has finished.
+        :type load_asset: bool
+        """
+        self.update_inputs(False)
+        download_folder = settings_manager.get_value(
+            Settings.DOWNLOAD_FOLDER
+        )
+        item_folder = os.path.join(download_folder, item_id) \
+            if download_folder else None
+        feedback = QgsProcessingFeedback()
+        try:
+            if item_folder:
+                os.mkdir(item_folder)
+        except FileExistsError as fe:
+            pass
+        except FileNotFoundError as fn:
+            self.update_inputs(True)
+            self.main_widget.show_message(
+                tr("Folder {} is not found").format(download_folder),
+                Qgis.Critical
+            )
+            return
+        except PermissionError as pe:
+            self.update_inputs(True)
+            self.main_widget.show_message(
+                tr("Permission error writing in download folder"),
+                Qgis.Critical
+            )
+            return
+
+        url = self.sign_asset_href(asset.href)
+        extension = Path(asset.href).suffix
+        extension_suffix = extension.split('?')[0] if extension else ""
+        title = f"{asset.title}{extension_suffix}"
+
+        title = self.clean_filename(title)
+
+        output = os.path.join(
+            item_folder, title
+        ) if item_folder else QgsProcessing.TEMPORARY_OUTPUT
+        params = {'URL': url, 'OUTPUT': output}
+
+        self.download_result["file"] = output
+
+        layer_types = [
+            AssetLayerType.COG.value,
+            AssetLayerType.COPC.value,
+            AssetLayerType.GEOTIFF.value,
+            AssetLayerType.NETCDF.value,
+        ]
+        try:
+            self.main_widget.show_message(
+                tr("Download for file {} to {} has started."
+                   ).format(
+                    title,
+                    item_folder
+                ),
+                level=Qgis.Info
+            )
+            self.main_widget.show_progress(
+                f"Downloading {url}",
+                minimum=0,
+                maximum=100,
+            )
+
+            feedback.progressChanged.connect(
+                self.main_widget.update_progress_bar
+            )
+            feedback.progressChanged.connect(self.download_progress)
+
+            results = processing.run(
+                "qgis:filedownloader",
+                params,
+                feedback=feedback
+            )
+
+            # After asset download has finished, load the asset
+            # if it can be loaded as a QGIS map layer.
+            if results and load_asset and asset.type in ''.join(layer_types):
+                asset.href = self.download_result["file"]
+                asset.name = title
+                asset.type = AssetLayerType.GEOTIFF.value \
+                    if AssetLayerType.COG.value in asset.type else asset.type
+                self.load_asset(asset)
+
+        except Exception as e:
+            self.update_inputs(True)
+            self.main_widget.show_message(
+                tr("Error in downloading file, {}").format(str(e))
+            )
+
+    def update_inputs(self, enabled):
+        """ Updates the inputs widgets state in the main search item widget.
+
+        :param enabled: Whether to enable the inputs or disable them.
+        :type enabled: bool
+        """
+        self.scroll_area.setEnabled(enabled)
+        # self.parent.update_inputs(enabled)
+        self.load_btn.setEnabled(
+            enabled and len(self.load_assets.items()) > 0
+        )
+        self.download_btn.setEnabled(
+            enabled and len(self.download_assets.items()) > 0
+        )
 class LayerLoader(QgsTask):
     """ Prepares and loads items assets inside QGIS as layers."""
 

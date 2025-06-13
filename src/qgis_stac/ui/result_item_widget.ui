@@ -181,10 +181,10 @@
           <item>
            <widget class="QCheckBox" name="footprint_box">
             <property name="toolTip">
-             <string>Select footprint and add it to the list of footprints to be added.</string>
+             <string>Select item and add it to the list of footprints or items assets to be added.</string>
             </property>
             <property name="text">
-             <string>Select footprint</string>
+             <string>Select item</string>
             </property>
            </widget>
           </item>

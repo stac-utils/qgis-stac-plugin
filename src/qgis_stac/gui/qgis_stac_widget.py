@@ -5,6 +5,7 @@
 """
 
 import os
+from copy import deepcopy
 
 from functools import partial
 
@@ -41,7 +42,8 @@ from ..api.models import (
     SearchFilters,
     SortField,
     SortOrder,
-    QueryableFetchType
+    QueryableFetchType,
+    ResourceAsset
 )
 from ..api.client import Client
 
@@ -54,7 +56,8 @@ from ..utils import (
     tr,
 )
 
-from .result_item_widget import add_footprint_helper, ResultItemWidget
+from .result_item_widget import add_footprint_helper, add_footprints_helper, ResultItemWidget
+from .assets_dialog import ItemsAssetsDialog
 
 WidgetUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/qgis_stac_main.ui")
@@ -93,6 +96,13 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.footprint_btn.clicked.connect(
             self.footprint_btn_clicked
         )
+        self.items_btn.clicked.connect(
+            self.open_selected_items_dialog
+        )
+        self.items_btn.setEnabled(
+            len(self.footprint_items.items()) > 0
+        )
+
         self.all_footprints_btn.clicked.connect(
             self.all_footprints_btn_clicked
         )
@@ -217,6 +227,10 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
 
         self.queryable_property_widgets = []
         self.queryable_properties = []
+
+        self.items_assets_btn.setEnabled(self.result_items is not None)
+        self.items_assets_btn.clicked.connect(self.open_all_items_dialog)
+
 
     def prepare_plugin_settings(self):
         """ Initializes all the plugin related settings"""
@@ -766,6 +780,9 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
                 self.footprint_btn.setEnabled(
                     False
                 )
+                self.items_btn.setEnabled(
+                    False
+                )
                 self.all_footprints_btn.setEnabled(
                     len(self.result_items) > 0
                 )
@@ -854,51 +871,138 @@ class QgisStacWidget(QtWidgets.QMainWindow, WidgetUi):
         self.footprint_btn.setEnabled(
             len(self.footprint_items.items()) > 0
         )
-
+        self.items_btn.setText(
+            f"Add the selected item(s) ({len(self.footprint_items.items())})"
+        )
+        self.items_btn.setEnabled(
+            len(self.footprint_items.items()) > 0
+        )
     def footprint_deselected(self, item):
         """ Removes the passed item from the  list of the
         footprints to be added.
         """
         self.footprint_items.pop(item.id)
-        self.footprint_btn.setText(
-            f"Add the selected footprint(s) ({len(self.footprint_items.items())})"
-        ) if self.footprint_items else \
+        if self.footprint_items:
+            self.footprint_btn.setText(
+                f"Add the selected footprint(s) ({len(self.footprint_items.items())})"
+            )
+            self.items_btn.setText(
+                f"Add the selected item(s) ({len(self.footprint_items.items())})"
+            )
+        else:
             self.footprint_btn.setText(
                 "Add the selected footprint(s)"
             )
+            self.items_btn.setText(
+                f"Add the selected item(s)"
+            )
+        
         self.footprint_btn.setEnabled(
             len(self.footprint_items.items()) > 0
         )
-
+        self.items_btn.setEnabled(
+            len(self.footprint_items.items()) > 0
+        )
     def footprint_btn_clicked(self):
         """ Adds selected footprints as map layers."""
-        for key, item in self.footprint_items.items():
-            try:
-                footprint_task = QgsTask.fromFunction(
-                    'Add footprints',
-                    add_footprint_helper(item, self)
-                )
-                QgsApplication.taskManager().addTask(footprint_task)
-            except Exception as err:
-                log(
-                    tr("Error loading item footprint {}, {}".
-                       format(item.id, err))
-                )
+        items = self.footprint_items.values()
+        try:
+            footprint_task = QgsTask.fromFunction(
+                'Add footprints',
+                add_footprints_helper(items, self)
+            )
+            QgsApplication.taskManager().addTask(footprint_task)
+        except Exception as err:
+            log(
+                tr("Error loading item footprints {}".
+                    format(err))
+            )
 
     def all_footprints_btn_clicked(self):
         """ Adds all footprints for the current page items as map layers."""
-        for item in self.result_items:
-            try:
-                footprint_task = QgsTask.fromFunction(
-                    'Add footprint',
-                    add_footprint_helper(item, self)
-                )
-                QgsApplication.taskManager().addTask(footprint_task)
-            except Exception as err:
-                log(
-                    tr("Error loading item footprint {}, {}".
-                       format(item.id, err))
-                )
+        try:
+            footprint_task = QgsTask.fromFunction(
+                'Add footprint',
+                add_footprints_helper(self.result_items, self)
+            )
+            QgsApplication.taskManager().addTask(footprint_task)
+        except Exception as err:
+            log(
+                tr("Error loading item footprints {}".format(err))
+            )
+    
+    def open_all_items_dialog(self):
+        """  Opens the assets dialog for the STAC item.
+            Queries the plugin Item from the plugin settings to get the
+            most recent updated assets.
+        """
+        # connection = settings_manager.get_current_connection()
+        # saved_item = settings_manager.get_items(
+        #     connection.id,
+        #     [str(self.item.item_uuid)]
+        # )
+        # if saved_item:
+        items = self.result_items
+        if len(set([item.collection for item in items])) > 1:
+            raise NotImplementedError(
+                "Adding assets from multiple collections is not supported.\n"
+                "Please select a single collection.")
+
+        item = deepcopy(items[0])
+        if item.collection is not None:
+            item.id = item.collection
+        stored_assets = [
+            ResourceAsset(
+                href=asset.href,
+                title=key,
+                description=asset.description,
+                type=asset.media_type,
+                roles=asset.roles or []
+            )
+            for key, asset in item.stac_object.assets.items()
+        ]
+        item.assets = stored_assets
+
+        assets_dialog = ItemsAssetsDialog(
+            item,
+            parent=self,
+            main_widget=self,
+            items=items,
+        )
+        assets_dialog.exec_()
+
+    def open_selected_items_dialog(self):
+        """  Opens the assets dialog for the selected STAC items,
+            based on the first item assets.
+        """
+        items = list(self.footprint_items.values())
+        if len(set([item.collection for item in items])) > 1:
+            raise NotImplementedError(
+                "Adding assets from multiple collections is not supported.\n"
+                "Please select a single collection.")
+        
+        item = deepcopy(items[0])
+        if item.collection is not None:
+            item.id = item.collection
+        stored_assets = [
+            ResourceAsset(
+                href=asset.href,
+                title=key,
+                description=asset.description,
+                type=asset.media_type,
+                roles=asset.roles or []
+            )
+            for key, asset in item.stac_object.assets.items()
+        ]
+        item.assets = stored_assets
+
+        assets_dialog = ItemsAssetsDialog(
+            item,
+            parent=self,
+            main_widget=self,
+            items=items,
+        )
+        assets_dialog.exec_()
 
     def clear_search_results(self):
         """ Clear current search results from the UI"""
