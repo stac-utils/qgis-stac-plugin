@@ -29,8 +29,9 @@ from qgis.core import (
     QgsRasterLayer,
     QgsTask,
     QgsVectorLayer,
-
 )
+from qgis._3d import QgsPointCloudLayer3DRenderer
+
 from ..lib import planetary_computer as pc
 
 from ..resources import *
@@ -727,6 +728,11 @@ class LayerLoader(QgsTask):
             # hence we clone the layer before storing it, so it can
             # be used in the main thread.
             self.layer = self.layer.clone()
+            if self.layer_type == QgsMapLayer.PointCloudLayer:
+                # add 3D renderer with sync to 2D as default
+                r = QgsPointCloudLayer3DRenderer()
+                self.layer.setRenderer3D(r)
+                self.layer.setSync3DRendererTo2DRenderer(True)
         else:
             provider_error = tr("error {}").format(
                 self.layer.dataProvider().error()
