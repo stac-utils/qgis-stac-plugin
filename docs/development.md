@@ -40,6 +40,12 @@ docker pull qgis/qgis:release-3_16
 docker pull qgis/qgis:release-3_22
 ```
 
+Run the following command in linux shell to ensure the build directory exists and includes test files.
+
+```
+poetry run python admin.py build --tests
+```
+
 ```
 ./run-tests.sh
 ```

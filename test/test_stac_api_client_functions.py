@@ -22,6 +22,7 @@ class STACApiClientTest(unittest.TestCase):
 
         self.server = Process(target=self.app_server.run)
         self.server.start()
+        self.app_server.wait_for_ready()
 
         self.api_client = Client(self.app_server.url)
         self.response = None

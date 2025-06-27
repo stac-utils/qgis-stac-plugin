@@ -9,6 +9,7 @@ QGIS_VERSION_TAGS=($QGIS_IMAGE_V_3_16 $QGIS_IMAGE_V_3_20)
 
 export IMAGE=$QGIS_IMAGE
 
+exit_code=0
 for TAG in "${QGIS_VERSION_TAGS[@]}"
 do
     echo "Running tests for QGIS $TAG"
@@ -23,6 +24,12 @@ do
     docker-compose exec -T qgis-testing-environment sh -c "pip3 install flask"
 
     docker-compose exec -T qgis-testing-environment qgis_testrunner.sh test_suite.test_package
+    exit_code=$?
     docker-compose down
-
+    if [ $exit_code -ne 0 ]; then
+        echo "exiting early"
+        break
+    fi
 done
+
+exit $exit_code

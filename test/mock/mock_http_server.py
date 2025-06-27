@@ -1,18 +1,21 @@
-import os
 import requests
+import socket
 
-import multiprocessing
-
-from flask import jsonify, request
+from flask import request
 from threading import Thread
+from time import sleep, time
+from typing import Final
 
 from .stac_api_server_app import app
 from .stac_api_auth_server_app import app as auth_app
 
 
+_host: Final[str] = "localhost"
+_default_port: Final[int] = 5000
+
 class MockSTACApiServer(Thread):
     """ Mock a live """
-    def __init__(self, port=5000, auth=False):
+    def __init__(self, port=_default_port, auth=False):
         super().__init__()
         self.port = port
 
@@ -21,7 +24,7 @@ class MockSTACApiServer(Thread):
         else:
             self.app = auth_app
 
-        self.url = "http://localhost:%s" % self.port
+        self.url = "http://%s:%s" % (_host, self.port)
 
         try:
             self.app.add_url_rule("/shutdown", view_func=self._shutdown_server)
@@ -40,3 +43,13 @@ class MockSTACApiServer(Thread):
 
     def run(self):
         self.app.run(port=self.port)
+
+    def wait_for_ready(self, wait_timeout_seconds: int = 5) -> None:
+        start = time()
+        while time() - start < wait_timeout_seconds:
+            try:
+                socket.create_connection((_host, self.port), timeout=1)
+                return
+            except (ConnectionRefusedError, OSError):
+                sleep(1)
+        raise Exception("Unable to establish a connection to server at %s:%s in %ss" % (_host, self.port, wait_timeout_seconds))
