@@ -97,7 +97,7 @@ class ResultItemWidget(QtWidgets.QWidget, WidgetUi):
         datetime_str = None
         if self.item.properties and \
             self.item.properties.start_date and \
-            self.item.proerties.end_date:
+            self.item.properties.end_date:
 
             start_date = datetime.datetime.strftime(
                 self.item.properties.start_date,
