@@ -6,7 +6,12 @@ import warnings
 from functools import singledispatch
 from urllib.parse import urlparse
 import requests
-from pydantic import BaseModel, Field
+
+try:
+    from pydantic.v1 import BaseModel, Field
+except ImportError:
+    from pydantic import BaseModel, Field
+
 from pystac import Asset, Item, ItemCollection
 from pystac.utils import datetime_to_str
 from pystac_client import ItemSearch
