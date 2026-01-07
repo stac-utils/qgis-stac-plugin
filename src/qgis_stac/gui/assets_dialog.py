@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-    Assets dialog, shows all the available assets.
+Assets dialog, shows all the available assets.
 """
 
 import os
 import os.path
 
 from pathlib import Path
+from urllib.parse import quote
 from osgeo import ogr, gdal
 
 from functools import partial
@@ -29,31 +30,31 @@ from qgis.core import (
     QgsRasterLayer,
     QgsTask,
     QgsVectorLayer,
-
 )
 from ..lib import planetary_computer as pc
 
 from ..resources import *
 
-from ..api.models import (
-    AssetLayerType,
-    ApiCapability
-)
+from ..api.models import AssetLayerType, ApiCapability
 
 from ..definitions.constants import (
     GDAL_METADATA_NAME,
     GDAL_SUBDATASETS_KEY,
-    SAS_SUBSCRIPTION_VARIABLE
+    SAS_SUBSCRIPTION_VARIABLE,
 )
 
-from ..conf import (
-    Settings,
-    settings_manager
-)
+from ..conf import Settings, settings_manager
 
 from .asset_widget import AssetWidget
 
 from ..utils import log, tr
+
+from ..geozarr_vrt import (
+    GeoZarrVrtSpec,
+    build_multiscale_reflectance_vrt_temp,
+    derive_reflectance_base,
+    is_zarr_media_type,
+)
 
 DialogUi, _ = loadUiType(
     os.path.join(os.path.dirname(__file__), "../ui/item_assets_widget.ui")
@@ -61,15 +62,10 @@ DialogUi, _ = loadUiType(
 
 
 class AssetsDialog(QtWidgets.QDialog, DialogUi):
-    """ Dialog for adding and downloading STAC Item assets"""
+    """Dialog for adding and downloading STAC Item assets"""
 
-    def __init__(
-            self,
-            item,
-            parent,
-            main_widget
-    ):
-        """ Constructor
+    def __init__(self, item, parent, main_widget):
+        """Constructor
 
         :param item: Item object with assets that are to be shown.
         :type item: model.Item
@@ -86,7 +82,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.assets = item.assets
         self.parent = parent
         self.main_widget = main_widget
-        self.vis_url_string = '/vsicurl/'
+        self.vis_url_string = "/vsicurl/"
         self.download_result = {}
         self.load_assets = {}
         self.download_assets = {}
@@ -99,24 +95,15 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.layers = {}
 
     def prepare_assets(self):
-        """ Loads the dialog with the list of assets.
-        """
+        """Loads the dialog with the list of assets."""
 
         if len(self.assets) > 0:
-            self.title.setText(
-                tr("Item {}").
-                format(self.item.id)
-            )
+            self.title.setText(tr("Item {}").format(self.item.id))
             self.asset_count.setText(
-                tr("{} available asset(s)").
-                format(len(self.assets))
-
+                tr("{} available asset(s)").format(len(self.assets))
             )
         else:
-            self.title.setText(
-                tr("Item {} has no assets").
-                format(self.item.id)
-            )
+            self.title.setText(tr("Item {} has no assets").format(self.item.id))
 
         scroll_container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout()
@@ -154,21 +141,16 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             layout.addWidget(asset_widget)
             layout.setAlignment(asset_widget, QtCore.Qt.AlignTop)
         vertical_spacer = QtWidgets.QSpacerItem(
-            20,
-            40,
-            QtWidgets.QSizePolicy.Minimum,
-            QtWidgets.QSizePolicy.Expanding
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
         )
         layout.addItem(vertical_spacer)
         scroll_container.setLayout(layout)
-        self.scroll_area.setHorizontalScrollBarPolicy(
-            QtCore.Qt.ScrollBarAlwaysOff
-        )
+        self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setWidget(scroll_container)
 
     def load_asset_selected(self, asset):
-        """ Handles operations after an asset load box has been selected.
+        """Handles operations after an asset load box has been selected.
 
         :param asset: STAC item asset
         :type asset: ResourceAsset
@@ -181,117 +163,116 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         self.load_btn.setEnabled(True)
 
     def download_asset_selected(self, asset):
-        """ Handles operations after an asset download box has been selected.
+        """Handles operations after an asset download box has been selected.
 
         :param asset: STAC item asset
         :type asset: ResourceAsset
         """
         self.download_assets[asset.title] = asset
         self.download_btn.setText(
-            f"Download the selected assets "
-            f"({len(self.download_assets.items())})"
+            f"Download the selected assets " f"({len(self.download_assets.items())})"
         )
         self.download_btn.setEnabled(True)
 
     def load_asset_deselected(self, asset):
-        """ Handles operations after an asset load box has been deselected.
+        """Handles operations after an asset load box has been deselected.
 
         :param asset: STAC item asset
         :type asset: ResourceAsset
         """
 
-        self.load_assets.pop(asset.title) \
-            if self.load_assets.get(asset.title, None) else None
+        (
+            self.load_assets.pop(asset.title)
+            if self.load_assets.get(asset.title, None)
+            else None
+        )
 
-        self.load_btn.setText(
-            f"Add selected assets as layers "
-            f"({len(self.load_assets.items())})"
-        ) if len(self.load_assets.items()) > 0 else \
+        (
             self.load_btn.setText(
-                "Add assets as layers"
+                f"Add selected assets as layers " f"({len(self.load_assets.items())})"
             )
+            if len(self.load_assets.items()) > 0
+            else self.load_btn.setText("Add assets as layers")
+        )
 
         self.load_btn.setEnabled(len(self.load_assets.items()) > 0)
 
     def download_asset_deselected(self, asset):
-        """ Handles operations after an asset download box has been deselected.
+        """Handles operations after an asset download box has been deselected.
 
         :param asset: STAC item asset
         :type asset: ResourceAsset
         """
 
-        self.download_assets.pop(asset.title) \
-            if self.download_assets.get(asset.title) else None
-
-        self.download_btn.setText(
-            f"Download the selected assets "
-            f"({len(self.download_assets.items())})"
-        ) if len(self.download_assets.items()) > 0 else \
-            self.download_btn.setText(
-                "Download the selected assets"
-            )
-
-        self.download_btn.setEnabled(
-            len(self.download_assets.items()) > 0
+        (
+            self.download_assets.pop(asset.title)
+            if self.download_assets.get(asset.title)
+            else None
         )
 
+        (
+            self.download_btn.setText(
+                f"Download the selected assets "
+                f"({len(self.download_assets.items())})"
+            )
+            if len(self.download_assets.items()) > 0
+            else self.download_btn.setText("Download the selected assets")
+        )
+
+        self.download_btn.setEnabled(len(self.download_assets.items()) > 0)
+
     def load_btn_clicked(self):
-        """ Runs logic after the asset load button has been clicked.
-        """
+        """Runs logic after the asset load button has been clicked."""
         for key, asset in self.load_assets.items():
             try:
                 load_task = QgsTask.fromFunction(
-                    'Load asset function',
-                    self.load_asset(asset)
+                    "Load asset function", self.load_asset(asset)
                 )
                 QgsApplication.taskManager().addTask(load_task)
             except Exception as err:
-                log(tr("An error occurred when running task for "
-                       "loading an asset, error message \"{}\" ".format(err))
+                log(
+                    tr(
+                        "An error occurred when running task for "
+                        'loading an asset, error message "{}" '.format(err)
                     )
+                )
 
     def download_btn_clicked(self):
-        """ Runs logic after the asset download button has been clicked.
-        """
+        """Runs logic after the asset download button has been clicked."""
         auto_asset_loading = settings_manager.get_value(
-            Settings.AUTO_ASSET_LOADING,
-            False,
-            setting_type=bool
+            Settings.AUTO_ASSET_LOADING, False, setting_type=bool
         )
 
         for key, asset in self.download_assets.items():
             try:
                 download_task = QgsTask.fromFunction(
-                    'Download asset function',
-                    self.download_asset(asset, auto_asset_loading)
+                    "Download asset function",
+                    self.download_asset(asset, auto_asset_loading),
                 )
                 QgsApplication.taskManager().addTask(download_task)
 
             except Exception as err:
                 self.update_inputs(True)
-                log(tr("An error occured when running task for"
-                       " downloading asset {}, error message \"{}\" ").format(
-                    asset.title,
-                    str(err))
+                log(
+                    tr(
+                        "An error occured when running task for"
+                        ' downloading asset {}, error message "{}" '
+                    ).format(asset.title, str(err))
                 )
 
     def update_inputs(self, enabled):
-        """ Updates the inputs widgets state in the main search item widget.
+        """Updates the inputs widgets state in the main search item widget.
 
         :param enabled: Whether to enable the inputs or disable them.
         :type enabled: bool
         """
         self.scroll_area.setEnabled(enabled)
         self.parent.update_inputs(enabled)
-        self.load_btn.setEnabled(
-            enabled and len(self.load_assets.items()) > 0
-        )
-        self.download_btn.setEnabled(
-            enabled and len(self.download_assets.items()) > 0
-        )
+        self.load_btn.setEnabled(enabled and len(self.load_assets.items()) > 0)
+        self.download_btn.setEnabled(enabled and len(self.download_assets.items()) > 0)
 
     def download_asset(self, asset, load_asset=False):
-        """ Downloads the passed asset into directory defined in the plugin settings.
+        """Downloads the passed asset into directory defined in the plugin settings.
 
         :param asset: Item asset
         :type asset: models.ResourceAsset
@@ -300,11 +281,10 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         :type load_asset: bool
         """
         self.update_inputs(False)
-        download_folder = settings_manager.get_value(
-            Settings.DOWNLOAD_FOLDER
+        download_folder = settings_manager.get_value(Settings.DOWNLOAD_FOLDER)
+        item_folder = (
+            os.path.join(download_folder, self.item.id) if download_folder else None
         )
-        item_folder = os.path.join(download_folder, self.item.id) \
-            if download_folder else None
         feedback = QgsProcessingFeedback()
         try:
             if item_folder:
@@ -314,29 +294,29 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         except FileNotFoundError as fn:
             self.update_inputs(True)
             self.main_widget.show_message(
-                tr("Folder {} is not found").format(download_folder),
-                Qgis.Critical
+                tr("Folder {} is not found").format(download_folder), Qgis.Critical
             )
             return
         except PermissionError as pe:
             self.update_inputs(True)
             self.main_widget.show_message(
-                tr("Permission error writing in download folder"),
-                Qgis.Critical
+                tr("Permission error writing in download folder"), Qgis.Critical
             )
             return
 
         url = self.sign_asset_href(asset.href)
         extension = Path(asset.href).suffix
-        extension_suffix = extension.split('?')[0] if extension else ""
+        extension_suffix = extension.split("?")[0] if extension else ""
         title = f"{asset.title}{extension_suffix}"
 
         title = self.clean_filename(title)
 
-        output = os.path.join(
-            item_folder, title
-        ) if item_folder else QgsProcessing.TEMPORARY_OUTPUT
-        params = {'URL': url, 'OUTPUT': output}
+        output = (
+            os.path.join(item_folder, title)
+            if item_folder
+            else QgsProcessing.TEMPORARY_OUTPUT
+        )
+        params = {"URL": url, "OUTPUT": output}
 
         self.download_result["file"] = output
 
@@ -348,12 +328,10 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         ]
         try:
             self.main_widget.show_message(
-                tr("Download for file {} to {} has started."
-                   ).format(
-                    title,
-                    item_folder
+                tr("Download for file {} to {} has started.").format(
+                    title, item_folder
                 ),
-                level=Qgis.Info
+                level=Qgis.Info,
             )
             self.main_widget.show_progress(
                 f"Downloading {url}",
@@ -361,24 +339,21 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 maximum=100,
             )
 
-            feedback.progressChanged.connect(
-                self.main_widget.update_progress_bar
-            )
+            feedback.progressChanged.connect(self.main_widget.update_progress_bar)
             feedback.progressChanged.connect(self.download_progress)
 
-            results = processing.run(
-                "qgis:filedownloader",
-                params,
-                feedback=feedback
-            )
+            results = processing.run("qgis:filedownloader", params, feedback=feedback)
 
             # After asset download has finished, load the asset
             # if it can be loaded as a QGIS map layer.
-            if results and load_asset and asset.type in ''.join(layer_types):
+            if results and load_asset and asset.type in "".join(layer_types):
                 asset.href = self.download_result["file"]
                 asset.name = title
-                asset.type = AssetLayerType.GEOTIFF.value \
-                    if AssetLayerType.COG.value in asset.type else asset.type
+                asset.type = (
+                    AssetLayerType.GEOTIFF.value
+                    if AssetLayerType.COG.value in asset.type
+                    else asset.type
+                )
                 self.load_asset(asset)
 
         except Exception as e:
@@ -388,7 +363,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             )
 
     def sign_asset_href(self, asset_href):
-        """ Signs the SAS based asset href.
+        """Signs the SAS based asset href.
 
         :param asset_href: Asset resource href
         :type asset_href: str
@@ -402,10 +377,12 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         sas_key = os.getenv(SAS_SUBSCRIPTION_VARIABLE)
         connection = settings_manager.get_current_connection()
 
-        if connection and \
-                connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
-            sas_key = connection.sas_subscription_key \
-                if connection.sas_subscription_key else sas_key
+        if connection and connection.capability == ApiCapability.SUPPORT_SAS_TOKEN:
+            sas_key = (
+                connection.sas_subscription_key
+                if connection.sas_subscription_key
+                else sas_key
+            )
 
             pc.set_subscription_key(sas_key) if sas_key else None
 
@@ -424,15 +401,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         if value == 100:
             self.update_inputs(True)
             self.main_widget.show_message(
-                tr("Download for file {} has finished."
-                   ).format(
+                tr("Download for file {} has finished.").format(
                     self.download_result["file"]
                 ),
-                level=Qgis.Info
+                level=Qgis.Info,
             )
 
     def clean_filename(self, filename):
-        """ Creates a safe filename by removing operating system
+        """Creates a safe filename by removing operating system
         invalid filename characters.
 
         :param filename: File name
@@ -445,49 +421,89 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         for character in characters:
             if character in filename:
-                filename = filename.replace(character, '_')
+                filename = filename.replace(character, "_")
 
         return filename
 
     def load_asset(self, asset):
-        """ Loads asset into QGIS.
+        """Loads asset into QGIS.
             Checks if the asset type is a loadable layer inside QGIS.
 
         :param asset: Item asset
         :type asset: models.ResourceAsset
         """
 
-        asset_type = asset.type
-        raster_types = ','.join([
-            AssetLayerType.COG.value,
-            AssetLayerType.GEOTIFF.value,
-            AssetLayerType.NETCDF.value
-        ])
-        vector_types = ','.join([
-            AssetLayerType.GEOJSON.value,
-            AssetLayerType.GEOPACKAGE.value
-        ])
-        point_cloud_types = ','.join([
-            AssetLayerType.COPC.value,
-        ])
+        asset_type = asset.type or ""
+        raster_types = ",".join(
+            [
+                AssetLayerType.COG.value,
+                AssetLayerType.GEOTIFF.value,
+                AssetLayerType.NETCDF.value,
+            ]
+        )
+        vector_types = ",".join(
+            [AssetLayerType.GEOJSON.value, AssetLayerType.GEOPACKAGE.value]
+        )
+        point_cloud_types = ",".join(
+            [
+                AssetLayerType.COPC.value,
+            ]
+        )
         current_asset_href = asset.href
         asset.href = self.sign_asset_href(asset.href)
 
-        if asset_type in raster_types:
+        if asset_type in raster_types or is_zarr_media_type(asset_type):
             layer_type = QgsMapLayer.RasterLayer
         elif asset_type in vector_types:
             layer_type = QgsMapLayer.VectorLayer
         elif asset_type in point_cloud_types:
             layer_type = QgsMapLayer.PointCloudLayer
 
-        if asset_type in ''.join(
-                [AssetLayerType.COG.value]
-        ) and \
-                asset_type != AssetLayerType.GEOTIFF.value:
-            asset_href = f"{self.vis_url_string}" \
-                         f"{asset.href}"
-        elif asset_type in ''.join([
-            AssetLayerType.NETCDF.value]):
+        if (
+            asset_type in "".join([AssetLayerType.COG.value])
+            and asset_type != AssetLayerType.GEOTIFF.value
+        ):
+            asset_href = f"{self.vis_url_string}" f"{asset.href}"
+        elif is_zarr_media_type(asset_type):
+            asset_name = asset.name or asset.title
+            ref_base = derive_reflectance_base(asset.href) or asset.href
+
+            xyz_url = self._find_item_link_href("xyz")
+            if xyz_url and ("reflectance" in (asset.roles or [])):
+                try:
+                    encoded_url = quote(str(xyz_url), safe=":/?{}%")
+                    xyz_uri = f"type=xyz&url={encoded_url}"
+                    preview_layer = QgsRasterLayer(
+                        xyz_uri, f"{asset_name} (preview)", "wms"
+                    )
+                    if preview_layer.isValid():
+                        QgsProject.instance().addMapLayer(preview_layer)
+                        self.main_widget.show_message(
+                            tr("Sucessfully added asset {} as a map layer ").format(
+                                asset_name
+                            ),
+                            level=Qgis.Info,
+                        )
+                except Exception:
+                    pass
+
+                epsg, gt = self._best_proj_epsg_geotransform()
+                self.update_inputs(False)
+                self.add_layer_task(
+                    ref_base,
+                    f"{asset_name} (data)",
+                    layer_type,
+                    geozarr=True,
+                    hide_on_add=True,
+                    geozarr_epsg=epsg,
+                    geozarr_geotransform=gt,
+                )
+                return
+
+            self.update_inputs(False)
+            self.add_layer_task(ref_base, asset_name, layer_type, geozarr=True)
+            return
+        elif asset_type in "".join([AssetLayerType.NETCDF.value]):
             # For NETCDF assets type we need to download the intended asset first,
             # then we read from the downloaded file and use all the available NETCDF
             # variables on the file to load the layer.
@@ -500,9 +516,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                     gdal.UseExceptions()
                     open_file = gdal.Open(asset.href)
                     if open_file is not None:
-                        file_metadata = open_file.GetMetadata(
-                            GDAL_SUBDATASETS_KEY
-                        )
+                        file_metadata = open_file.GetMetadata(GDAL_SUBDATASETS_KEY)
                         file_uris = []
                         for key, value in file_metadata.items():
                             if GDAL_METADATA_NAME in key:
@@ -512,8 +526,9 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
                 except RuntimeError as err:
                     asset_href = asset.href
                     log(
-                        tr("Runtime error when adding a NETCDF asset,"
-                           " {}").format(str(err))
+                        tr("Runtime error when adding a NETCDF asset," " {}").format(
+                            str(err)
+                        )
                     )
             else:
                 asset.href = current_asset_href
@@ -532,8 +547,17 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         else:
             self.add_layer_task(asset_href, asset_name, layer_type)
 
-    def add_layer_task(self, asset_href, asset_name, layer_type):
-        """ Helps in spinning up a QGIS task for loading the required asset
+    def add_layer_task(
+        self,
+        asset_href,
+        asset_name,
+        layer_type,
+        geozarr=False,
+        hide_on_add=False,
+        geozarr_epsg=None,
+        geozarr_geotransform=None,
+    ):
+        """Helps in spinning up a QGIS task for loading the required asset
 
         :param asset_href: URI of the asset
         :type asset_href: str
@@ -548,14 +572,14 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         layer_loader = LayerLoader(
             asset_href,
             asset_name,
-            layer_type
+            layer_type,
+            geozarr=geozarr,
+            hide_on_add=hide_on_add,
+            geozarr_epsg=geozarr_epsg,
+            geozarr_geotransform=geozarr_geotransform,
         )
 
-        add_layer_partial = partial(
-            self.add_layer,
-            asset_name,
-            layer_loader
-        )
+        add_layer_partial = partial(self.add_layer, asset_name, layer_loader)
 
         # Using signal approach to detect the results of the layer loader
         # task as the callback function approach doesn't make the task
@@ -567,7 +591,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         QgsApplication.taskManager().addTask(layer_loader)
 
         self.main_widget.show_progress(
-            f"Adding asset \"{asset_name}\" into QGIS",
+            f'Adding asset "{asset_name}" into QGIS',
             minimum=0,
             maximum=100,
         )
@@ -575,7 +599,7 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
         log(tr("Started adding asset into QGIS"))
 
     def add_layer(self, asset_name, layer_loader):
-        """ Adds layer into the current QGIS project.
+        """Adds layer into the current QGIS project.
             For the layer to be added successfully, the task for loading
             layer need to exist and the corresponding layer need to be
             available.
@@ -591,9 +615,12 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
             layer = layer_loader.layer
             QgsProject.instance().addMapLayer(layer)
 
-            message = tr(
-                "Sucessfully added asset {} as a map layer "
-            ).format(
+            if getattr(layer_loader, "hide_on_add", False):
+                node = QgsProject.instance().layerTreeRoot().findLayer(layer.id())
+                if node is not None:
+                    node.setItemVisibilityChecked(False)
+
+            message = tr("Sucessfully added asset {} as a map layer ").format(
                 asset_name
             )
             level = Qgis.Info
@@ -613,63 +640,132 @@ class AssetsDialog(QtWidgets.QDialog, DialogUi):
 
         self.update_inputs(True)
         log(message)
-        self.main_widget.show_message(
-            message,
-            level=level
-        )
+        self.main_widget.show_message(message, level=level)
 
     def layer_loader_terminated(self):
-        """ Shows message to user when layer loading task has been terminated"""
+        """Shows message to user when layer loading task has been terminated"""
         message = tr("QGIS background task for loading assets was terminated.")
         self.update_inputs(True)
         log(message)
-        self.main_widget.show_message(
-            message,
-            level=Qgis.Critical
-        )
+        self.main_widget.show_message(message, level=Qgis.Critical)
 
     def handle_layer_error(self, message):
-        """ Handles the error message from the layer loading task
+        """Handles the error message from the layer loading task
 
         :param message: The error message
         :type message: str
         """
         self.update_inputs(True)
         log(message)
-        self.main_widget.show_message(
-            message
-        )
+        self.main_widget.show_message(message)
+
+    def _find_item_link_href(self, rel: str):
+        wanted = (rel or "").lower()
+        item_links = getattr(self.item, "links", None) or []
+        for link in item_links:
+            try:
+                if isinstance(link, dict):
+                    link_rel = (link.get("rel") or "").lower()
+                    link_href = link.get("href")
+                else:
+                    link_rel = (getattr(link, "rel", None) or "").lower()
+                    link_href = getattr(link, "href", None)
+
+                if link_rel == wanted and link_href:
+                    return str(link_href)
+            except Exception:
+                continue
+        return None
+
+    def _best_proj_epsg_geotransform(self):
+        stac_obj = getattr(self.item, "stac_object", None)
+        props = getattr(stac_obj, "properties", None)
+        if not isinstance(props, dict):
+            return None, None
+
+        epsg = props.get("proj:epsg")
+        proj_code = props.get("proj:code")
+
+        try:
+            epsg_i = int(epsg) if epsg is not None else None
+        except Exception:
+            epsg_i = None
+
+        if epsg_i is None and isinstance(proj_code, str):
+            code = proj_code.strip()
+            if code.upper().startswith("EPSG:"):
+                try:
+                    epsg_i = int(code.split(":", 1)[1])
+                except Exception:
+                    epsg_i = None
+
+        transform = props.get("proj:transform")
+        if epsg_i and isinstance(transform, (list, tuple)) and len(transform) == 6:
+            try:
+                gt = (
+                    float(transform[0]),
+                    float(transform[1]),
+                    float(transform[2]),
+                    float(transform[3]),
+                    float(transform[4]),
+                    float(transform[5]),
+                )
+                return int(epsg_i), gt
+            except Exception:
+                return int(epsg_i), None
+
+        return int(epsg_i) if epsg_i else None, None
 
 
 class LayerLoader(QgsTask):
-    """ Prepares and loads items assets inside QGIS as layers."""
+    """Prepares and loads items assets inside QGIS as layers."""
 
     def __init__(
-            self,
-            layer_uri,
-            layer_name,
-            layer_type
+        self,
+        layer_uri,
+        layer_name,
+        layer_type,
+        geozarr=False,
+        hide_on_add=False,
+        geozarr_epsg=None,
+        geozarr_geotransform=None,
     ):
 
         super().__init__()
         self.layer_uri = layer_uri
         self.layer_name = layer_name
         self.layer_type = layer_type
+        self.geozarr = geozarr
+        self.hide_on_add = hide_on_add
+        self.geozarr_epsg = geozarr_epsg
+        self.geozarr_geotransform = geozarr_geotransform
         self.error = None
         self.layer = None
         self.layers = []
 
     def run(self):
-        """ Operates the main layers loading logic
-        """
-        log(
-            tr("Fetching layers in a background task.")
-        )
+        """Operates the main layers loading logic"""
+        log(tr("Fetching layers in a background task."))
         if self.layer_type is QgsMapLayer.RasterLayer:
-            self.layer = QgsRasterLayer(
-                self.layer_uri,
-                self.layer_name
-            )
+            if self.geozarr:
+                try:
+                    spec = GeoZarrVrtSpec(
+                        reflectance_base_url=str(self.layer_uri),
+                        name=str(self.layer_name),
+                        vsi_prefix="/vsicurl",
+                        epsg=self.geozarr_epsg,
+                        srs_wkt=None,
+                        bbox=None,
+                        geotransform=self.geozarr_geotransform,
+                    )
+                    self.layer_uri = build_multiscale_reflectance_vrt_temp(spec)
+                except Exception as err:
+                    self.error = tr("Failed to build/read VRT for GeoZarr: {}").format(
+                        str(err)
+                    )
+                    log(self.error)
+                    return False
+            self.layer = QgsRasterLayer(self.layer_uri, self.layer_name)
             return self.layer.isValid()
         elif self.layer_type is QgsMapLayer.VectorLayer:
             extension = Path(self.layer_uri).suffix
@@ -677,9 +773,7 @@ class LayerLoader(QgsTask):
 
             if extension is not ".gpkg":
                 self.layer = QgsVectorLayer(
-                    self.layer_uri,
-                    self.layer_name,
-                    AssetLayerType.VECTOR.value
+                    self.layer_uri, self.layer_name, AssetLayerType.VECTOR.value
                 )
                 result = self.layer.isValid()
             else:
@@ -689,7 +783,7 @@ class LayerLoader(QgsTask):
                     layer = QgsVectorLayer(
                         f"{gpkg_connection}|layername={layer_item.GetName()}",
                         layer_item.GetName(),
-                        AssetLayerType.VECTOR.value
+                        AssetLayerType.VECTOR.value,
                     )
                     self.layers.append(layer.clone())
                     # If any layer from the geopackage is valid, load it.
@@ -698,11 +792,7 @@ class LayerLoader(QgsTask):
                         result = True
             return result
         elif self.layer_type is QgsMapLayer.PointCloudLayer:
-            self.layer = QgsPointCloudLayer(
-                self.layer_uri,
-                self.layer_name,
-                'copc'
-            )
+            self.layer = QgsPointCloudLayer(self.layer_uri, self.layer_name, "copc")
             return self.layer.isValid()
         else:
             raise NotImplementedError
@@ -710,17 +800,14 @@ class LayerLoader(QgsTask):
         return False
 
     def finished(self, result: bool):
-        """ Calls the handler responsible for adding the
+        """Calls the handler responsible for adding the
          layer into QGIS project.
 
         :param result: Whether the run() operation finished successfully
         :type result: bool
         """
         if result and self.layer:
-            log(
-                f"Fetched layer with URI "
-                f"{self.layer_uri} "
-            )
+            log(f"Fetched layer with URI " f"{self.layer_uri} ")
             # Due to the way QGIS is handling layers sharing between tasks and
             # the main thread, sending the layer to the main thread
             # without cloning it can lead to unpredicted crashes,
@@ -728,14 +815,12 @@ class LayerLoader(QgsTask):
             # be used in the main thread.
             self.layer = self.layer.clone()
         else:
-            provider_error = tr("error {}").format(
-                self.layer.dataProvider().error()
-            ) if self.layer and self.layer.dataProvider() else None
+            provider_error = (
+                tr("error {}").format(self.layer.dataProvider().error())
+                if self.layer and self.layer.dataProvider()
+                else None
+            )
             self.error = tr(
-                f"Couldn't load layer "
-                f"{self.layer_uri},"
-                f"{provider_error}"
+                f"Couldn't load layer " f"{self.layer_uri}," f"{provider_error}"
             )
-            log(
-                self.error
-            )
+            log(self.error)

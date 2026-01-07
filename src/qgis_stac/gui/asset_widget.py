@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    Asset item widget, used as a template for each item asset.
+Asset item widget, used as a template for each item asset.
 """
 
 import os
@@ -25,7 +25,7 @@ WidgetUi, _ = loadUiType(
 
 
 class AssetWidget(QtWidgets.QWidget, WidgetUi):
-    """ Widget that provide UI for asset details,
+    """Widget that provide UI for asset details,
     assets loading and downloading functionalities
     """
 
@@ -49,7 +49,7 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
         self.initialize_ui()
 
     def initialize_ui(self):
-        """ Populate UI inputs when loading the widget"""
+        """Populate UI inputs when loading the widget"""
 
         self.title_la.setText(self.asset.title)
         self.type_la.setText(self.asset.type)
@@ -63,53 +63,52 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
 
         if asset_load:
             self.load_box.setToolTip(
-                tr("Asset contains {} media type which "
-                   "cannot be loaded as a map layer in QGIS"
-                   ).format(self.asset.type)
+                tr(
+                    "Asset contains {} media type which "
+                    "cannot be loaded as a map layer in QGIS"
+                ).format(self.asset.type)
             )
 
     def asset_loadable(self):
-        """ Returns if asset can be added into QGIS"""
+        """Returns if asset can be added into QGIS"""
 
         layer_types = [
             AssetLayerType.COG.value,
             AssetLayerType.COPC.value,
             AssetLayerType.GEOTIFF.value,
             AssetLayerType.NETCDF.value,
+            AssetLayerType.ZARR.value,
         ]
 
         if self.asset.type is not None:
-            return self.asset.type in ''.join(layer_types)
+            asset_type = self.asset.type.lower()
+            return any(layer_type.lower() in asset_type for layer_type in layer_types)
         else:
             try:
-                request = QtNetwork.QNetworkRequest(
-                    QtCore.QUrl(self.asset.href)
-                )
-                response = QgsNetworkAccessManager().\
-                    instance().blockingGet(request)
+                request = QtNetwork.QNetworkRequest(QtCore.QUrl(self.asset.href))
+                response = QgsNetworkAccessManager().instance().blockingGet(request)
                 content_type = response.rawHeader(
-                    QtCore.QByteArray(
-                        'content-type'.encode()
-                    )
+                    QtCore.QByteArray("content-type".encode())
                 )
-                content_type = str(content_type, 'utf-8')
+                content_type = str(content_type, "utf-8")
 
                 for layer_type in layer_types:
-                    layer_type_values = layer_type.split(' ')
+                    layer_type_values = layer_type.split(" ")
                     for value in layer_type_values:
                         if value in content_type:
                             return True
 
             except Exception as e:
-                log(f"Problem fetching asset "
+                log(
+                    f"Problem fetching asset "
                     f"type from the asset url {self.asset.href},"
                     f" error {e}"
-                    )
+                )
 
             return False
 
     def asset_load_selected(self, state=None):
-        """ Emits the needed signal when an asset has been selected
+        """Emits the needed signal when an asset has been selected
         for loading.
         """
         if self.load_box.isChecked():
@@ -118,9 +117,9 @@ class AssetWidget(QtWidgets.QWidget, WidgetUi):
             self.load_deselected.emit()
 
     def asset_download_selected(self, state=None):
-        """ Emits the needed signal when an asset has been selected
-            for downloading.
-            """
+        """Emits the needed signal when an asset has been selected
+        for downloading.
+        """
         if self.download_box.isChecked():
             self.download_selected.emit()
         else:

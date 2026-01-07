@@ -29,6 +29,8 @@
 
 ## [Unreleased] 
 
+- Experimental: add GeoZarr (Zarr v3) reflectance loading with a fast XYZ preview layer and a GDAL VRT-backed “data” layer.
+
 ### 1.0.0-pre 2022-01-11
 - Changed loading and downloading assets workflow [#93](https://github.com/stac-utils/qgis-stac-plugin/pull/93).
 - Implemented testing connection functionality.
